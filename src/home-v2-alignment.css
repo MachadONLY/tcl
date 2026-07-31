@@ -1,0 +1,62 @@
+/* Align the second dashboard row to the exact column geometry of the first. */
+.career-v2 .v2-bottom {
+  grid-template-columns: minmax(0, 1.58fr) minmax(330px, 0.82fr);
+}
+
+.career-v2 .v2-editorial-news {
+  grid-template-columns: minmax(150px, 0.84fr) minmax(0, 1.16fr);
+}
+
+.career-v2 .v2-news-story {
+  padding: clamp(14px, 1.1vw, 18px);
+}
+
+.career-v2 .v2-news-story h2 {
+  max-width: 16ch;
+  font-size: clamp(21px, 1.55vw, 27px);
+}
+
+@media (max-width: 1320px) {
+  .career-v2 .v2-bottom {
+    grid-template-columns: minmax(0, 1.5fr) minmax(305px, 0.86fr);
+  }
+
+  .career-v2 .v2-editorial-news {
+    grid-template-columns: minmax(130px, 0.78fr) minmax(0, 1.22fr);
+  }
+}
+
+@media (max-width: 1120px) {
+  .career-v2 .v2-bottom {
+    grid-template-columns: minmax(0, 1.42fr) minmax(280px, 0.88fr);
+  }
+
+  .career-v2 .v2-editorial-news {
+    grid-template-columns: minmax(112px, 0.7fr) minmax(0, 1.3fr);
+  }
+
+  .career-v2 .v2-news-story {
+    padding: 13px;
+  }
+
+  .career-v2 .v2-news-story h2 {
+    font-size: 21px;
+  }
+}
+
+@media (max-width: 900px) {
+  .career-v2 .v2-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .career-v2 .v2-editorial-news {
+    grid-template-columns: minmax(180px, 0.9fr) minmax(0, 1.1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .career-v2 .v2-editorial-news {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(170px, 0.9fr) minmax(0, 1.1fr);
+  }
+}
