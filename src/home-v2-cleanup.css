@@ -1,33 +1,514 @@
-.career-v2 .v2-right-stack {
-  grid-template-rows: minmax(0, 1fr);
-  gap: 0;
+/*
+ * Career Home composition pass
+ * Keeps every existing system and reorganizes the dashboard into one
+ * deliberate game-menu canvas: fixture + inbox above, competition + news below.
+ */
+
+.career-v2 {
+  --composition-gap: clamp(12px, 1vw, 16px);
+  --composition-radius: 18px;
+  --composition-shadow: 0 12px 34px rgba(22, 28, 19, 0.075);
+  padding: clamp(10px, 1.2vw, 18px);
 }
 
+.career-v2 .v2-shell {
+  width: min(100%, 1660px);
+  height: min(100%, 960px);
+  min-height: 680px;
+  grid-template-columns: 216px minmax(0, 1fr);
+  border-radius: 25px;
+}
+
+/* Sidebar: quieter, denser and aligned to the dashboard grid. */
+.career-v2 .v2-sidebar {
+  padding: 18px 14px 14px;
+}
+
+.career-v2 .v2-brand {
+  padding: 2px 8px 16px;
+}
+
+.career-v2 .v2-club {
+  min-height: 58px;
+  padding: 10px;
+  border-radius: 14px;
+}
+
+.career-v2 .v2-sidebar nav {
+  gap: 2px;
+  padding-top: 13px;
+}
+
+.career-v2 .v2-nav-item {
+  min-height: 38px;
+  border-radius: 10px;
+}
+
+.career-v2 .v2-nav-divider {
+  margin-top: 9px;
+}
+
+.career-v2 .v2-manager {
+  min-height: 52px;
+  padding-top: 11px;
+}
+
+/* Main dashboard geometry. */
+.career-v2 .v2-main {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(103, 166, 51, 0.035), transparent 28%),
+    linear-gradient(180deg, #f8f9f6 0%, #f2f4f0 100%);
+}
+
+.career-v2 .v2-grid {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(310px, 0.94fr) minmax(345px, 1.06fr);
+  gap: var(--composition-gap);
+  padding: var(--composition-gap);
+}
+
+.career-v2 .v2-top,
+.career-v2 .v2-bottom {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  gap: var(--composition-gap);
+  align-items: stretch;
+}
+
+.career-v2 .v2-top {
+  grid-template-columns: minmax(0, 1.58fr) minmax(330px, 0.82fr);
+}
+
+.career-v2 .v2-bottom {
+  grid-template-columns: minmax(520px, 1.12fr) minmax(390px, 0.88fr);
+}
+
+.career-v2 .v2-top > *,
+.career-v2 .v2-bottom > *,
+.career-v2 [data-competition-panel],
+.career-v2 .v2-right-stack {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* One card language throughout the screen. */
+.career-v2 .v2-next-match,
+.career-v2 .v2-mailbox,
+.career-v2 .v2-card {
+  border-radius: var(--composition-radius);
+  box-shadow: var(--composition-shadow);
+}
+
+.career-v2 .v2-mailbox,
+.career-v2 .v2-card {
+  border-color: #dde1da;
+}
+
+/* Fixture: clear focal point, but not visually oversized. */
+.career-v2 .v2-next-match {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.career-v2 .v2-next-match > header {
+  min-height: 58px;
+  padding: 16px 19px 7px;
+}
+
+.career-v2 .v2-fixture {
+  gap: clamp(13px, 1.4vw, 24px);
+  padding: 0 clamp(20px, 2.2vw, 34px) 7px;
+}
+
+.career-v2 .v2-fixture > div {
+  gap: 6px;
+}
+
+.career-v2 .v2-fixture > div > strong {
+  font-size: clamp(20px, 1.55vw, 24px);
+}
+
+.career-v2 .v2-fixture > section {
+  min-width: 138px;
+  gap: 3px;
+}
+
+.career-v2 .v2-fixture > section strong {
+  font-size: clamp(42px, 4vw, 60px);
+}
+
+.career-v2 .v2-crest.fixture {
+  width: clamp(62px, 5vw, 76px);
+  height: clamp(62px, 5vw, 76px);
+  border-radius: 18px;
+}
+
+.career-v2 .v2-next-match > footer {
+  min-height: 66px;
+  padding: 12px 18px;
+}
+
+.career-v2 .v2-next-match > footer > div {
+  min-width: min(250px, 42%);
+}
+
+/* Inbox: three clean rows aligned to the match card. */
+.career-v2 .v2-mailbox {
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 16px;
+}
+
+.career-v2 .v2-mailbox > header {
+  min-height: 52px;
+  align-items: flex-start;
+  padding: 1px 2px 10px;
+}
+
+.career-v2 .v2-mailbox h2 {
+  font-size: clamp(23px, 1.55vw, 27px);
+}
+
+.career-v2 .v2-mail-list {
+  min-height: 0;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+.career-v2 .v2-mail {
+  min-height: 0;
+  padding: 8px 2px;
+  gap: 10px;
+}
+
+.career-v2 .v2-mail-avatar {
+  width: 36px;
+  height: 36px;
+}
+
+.career-v2 .v2-mail-copy {
+  gap: 3px;
+}
+
+.career-v2 .v2-mail-copy > b {
+  font-size: 13px;
+  line-height: 1.18;
+}
+
+.career-v2 .v2-mail-copy > small {
+  max-width: 100%;
+  font-size: 10px;
+}
+
+/* The removed moment card no longer reserves any layout space. */
 .career-v2 .v2-moment {
   display: none !important;
 }
 
+.career-v2 .v2-right-stack {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+}
+
+/* Competition: compact enough to fit six rows, spacious enough to scan. */
+.career-v2 .v2-competition {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  padding: 16px 18px;
+}
+
+.career-v2 .v2-competition > header {
+  min-height: 46px;
+  align-items: flex-start;
+}
+
+.career-v2 .v2-card h2 {
+  font-size: clamp(24px, 1.65vw, 28px);
+}
+
+.career-v2 .v2-tabs {
+  min-height: 31px;
+  align-items: center;
+  margin: 7px 0 6px;
+}
+
+.career-v2 .v2-tabs button {
+  min-height: 30px;
+  padding-inline: 12px;
+}
+
+.career-v2 [data-competition-body] {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+}
+
+.career-v2 .v2-standing-row,
+.career-v2 .v2-ranking-row {
+  min-height: clamp(36px, 4.3vh, 42px);
+}
+
+.career-v2 .v2-standing-head,
+.career-v2 .v2-standing-row {
+  grid-template-columns: 24px minmax(128px, 1fr) 24px 76px 31px 35px;
+}
+
+.career-v2 .v2-ranking-head,
+.career-v2 .v2-ranking-row {
+  grid-template-columns: 24px minmax(150px, 1fr) 28px 38px 38px;
+}
+
+/* FIFA-style editorial tile: image and story share one coherent card. */
 .career-v2 .v2-editorial-news {
   width: 100%;
   height: 100%;
   min-height: 0;
-  grid-template-columns: minmax(210px, 1.04fr) minmax(0, 0.96fr);
+  display: grid;
+  grid-template-columns: minmax(205px, 0.98fr) minmax(0, 1.02fr);
+  border-radius: var(--composition-radius);
 }
 
 .career-v2 .v2-news-image,
 .career-v2 .v2-news-story {
+  width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
-@media (max-width: 1080px) {
+.career-v2 .v2-news-image img {
+  object-position: 50% 42%;
+}
+
+.career-v2 .v2-news-story {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: clamp(15px, 1.35vw, 20px);
+}
+
+.career-v2 .v2-news-story h2 {
+  max-width: 18ch;
+  font-size: clamp(22px, 1.75vw, 30px);
+  line-height: 1.01;
+}
+
+.career-v2 .v2-news-story p {
+  max-width: 50ch;
+  font-size: clamp(11px, 0.82vw, 13px);
+  line-height: 1.46;
+  -webkit-line-clamp: 6;
+}
+
+.career-v2 .v2-news-story > footer {
+  align-self: end;
+}
+
+/* Keep the floating game navigation clear of dashboard content. */
+.career-v2 .v2-toast {
+  bottom: 24px;
+}
+
+/* Laptop layout: sidebar contracts before content becomes cramped. */
+@media (max-width: 1320px) {
+  .career-v2 .v2-shell {
+    grid-template-columns: 198px minmax(0, 1fr);
+  }
+
+  .career-v2 .v2-top {
+    grid-template-columns: minmax(0, 1.5fr) minmax(305px, 0.86fr);
+  }
+
+  .career-v2 .v2-bottom {
+    grid-template-columns: minmax(485px, 1.08fr) minmax(350px, 0.92fr);
+  }
+
+  .career-v2 .v2-fixture {
+    padding-inline: 20px;
+  }
+
   .career-v2 .v2-editorial-news {
-    grid-template-columns: minmax(170px, 0.9fr) minmax(0, 1.1fr);
+    grid-template-columns: minmax(180px, 0.9fr) minmax(0, 1.1fr);
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1120px) {
+  .career-v2 .v2-shell {
+    grid-template-columns: 78px minmax(0, 1fr);
+  }
+
+  .career-v2 .v2-sidebar {
+    padding-inline: 10px;
+  }
+
+  .career-v2 .v2-brand {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .career-v2 .v2-brand > div,
+  .career-v2 .v2-club > div,
+  .career-v2 .v2-manager > div,
+  .career-v2 .v2-nav-divider,
+  .career-v2 .v2-nav-item > b {
+    display: none;
+  }
+
+  .career-v2 .v2-club,
+  .career-v2 .v2-manager {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .career-v2 .v2-nav-item {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding-inline: 0;
+  }
+
+  .career-v2 .v2-nav-item > i {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+  }
+
+  .career-v2 .v2-top {
+    grid-template-columns: minmax(0, 1.42fr) minmax(280px, 0.88fr);
+  }
+
+  .career-v2 .v2-bottom {
+    grid-template-columns: minmax(430px, 1fr) minmax(315px, 1fr);
+  }
+
+  .career-v2 .v2-news-story h2 {
+    font-size: 22px;
+  }
+}
+
+/* Tablets and narrow windows can scroll, but never overlap or clip cards. */
+@media (max-width: 900px) {
+  html.career-home-mode body {
+    overflow: auto;
+  }
+
+  .career-v2 {
+    height: auto;
+    min-height: 100dvh;
+    display: block;
+    padding: 0;
+  }
+
+  .career-v2 .v2-shell {
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    grid-template-columns: 1fr;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .career-v2 .v2-sidebar {
+    display: none;
+  }
+
+  .career-v2 .v2-main {
+    overflow: visible;
+  }
+
+  .career-v2 .v2-grid {
+    height: auto;
+    grid-template-rows: auto auto;
+    padding: 14px;
+  }
+
+  .career-v2 .v2-top,
+  .career-v2 .v2-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .career-v2 .v2-next-match {
+    min-height: 360px;
+  }
+
+  .career-v2 .v2-mailbox,
+  .career-v2 .v2-competition {
+    min-height: 330px;
+  }
+
+  .career-v2 .v2-editorial-news {
+    min-height: 330px;
+  }
+}
+
+@media (max-width: 620px) {
+  .career-v2 .v2-grid {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .career-v2 .v2-top,
+  .career-v2 .v2-bottom {
+    gap: 10px;
+  }
+
+  .career-v2 .v2-next-match {
+    min-height: 430px;
+  }
+
+  .career-v2 .v2-fixture {
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding-inline: 18px;
+  }
+
+  .career-v2 .v2-fixture > section {
+    order: -1;
+  }
+
+  .career-v2 .v2-fixture > div {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    justify-items: start;
+    width: 100%;
+    text-align: left;
+  }
+
+  .career-v2 .v2-crest.fixture {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+  }
+
+  .career-v2 .v2-next-match > footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .career-v2 .v2-next-match > footer > div {
+    min-width: 0;
+  }
+
   .career-v2 .v2-editorial-news {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(150px, 0.9fr) minmax(0, 1.1fr);
+    grid-template-rows: 175px minmax(0, 1fr);
+    min-height: 470px;
+  }
+
+  .career-v2 .v2-news-story h2 {
+    max-width: none;
+  }
+
+  .career-v2 .v2-standing-head,
+  .career-v2 .v2-standing-row {
+    grid-template-columns: 22px minmax(110px, 1fr) 22px 62px 27px 31px;
+    gap: 5px;
   }
 }
