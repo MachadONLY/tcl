@@ -1,4 +1,5 @@
 import "./home-v2-cleanup.css";
+import "./home-v2-alignment.css";
 
 function removeClubMoment() {
   document.querySelector(".career-v2 .v2-moment")?.remove();
