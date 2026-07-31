@@ -24,17 +24,10 @@ function setupWorkspaceAutoplay() {
 
   let timeoutId = 0;
   let currentIndex = Math.max(0, VIEW_ORDER.indexOf(workspace.dataset.activeView || "news"));
-  let paused = false;
-  let userPause = false;
+  let modalOpen = false;
 
-  function activeButton() {
+  function currentButton() {
     return controls.querySelector(`[data-v3-view="${VIEW_ORDER[currentIndex]}"]`);
-  }
-
-  function restartProgress() {
-    progress.classList.remove("running");
-    void progress.offsetWidth;
-    if (!paused && !document.hidden) progress.classList.add("running");
   }
 
   function clearSchedule() {
@@ -42,20 +35,31 @@ function setupWorkspaceAutoplay() {
     timeoutId = 0;
   }
 
+  function resetProgress() {
+    progress.classList.remove("running");
+    void progress.offsetWidth;
+
+    if (!document.hidden && !modalOpen) {
+      progress.classList.add("running");
+    }
+  }
+
   function scheduleNext() {
     clearSchedule();
-    restartProgress();
+    resetProgress();
 
-    if (paused || document.hidden) return;
+    if (document.hidden || modalOpen) return;
 
     timeoutId = window.setTimeout(() => {
       currentIndex = (currentIndex + 1) % VIEW_ORDER.length;
-      const button = activeButton();
+      const button = currentButton();
+
       if (button) {
         workspace.classList.add("auto-advancing");
         button.click();
         window.setTimeout(() => workspace.classList.remove("auto-advancing"), 520);
       }
+
       scheduleNext();
     }, ROTATION_MS);
   }
@@ -65,60 +69,41 @@ function setupWorkspaceAutoplay() {
     if (index >= 0) currentIndex = index;
   }
 
-  function pause(reason = "interaction") {
-    paused = true;
-    if (reason === "interaction") userPause = true;
-    clearSchedule();
-    progress.classList.remove("running");
-    workspace.classList.add("autoplay-paused");
-  }
-
-  function resume({ reset = true } = {}) {
-    userPause = false;
-    paused = false;
-    workspace.classList.remove("autoplay-paused");
-    if (reset) scheduleNext();
-  }
-
   controls.addEventListener("click", event => {
     const button = event.target.closest("[data-v3-view]");
     if (!button) return;
+
     syncFromView(button.dataset.v3View);
-    if (!workspace.classList.contains("auto-advancing")) scheduleNext();
-  });
 
-  workspace.addEventListener("pointerenter", () => pause("hover"));
-  workspace.addEventListener("pointerleave", () => {
-    paused = false;
-    workspace.classList.remove("autoplay-paused");
-    scheduleNext();
-  });
-
-  workspace.addEventListener("focusin", () => pause("interaction"));
-  workspace.addEventListener("focusout", event => {
-    if (workspace.contains(event.relatedTarget)) return;
-    resume();
+    if (!workspace.classList.contains("auto-advancing")) {
+      scheduleNext();
+    }
   });
 
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
-      paused = true;
       clearSchedule();
       progress.classList.remove("running");
       return;
     }
 
-    paused = false;
-    workspace.classList.remove("autoplay-paused");
     scheduleNext();
   });
 
   const modalObserver = new MutationObserver(() => {
-    const modalOpen = Boolean(document.querySelector(".v2-modal-layer.visible, .home-modal-layer.visible"));
+    const nextModalState = Boolean(
+      document.querySelector(".v2-modal-layer.visible, .home-modal-layer.visible")
+    );
+
+    if (nextModalState === modalOpen) return;
+    modalOpen = nextModalState;
+    workspace.classList.toggle("autoplay-paused", modalOpen);
+
     if (modalOpen) {
-      pause("interaction");
-    } else if (!userPause) {
-      resume();
+      clearSchedule();
+      progress.classList.remove("running");
+    } else {
+      scheduleNext();
     }
   });
 
@@ -140,7 +125,9 @@ function boot() {
   let attempts = 0;
   const timer = window.setInterval(() => {
     attempts += 1;
-    if (setupWorkspaceAutoplay() || attempts > 120) window.clearInterval(timer);
+    if (setupWorkspaceAutoplay() || attempts > 120) {
+      window.clearInterval(timer);
+    }
   }, 25);
 }
 
