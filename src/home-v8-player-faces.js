@@ -3,47 +3,34 @@ import { getPlayerFace, playerFaceCoverage } from "./player-face-service.js";
 
 const DEFAULT_TEAM = "Manchester United";
 
-function isPlayerRole(value) {
-  return /\bjogador\b|\bplayer\b/i.test(String(value || ""));
-}
-
 function resetAvatar(avatar) {
   avatar.querySelectorAll(":scope > img.v8-player-face").forEach(image => image.remove());
   avatar.classList.remove("v8-face-loading", "v8-face-ready", "v8-face-missing");
   delete avatar.dataset.faceSource;
   delete avatar.dataset.faceLoadingFor;
+  delete avatar.dataset.faceSignature;
 }
 
 function mountFace(avatar, playerName, teamHint = DEFAULT_TEAM) {
   if (!avatar || !playerName) return;
 
-  if (
-    avatar.dataset.facePlayer === playerName &&
-    avatar.classList.contains("v8-face-ready")
-  ) {
-    return;
-  }
-
-  if (avatar.dataset.faceLoadingFor === playerName) return;
-
   const player = getPlayerFace(playerName, teamHint);
-  if (!player) {
-    resetAvatar(avatar);
-    avatar.dataset.facePlayer = playerName;
-    avatar.classList.add("v8-face-missing");
-    return;
-  }
+  if (!player) return;
 
   const sources = [...new Set(player.photoSources || [player.photo])].filter(Boolean);
-  if (!sources.length) {
-    resetAvatar(avatar);
-    avatar.dataset.facePlayer = playerName;
-    avatar.classList.add("v8-face-missing");
+  if (!sources.length) return;
+
+  const signature = `${playerName}|${sources.join("|")}`;
+  if (
+    avatar.dataset.faceSignature === signature &&
+    (avatar.classList.contains("v8-face-ready") || avatar.classList.contains("v8-face-loading"))
+  ) {
     return;
   }
 
   resetAvatar(avatar);
   avatar.dataset.faceLoadingFor = playerName;
+  avatar.dataset.faceSignature = signature;
   avatar.classList.add("v8-face-loading");
   avatar.title = `${player.name}${player.teamName ? ` · ${player.teamName}` : ""}`;
 
@@ -53,18 +40,19 @@ function mountFace(avatar, playerName, teamHint = DEFAULT_TEAM) {
   const tryNextSource = () => {
     const source = sources[sourceIndex];
     if (!source) {
-      resetAvatar(avatar);
-      avatar.dataset.facePlayer = playerName;
+      avatar.classList.remove("v8-face-loading", "v8-face-ready");
       avatar.classList.add("v8-face-missing");
+      avatar.dataset.facePlayer = playerName;
+      delete avatar.dataset.faceLoadingFor;
       return;
     }
 
     const image = document.createElement("img");
     image.className = "v8-player-face";
     image.alt = `Foto de ${player.name}`;
-    image.src = source;
     image.loading = "eager";
     image.decoding = "async";
+    image.referrerPolicy = "no-referrer";
 
     image.addEventListener("load", () => {
       avatar.querySelectorAll(":scope > img.v8-player-face").forEach(other => {
@@ -74,6 +62,7 @@ function mountFace(avatar, playerName, teamHint = DEFAULT_TEAM) {
       avatar.classList.add("v8-face-ready");
       avatar.dataset.facePlayer = playerName;
       avatar.dataset.faceSource = source;
+      avatar.dataset.faceSignature = signature;
       delete avatar.dataset.faceLoadingFor;
     }, { once: true });
 
@@ -84,6 +73,7 @@ function mountFace(avatar, playerName, teamHint = DEFAULT_TEAM) {
     }, { once: true });
 
     avatar.insertBefore(image, numberBadge || null);
+    image.src = source;
   };
 
   tryNextSource();
@@ -92,18 +82,16 @@ function mountFace(avatar, playerName, teamHint = DEFAULT_TEAM) {
 function decorateMailRows() {
   document.querySelectorAll(".v6-mail-row").forEach(row => {
     const sender = row.querySelector(".v6-mail-sender strong")?.textContent?.trim();
-    const role = row.querySelector(".v6-mail-meta i")?.textContent?.trim();
     const avatar = row.querySelector(".v6-mail-avatar");
-    if (sender && isPlayerRole(role)) mountFace(avatar, sender);
+    if (sender) mountFace(avatar, sender);
   });
 }
 
 function decorateReader() {
   document.querySelectorAll(".v6-mail-reader").forEach(reader => {
     const sender = reader.querySelector(".v6-reader-from strong")?.textContent?.trim();
-    const role = reader.querySelector(".v6-reader-from small")?.textContent?.trim();
     const avatar = reader.querySelector(".v6-reader-from .v6-mail-avatar");
-    if (sender && isPlayerRole(role)) mountFace(avatar, sender);
+    if (sender) mountFace(avatar, sender);
   });
 }
 
