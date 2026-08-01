@@ -9,7 +9,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,9 +27,14 @@ jobs:
         run: |
           node --check src/career-mode.js
           node --check src/career-mode-data.js
+          node --check src/premier-league-live.js
+          node --check src/career-face-recovery.js
 
       - name: Build production bundle
         run: npm run build
 
       - name: Run MVP smoke tests
         run: npm run test:mvp
+
+      - name: Validate live Premier League rosters
+        run: npm run test:live-rosters
