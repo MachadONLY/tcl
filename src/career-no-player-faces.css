@@ -1,0 +1,51 @@
+/* Touchline career mode: text-only player identity */
+
+.career-module .career-face,
+.career-modal-layer .career-face,
+.home-v8-player-face,
+[data-player-face],
+.player-face {
+  display: none !important;
+}
+
+.career-squad-name {
+  gap: 0 !important;
+}
+
+.career-squad-name > span {
+  width: 100%;
+}
+
+.career-player-profile {
+  grid-template-rows: auto auto auto 1fr !important;
+  align-content: start;
+  padding-top: 26px !important;
+}
+
+.career-player-profile .career-profile-title {
+  margin-top: 0 !important;
+}
+
+.career-transfer-profile,
+.career-offer-profile,
+.career-mail-reader,
+.career-academy-card,
+.career-scout-result {
+  --portrait-space: 0px;
+}
+
+.career-squad-row,
+.career-transfer-row,
+.career-market-row,
+.career-shortlist-row,
+.career-mail-row {
+  min-height: 58px;
+}
+
+.career-squad-name strong,
+.career-transfer-row strong,
+.career-market-row strong,
+.career-shortlist-row strong {
+  font-size: 13px;
+  line-height: 1.2;
+}
