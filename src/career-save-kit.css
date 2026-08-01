@@ -1,0 +1,122 @@
+/*
+ * Save-aware player portrait system
+ * ---------------------------------
+ * Identity photos come from public football providers. Club identity comes
+ * from the save. The overlay hides stale real-world shirts and applies one
+ * consistent training top to every player in the user's squad.
+ */
+
+.career-face {
+  --kit-primary: #d71920;
+  --kit-secondary: #111611;
+  --kit-accent: #f5c542;
+  --kit-start: 58%;
+}
+
+.career-face > .career-save-kit {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.career-face > .career-save-kit::before {
+  content: "";
+  position: absolute;
+  left: -9%;
+  right: -9%;
+  top: var(--kit-start);
+  bottom: -10%;
+  background:
+    linear-gradient(90deg, transparent 0 9%, rgba(255,255,255,.1) 9% 10%, transparent 10% 90%, rgba(0,0,0,.16) 90% 91%, transparent 91%),
+    linear-gradient(145deg, color-mix(in srgb, var(--kit-primary), white 10%), var(--kit-primary) 44%, color-mix(in srgb, var(--kit-primary), black 18%));
+  clip-path: polygon(
+    0 100%, 0 36%, 10% 25%, 27% 14%,
+    39% 8%, 44% 18%, 50% 23%, 56% 18%, 61% 8%,
+    73% 14%, 90% 25%, 100% 36%, 100% 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+.career-face > .career-save-kit::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: calc(var(--kit-start) - 1px);
+  width: 26%;
+  height: 17%;
+  transform: translateX(-50%);
+  border: max(2px, .035em) solid var(--kit-secondary);
+  border-top: 0;
+  border-radius: 0 0 999px 999px;
+  background: transparent;
+  box-shadow:
+    0 3px 0 color-mix(in srgb, var(--kit-accent), transparent 8%),
+    0 6px 8px rgba(0,0,0,.08);
+}
+
+.career-face > .career-save-kit .career-save-kit-badge {
+  position: absolute;
+  z-index: 3;
+  top: calc(var(--kit-start) + 22%);
+  left: 28%;
+  width: 16%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background-color: rgba(255,255,255,.95);
+  background-image: var(--kit-badge);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 82%;
+  box-shadow: 0 1px 3px rgba(0,0,0,.18);
+}
+
+.career-face.small,
+.career-face.tiny,
+.career-squad-row .career-face {
+  --kit-start: 55%;
+}
+
+.career-face.small > .career-save-kit .career-save-kit-badge,
+.career-face.tiny > .career-save-kit .career-save-kit-badge,
+.career-squad-row .career-face > .career-save-kit .career-save-kit-badge {
+  display: none;
+}
+
+.career-face.hero,
+.career-face.transfer {
+  --kit-start: 59%;
+}
+
+.career-face.pitch {
+  --kit-start: 56%;
+}
+
+/* Keep the identity layer readable without destructive zoom or fog. */
+.career-face > img {
+  object-fit: contain !important;
+  object-position: center top !important;
+  transform: none !important;
+  filter: none !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+
+.career-face.save-kit-ready > img {
+  opacity: 1 !important;
+}
+
+/* Generated youth / unavailable-player portraits remain full identities. */
+.career-face.generated-player-face > img {
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+@supports not (background: color-mix(in srgb, red, white)) {
+  .career-face > .career-save-kit::before {
+    background: linear-gradient(145deg, #e2272d, #c9131a 52%, #9f0c12);
+  }
+}
