@@ -2,18 +2,20 @@ import { PREMIER_LEAGUE_PLAYERS, PLAYER_FACE_META } from "./data/premier-league-
 
 const CURATED_FALLBACKS = Object.freeze({
   "kobbie mainoo": {
-    id: "manutd-kobbie-mainoo",
+    id: "wikimedia-kobbie-mainoo-2026",
     name: "Kobbie Mainoo",
     normalizedName: "kobbie mainoo",
     teamName: "Manchester United",
     teamCode: "MUN",
     position: "Midfielder",
     number: 37,
-    photo: "https://dynamic-crop-cdn.scoreplay.io/472/4896330/media_102559979_102167103.jpg?f=center&fmt=webp&h=981&w=720",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Kobbie_Mainoo_England_v_Ghana_23_June_2026-042.jpg/330px-Kobbie_Mainoo_England_v_Ghana_23_June_2026-042.jpg",
     photoFallbacks: [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Kobbie_Mainoo_England_v_Ghana_23_June_2026-042.jpg?width=330",
       "https://a.espncdn.com/i/headshots/soccer/players/full/328466.png"
     ],
-    source: "official-club-fallback"
+    source: "wikimedia-curated-fallback",
+    credit: "Bryan Berlin / WikiPortraits · CC BY-SA 4.0"
   }
 });
 
@@ -62,7 +64,7 @@ function chooseBest(matches, teamHint) {
 
 function withPhotoSources(player, source) {
   if (!player) return null;
-  const photoSources = [player.photo, ...(player.photoFallbacks || [])].filter(Boolean);
+  const photoSources = [...new Set([player.photo, ...(player.photoFallbacks || [])].filter(Boolean))];
   return {
     ...player,
     photo: photoSources[0] || null,
@@ -101,6 +103,6 @@ export function playerFaceCoverage() {
     ...PLAYER_FACE_META,
     available: PREMIER_LEAGUE_PLAYERS.length,
     curatedFallbacks: Object.keys(CURATED_FALLBACKS).length,
-    ready: PREMIER_LEAGUE_PLAYERS.length > 0
+    ready: PREMIER_LEAGUE_PLAYERS.length > 0 || Object.keys(CURATED_FALLBACKS).length > 0
   };
 }
