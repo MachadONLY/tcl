@@ -1,0 +1,1 @@
+Validate scrollable squad roster, player header spacing, no overlap and production build.
