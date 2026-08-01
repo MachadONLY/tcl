@@ -1,0 +1,1 @@
+Validate player selection, profile updates, preserved list scroll and bottom navigation controls.
