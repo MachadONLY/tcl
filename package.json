@@ -8,6 +8,7 @@
     "dev": "vite --host 0.0.0.0 --open",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --open",
+    "sync:player-faces": "node scripts/sync-premier-league-faces.mjs",
     "test:mvp": "node tests/mvp-smoke.mjs",
     "test:ui": "npm run build && node tests/ui-dom-smoke.mjs 1366 768 && node tests/ui-dom-smoke.mjs 1440 900"
   },
