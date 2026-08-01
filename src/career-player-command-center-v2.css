@@ -63,6 +63,16 @@
   font-size: clamp(27px, 2vw, 38px);
 }
 
+.player-console-overall {
+  grid-template-rows: auto auto !important;
+  align-content: center !important;
+  gap: 3px !important;
+}
+
+.player-console-overall strong {
+  align-self: auto !important;
+}
+
 .player-console-command-index {
   display: none !important;
 }
