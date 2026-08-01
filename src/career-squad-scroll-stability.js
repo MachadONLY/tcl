@@ -1,4 +1,3 @@
-const CAREER_STORAGE_KEY = "touchline.career.mode.v1";
 const RESTORE_WINDOW_MS = 900;
 
 let pendingRestore = null;
@@ -6,20 +5,6 @@ let restoreFrame = 0;
 
 function isSquadRoute() {
   return window.location.hash.split("?")[0] === "#squad";
-}
-
-function readCareerSave() {
-  try {
-    return JSON.parse(localStorage.getItem(CAREER_STORAGE_KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function persistSelectedPlayer(playerId) {
-  const save = readCareerSave();
-  save.selectedSquadId = playerId;
-  localStorage.setItem(CAREER_STORAGE_KEY, JSON.stringify(save));
 }
 
 function findPlayerRow(playerId) {
@@ -42,13 +27,19 @@ function captureScrollAnchor(row) {
   };
 }
 
+function clearPendingRestore() {
+  pendingRestore = null;
+  if (restoreFrame) cancelAnimationFrame(restoreFrame);
+  restoreFrame = 0;
+}
+
 function restoreScrollAnchor() {
   restoreFrame = 0;
   const snapshot = pendingRestore;
   if (!snapshot || !isSquadRoute()) return;
 
   if (performance.now() - snapshot.startedAt > RESTORE_WINDOW_MS) {
-    pendingRestore = null;
+    clearPendingRestore();
     return;
   }
 
@@ -80,36 +71,23 @@ function scheduleRestore() {
 
 function stopRestoreOnUserScroll(event) {
   if (!pendingRestore) return;
-  if (event.target.closest?.(".career-squad-scroll")) {
-    pendingRestore = null;
-    if (restoreFrame) cancelAnimationFrame(restoreFrame);
-    restoreFrame = 0;
-  }
+  if (event.target.closest?.(".career-squad-scroll")) clearPendingRestore();
 }
 
+// Capture only the visual anchor. The original career-mode click handler remains
+// fully responsible for changing the selected player, updating the profile and
+// persisting the save. No propagation is blocked and no synthetic hashchange is
+// emitted, so global navigation controls continue to work normally.
 document.addEventListener("click", event => {
   if (!isSquadRoute()) return;
 
   const row = event.target.closest(".career-squad-scroll [data-squad-player]");
   if (!row) return;
 
-  event.preventDefault();
-  event.stopImmediatePropagation();
-
-  if (row.classList.contains("selected")) return;
-
   const snapshot = captureScrollAnchor(row);
   if (!snapshot?.playerId) return;
 
-  document.querySelectorAll(".career-squad-scroll [data-squad-player]")
-    .forEach(candidate => candidate.classList.toggle("selected", candidate === row));
-
-  persistSelectedPlayer(snapshot.playerId);
   pendingRestore = snapshot;
-
-  // Rebuilds only the career route while the anchor restoration keeps the
-  // selected player at the exact same visual position in the list.
-  window.dispatchEvent(new Event("hashchange"));
   scheduleRestore();
 }, true);
 
@@ -122,5 +100,5 @@ squadObserver.observe(document.body, { childList: true, subtree: true });
 document.addEventListener("wheel", stopRestoreOnUserScroll, { capture: true, passive: true });
 document.addEventListener("touchmove", stopRestoreOnUserScroll, { capture: true, passive: true });
 window.addEventListener("hashchange", () => {
-  if (!isSquadRoute()) pendingRestore = null;
+  if (!isSquadRoute()) clearPendingRestore();
 });
