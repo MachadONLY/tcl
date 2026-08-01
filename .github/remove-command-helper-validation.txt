@@ -1,0 +1,1 @@
+Validate removal of redundant command helper text and production build.
