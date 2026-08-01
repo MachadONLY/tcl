@@ -1,0 +1,1 @@
+Validate granular player-panel updates, portrait preloading, stable squad scroll, player actions and navigation.
