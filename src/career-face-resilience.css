@@ -1,0 +1,87 @@
+.career-face {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(145deg, #eef5ea 0%, #dce9d6 100%);
+}
+
+.career-face > .career-face-fallback-label,
+.career-face > b {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  color: #4f7f35;
+  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  transition: opacity 180ms ease;
+}
+
+.career-face.hero > .career-face-fallback-label,
+.career-face.hero > b,
+.career-face.transfer > .career-face-fallback-label,
+.career-face.transfer > b {
+  font-size: 28px;
+}
+
+.career-face > img {
+  z-index: 3;
+  display: block;
+  opacity: 0;
+  transition: opacity 220ms ease, filter 220ms ease;
+  filter: saturate(.92) contrast(.98);
+  background: transparent;
+}
+
+.career-face.photo-ready > img {
+  opacity: 1;
+}
+
+.career-face.photo-ready > .career-face-fallback-label,
+.career-face.photo-ready > b {
+  opacity: 0;
+}
+
+.career-face.photo-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 28%, rgba(255,255,255,.72) 47%, transparent 66%);
+  transform: translateX(-120%);
+  animation: touchline-face-loading 1.15s ease-in-out infinite;
+}
+
+.career-face.photo-ready::after,
+.career-face.photo-failed::after {
+  display: none;
+}
+
+.career-face.photo-failed {
+  background:
+    radial-gradient(circle at 50% 33%, #bacdaf 0 24%, transparent 25%),
+    radial-gradient(ellipse at 50% 108%, #1b2119 0 46%, transparent 47%),
+    linear-gradient(145deg, #eef5ea, #dce9d6);
+}
+
+.career-face > small {
+  z-index: 5;
+}
+
+@keyframes touchline-face-loading {
+  to { transform: translateX(120%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .career-face.photo-loading::after {
+    animation: none;
+  }
+  .career-face > img,
+  .career-face > b {
+    transition: none;
+  }
+}
