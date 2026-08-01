@@ -75,7 +75,7 @@
 .player-console-squad-number {
   grid-area: badge;
   justify-self: start;
-  margin: 0 0 0 2px !important;
+  margin: 0 0 0 -2px !important;
 }
 
 .player-console-title h2 {
