@@ -1,0 +1,208 @@
+/* Squad management panel — fixed viewport composition, no internal scrollbar */
+
+.career-squad-fotmob .career-player-profile.fm-management-panel {
+  min-height: 0 !important;
+  grid-template-rows: 40px 92px 100px 54px minmax(0, 1fr) !important;
+  align-content: stretch !important;
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+}
+
+.career-squad-fotmob .career-player-profile.fm-management-panel::-webkit-scrollbar,
+.career-squad-fotmob .classic-management-actions::-webkit-scrollbar {
+  display: none !important;
+}
+
+.career-squad-fotmob .classic-profile-kicker {
+  min-height: 40px !important;
+  padding: 0 18px !important;
+}
+
+.career-squad-fotmob .classic-profile-identity {
+  min-height: 92px !important;
+  gap: 18px !important;
+  padding: 12px 18px !important;
+}
+
+.career-squad-fotmob .classic-profile-identity h2 {
+  margin: 7px 0 2px !important;
+  font-size: clamp(27px, 2vw, 34px) !important;
+  line-height: .94 !important;
+}
+
+.career-squad-fotmob .classic-profile-identity > div > small {
+  font-size: 10px !important;
+}
+
+.career-squad-fotmob .classic-profile-identity .classic-position {
+  height: 25px !important;
+  min-width: 39px !important;
+  padding: 0 7px !important;
+  font-size: 11px !important;
+}
+
+.career-squad-fotmob .classic-profile-ovr {
+  width: 62px !important;
+  height: 62px !important;
+  border-radius: 12px !important;
+}
+
+.career-squad-fotmob .classic-profile-ovr b {
+  font-size: 29px !important;
+}
+
+.career-squad-fotmob .classic-contract-summary {
+  height: 100px !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-rows: repeat(2, 50px) !important;
+}
+
+.career-squad-fotmob .classic-contract-summary > span {
+  min-height: 0 !important;
+  height: 50px !important;
+  gap: 2px !important;
+  padding: 7px 14px !important;
+}
+
+.career-squad-fotmob .classic-contract-summary small {
+  font-size: 8px !important;
+}
+
+.career-squad-fotmob .classic-contract-summary strong {
+  font-size: 10px !important;
+}
+
+.career-squad-fotmob .classic-management-title {
+  min-height: 54px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 3px !important;
+  padding: 8px 18px !important;
+}
+
+.career-squad-fotmob .classic-management-title p {
+  max-width: 100% !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.career-squad-fotmob .classic-management-actions {
+  min-height: 0 !important;
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  align-content: stretch !important;
+  gap: 9px !important;
+  padding: 10px 12px 12px !important;
+  overflow: hidden !important;
+}
+
+.career-squad-fotmob .classic-action {
+  position: relative !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: 32px minmax(0, 1fr) !important;
+  grid-template-rows: auto 1fr !important;
+  align-content: center !important;
+  align-items: center !important;
+  column-gap: 9px !important;
+  row-gap: 2px !important;
+  padding: 10px 25px 10px 10px !important;
+  border-radius: 10px !important;
+}
+
+.career-squad-fotmob .classic-action-icon {
+  grid-row: 1 / span 2 !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+}
+
+.career-squad-fotmob .classic-action > span:nth-child(2) {
+  min-width: 0 !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 3px !important;
+}
+
+.career-squad-fotmob .classic-action strong {
+  overflow: hidden !important;
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.career-squad-fotmob .classic-action small {
+  display: -webkit-box !important;
+  overflow: hidden !important;
+  font-size: 8px !important;
+  line-height: 1.2 !important;
+  white-space: normal !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+.career-squad-fotmob .classic-action > b {
+  position: absolute !important;
+  top: 50% !important;
+  right: 9px !important;
+  transform: translateY(-50%) !important;
+  font-size: 16px !important;
+}
+
+@media (max-height: 820px) {
+  .career-squad-fotmob .career-player-profile.fm-management-panel {
+    grid-template-rows: 36px 82px 90px 46px minmax(0, 1fr) !important;
+  }
+
+  .career-squad-fotmob .classic-profile-kicker {
+    min-height: 36px !important;
+  }
+
+  .career-squad-fotmob .classic-profile-identity {
+    min-height: 82px !important;
+    padding-block: 9px !important;
+  }
+
+  .career-squad-fotmob .classic-profile-identity h2 {
+    font-size: clamp(25px, 1.8vw, 31px) !important;
+  }
+
+  .career-squad-fotmob .classic-contract-summary {
+    height: 90px !important;
+    grid-template-rows: repeat(2, 45px) !important;
+  }
+
+  .career-squad-fotmob .classic-contract-summary > span {
+    height: 45px !important;
+    padding-block: 5px !important;
+  }
+
+  .career-squad-fotmob .classic-management-title {
+    min-height: 46px !important;
+    padding-block: 6px !important;
+  }
+
+  .career-squad-fotmob .classic-management-actions {
+    padding-top: 8px !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .career-squad-fotmob .classic-management-actions {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: repeat(3, minmax(58px, 1fr)) !important;
+  }
+
+  .career-squad-fotmob .classic-action {
+    min-height: 58px !important;
+  }
+}
