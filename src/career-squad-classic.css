@@ -1,0 +1,744 @@
+/* Touchline squad management — classic FIFA 13–15 density, modern clarity */
+
+.career-squad-classic {
+  grid-template-rows: auto 62px minmax(0, 1fr) !important;
+  --classic-navy: #111b2a;
+  --classic-navy-soft: #1b293b;
+  --classic-line: rgba(20, 31, 46, .12);
+  --pos-gk: #e6ad31;
+  --pos-def: #4d83d1;
+  --pos-mid: #53a86b;
+  --pos-att: #d96458;
+}
+
+.career-squad-classic .career-module-header {
+  min-height: 100px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.career-squad-classic .career-module-header h1 {
+  margin-top: 4px;
+}
+
+.classic-squad-overview {
+  min-width: 0;
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 clamp(22px, 2.2vw, 34px);
+  border-bottom: 1px solid var(--classic-line);
+  background: rgba(247, 249, 245, .88);
+}
+
+.classic-squad-overview > div {
+  min-width: 178px;
+  display: grid;
+  gap: 2px;
+  margin-right: 10px;
+}
+
+.classic-squad-overview > div small {
+  color: #879084;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .09em;
+}
+
+.classic-squad-overview > div strong {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.classic-squad-overview > b {
+  color: #697267;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .025em;
+}
+
+.classic-squad-overview > p {
+  margin: 0 0 0 auto;
+  color: #80897d;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.classic-overview-dot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+  background: currentColor;
+}
+
+.classic-position-gk { --position-color: var(--pos-gk); }
+.classic-position-def { --position-color: var(--pos-def); }
+.classic-position-mid { --position-color: var(--pos-mid); }
+.classic-position-att { --position-color: var(--pos-att); }
+.classic-position-other { --position-color: #8b8f94; }
+.classic-overview-dot { color: var(--position-color); }
+
+.career-squad-classic .career-squad-layout {
+  grid-template-columns: minmax(410px, .95fr) minmax(390px, 1.05fr);
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.career-squad-classic .career-squad-table {
+  grid-template-rows: 42px minmax(0, 1fr);
+  border-radius: 15px;
+  background: var(--classic-navy);
+  box-shadow: 0 18px 46px rgba(10, 18, 29, .16);
+}
+
+.career-squad-classic .career-table-head {
+  min-width: 0;
+  grid-template-columns: 54px minmax(0, 1fr) 58px;
+  gap: 12px;
+  padding: 0 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  background: linear-gradient(180deg, #23334a, #1b293b);
+  color: #b9c5d2;
+  font-size: 9px;
+  letter-spacing: .11em;
+}
+
+.career-squad-classic .career-squad-scroll {
+  padding: 8px;
+  scrollbar-color: rgba(255,255,255,.28) transparent;
+  scrollbar-width: thin;
+}
+
+.classic-position-group {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.classic-position-group:last-child {
+  margin-bottom: 0;
+}
+
+.classic-position-group > header {
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  color: rgba(223, 230, 238, .68);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.classic-position-group > header::before {
+  content: "";
+  width: 4px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--position-color);
+}
+
+.classic-position-group > header small {
+  min-width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  color: #dce5ef;
+  font-size: 8px;
+}
+
+.classic-position-group-gk { --position-color: var(--pos-gk); }
+.classic-position-group-def { --position-color: var(--pos-def); }
+.classic-position-group-mid { --position-color: var(--pos-mid); }
+.classic-position-group-att { --position-color: var(--pos-att); }
+.classic-position-group-other { --position-color: #8b8f94; }
+
+.career-squad-classic .career-squad-row {
+  min-width: 0;
+  min-height: 49px;
+  grid-template-columns: 54px minmax(0, 1fr) 58px;
+  gap: 12px;
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 8px;
+  background: rgba(255,255,255,.035);
+  color: #eef3f7;
+  transition: background 130ms ease, border-color 130ms ease, transform 130ms ease;
+}
+
+.career-squad-classic .career-squad-row:hover {
+  transform: translateX(2px);
+  border-color: rgba(255,255,255,.1);
+  background: rgba(255,255,255,.075);
+}
+
+.career-squad-classic .career-squad-row.selected {
+  border-color: rgba(136, 200, 87, .58);
+  background: linear-gradient(90deg, rgba(105, 168, 61, .28), rgba(255,255,255,.09));
+  box-shadow: inset 3px 0 0 #79bd48, 0 5px 16px rgba(0,0,0,.12);
+}
+
+.classic-position {
+  min-width: 42px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--position-color), white 22%);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--position-color), transparent 76%);
+  color: color-mix(in srgb, var(--position-color), white 24%);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 12px;
+  font-weight: 760;
+  letter-spacing: .045em;
+}
+
+.classic-player-copy {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+}
+
+.classic-player-copy strong {
+  overflow: hidden;
+  color: #f4f7fa;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.08;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classic-player-copy small {
+  overflow: hidden;
+  color: rgba(211, 220, 229, .58);
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classic-player-ovr {
+  min-width: 44px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  justify-self: end;
+  border-radius: 7px;
+  background: #edf2e9;
+  color: #233021;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 19px;
+  font-weight: 780;
+  box-shadow: inset 0 0 0 1px rgba(17, 25, 15, .06);
+}
+
+.career-squad-classic .career-player-profile {
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) !important;
+  gap: 0;
+  padding: 0 !important;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 18px 46px rgba(25, 34, 22, .08);
+}
+
+.classic-profile-kicker {
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--classic-line);
+  background: linear-gradient(180deg, #f8faf7, #f1f5ef);
+}
+
+.classic-profile-kicker span {
+  color: #4f852d;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .1em;
+}
+
+.classic-profile-kicker small {
+  overflow: hidden;
+  color: #92998f;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classic-profile-identity {
+  min-height: 116px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--classic-line);
+}
+
+.classic-profile-identity > div {
+  min-width: 0;
+}
+
+.classic-profile-identity h2 {
+  max-width: 480px;
+  margin: 9px 0 4px;
+  overflow: hidden;
+  color: #171b16;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: clamp(29px, 2.4vw, 40px);
+  font-weight: 720;
+  line-height: .92;
+  letter-spacing: -.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classic-profile-identity > div > small {
+  color: #80887d;
+  font-size: 11px;
+}
+
+.classic-profile-ovr {
+  width: 74px;
+  height: 74px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #dfeecd, #cde4b8);
+  color: #3f6e25;
+  box-shadow: inset 0 0 0 1px rgba(69, 111, 39, .08);
+}
+
+.classic-profile-ovr b {
+  align-self: end;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 34px;
+  line-height: .9;
+}
+
+.classic-profile-ovr small {
+  align-self: start;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .08em;
+}
+
+.classic-contract-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1px solid var(--classic-line);
+}
+
+.classic-contract-summary > span {
+  min-width: 0;
+  min-height: 62px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 10px 16px;
+  border-right: 1px solid var(--classic-line);
+  border-bottom: 1px solid var(--classic-line);
+}
+
+.classic-contract-summary > span:nth-child(3n) {
+  border-right: 0;
+}
+
+.classic-contract-summary > span:nth-last-child(-n+3) {
+  border-bottom: 0;
+}
+
+.classic-contract-summary small {
+  color: #92998f;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.classic-contract-summary strong {
+  overflow: hidden;
+  color: #343b32;
+  font-size: 11px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classic-management-title {
+  padding: 16px 22px 11px;
+}
+
+.classic-management-title span {
+  color: #4f852d;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .1em;
+}
+
+.classic-management-title p {
+  margin: 4px 0 0;
+  color: #818a7e;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.classic-management-actions {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 0 16px 16px;
+  overflow: auto;
+}
+
+.classic-action {
+  min-height: 62px;
+  display: grid;
+  grid-template-columns: 35px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 11px;
+  padding: 8px 12px;
+  border: 1px solid var(--classic-line);
+  border-radius: 10px;
+  background: #fbfcfa;
+  color: #31382f;
+  text-align: left;
+  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.classic-action:hover {
+  transform: translateY(-1px);
+  border-color: rgba(83, 143, 47, .32);
+  box-shadow: 0 8px 20px rgba(30, 40, 25, .07);
+}
+
+.classic-action-icon {
+  width: 35px;
+  height: 35px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #edf3e9;
+  color: #4f852d;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.classic-action > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.classic-action strong {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.classic-action small {
+  overflow: hidden;
+  color: #858d82;
+  font-size: 9px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classic-action > b {
+  color: #a3aaa0;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.classic-action-primary {
+  border-color: #202a1e;
+  background: #171b16;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(16, 22, 14, .14);
+}
+
+.classic-action-primary .classic-action-icon {
+  background: #6cab43;
+  color: #fff;
+}
+
+.classic-action-primary small {
+  color: rgba(255,255,255,.62);
+}
+
+.classic-action-danger:hover {
+  border-color: rgba(180, 59, 51, .36);
+}
+
+.classic-action-danger .classic-action-icon {
+  background: #f7e7e5;
+  color: #ad3e36;
+}
+
+.classic-contract-modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 170ms ease;
+}
+
+.classic-contract-modal-layer.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.classic-contract-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 14, 11, .62);
+  backdrop-filter: blur(12px) saturate(.85);
+}
+
+.classic-contract-modal {
+  position: relative;
+  width: min(720px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: 22px;
+  background: rgba(250, 252, 249, .96);
+  box-shadow: 0 34px 90px rgba(0,0,0,.28);
+  transform: translateY(12px) scale(.985);
+  transition: transform 190ms cubic-bezier(.22,1,.36,1);
+}
+
+.classic-contract-modal-layer.visible .classic-contract-modal {
+  transform: translateY(0) scale(1);
+}
+
+.classic-contract-modal > header {
+  min-height: 102px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 19px 24px;
+  border-bottom: 1px solid var(--classic-line);
+  background: linear-gradient(180deg, #fff, #f4f7f2);
+}
+
+.classic-contract-modal header span {
+  color: #4f852d;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .1em;
+}
+
+.classic-contract-modal header h2 {
+  margin: 4px 0 2px;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 32px;
+  line-height: .95;
+}
+
+.classic-contract-modal header p,
+.classic-decision-copy p {
+  margin: 0;
+  color: #7c8579;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.classic-contract-modal header > button {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border: 1px solid var(--classic-line);
+  border-radius: 11px;
+  background: #fff;
+  color: #626a5f;
+  font-size: 23px;
+  line-height: 1;
+}
+
+.classic-contract-modal form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, .6fr);
+}
+
+.classic-contract-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 24px;
+}
+
+.classic-contract-fields label {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.classic-contract-fields label > span {
+  color: #747d71;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.classic-contract-fields input,
+.classic-contract-fields select {
+  width: 100%;
+  height: 43px;
+  padding: 0 12px;
+  border: 1px solid var(--classic-line);
+  border-radius: 10px;
+  outline: 0;
+  background: #fff;
+  color: #242a22;
+  font: 600 12px "Barlow", sans-serif;
+}
+
+.classic-contract-fields input:focus,
+.classic-contract-fields select:focus {
+  border-color: rgba(90, 151, 52, .62);
+  box-shadow: 0 0 0 3px rgba(103, 169, 61, .11);
+}
+
+.classic-money-input {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+}
+
+.classic-money-input b {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--classic-line);
+  border-right: 0;
+  border-radius: 10px 0 0 10px;
+  background: #eef3eb;
+  color: #5c6758;
+  font-size: 12px;
+}
+
+.classic-money-input input {
+  border-radius: 0 10px 10px 0;
+}
+
+.classic-contract-note {
+  margin: 24px 24px 24px 0;
+  padding: 18px;
+  border: 1px solid rgba(102, 168, 59, .17);
+  border-radius: 12px;
+  background: #edf4e8;
+}
+
+.classic-contract-note strong {
+  color: #446f2c;
+  font-size: 11px;
+}
+
+.classic-contract-note p {
+  margin: 8px 0 0;
+  color: #6e796a;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.classic-contract-modal footer {
+  grid-column: 1 / -1;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 24px;
+  border-top: 1px solid var(--classic-line);
+  background: #f5f8f3;
+}
+
+.classic-contract-modal footer button {
+  min-width: 120px;
+  height: 43px;
+  border: 1px solid var(--classic-line);
+  border-radius: 11px;
+  background: #fff;
+  color: #555e52;
+  font: 650 11px "Barlow", sans-serif;
+}
+
+.classic-contract-modal footer .primary {
+  border-color: #171b16;
+  background: #171b16;
+  color: #fff;
+}
+
+.classic-contract-modal footer .danger {
+  border-color: #a93631;
+  background: #b73f38;
+  color: #fff;
+}
+
+.classic-decision-modal {
+  width: min(560px, 100%);
+}
+
+.classic-decision-copy {
+  padding: 28px 24px;
+}
+
+@media (max-width: 1120px) {
+  .career-squad-classic .career-squad-layout {
+    grid-template-columns: minmax(360px, .9fr) minmax(350px, 1.1fr);
+  }
+
+  .classic-squad-overview > p {
+    display: none;
+  }
+}
+
+@media (max-width: 880px) {
+  .career-squad-classic .career-squad-layout {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+
+  .career-squad-classic .career-squad-table {
+    min-height: 430px;
+  }
+
+  .career-squad-classic .career-player-profile {
+    min-height: 560px;
+  }
+
+  .classic-contract-modal form {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+
+  .classic-contract-note {
+    margin: 0 24px 24px;
+  }
+}
