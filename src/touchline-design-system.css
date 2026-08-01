@@ -1,0 +1,35 @@
+:root {
+  /* Touchline 8-point spatial system */
+  --tl-space-1: 4px;
+  --tl-space-2: 8px;
+  --tl-space-3: 12px;
+  --tl-space-4: 16px;
+  --tl-space-5: 24px;
+  --tl-space-6: 32px;
+  --tl-space-7: 40px;
+  --tl-space-8: 48px;
+
+  /* Component geometry */
+  --tl-radius-xs: 6px;
+  --tl-radius-sm: 8px;
+  --tl-radius-md: 12px;
+  --tl-radius-lg: 16px;
+  --tl-radius-xl: 24px;
+  --tl-control-height: 44px;
+  --tl-panel-gap: 16px;
+
+  /* Shared career-mode surfaces */
+  --tl-surface-dark: #171817;
+  --tl-surface-dark-raised: #1e201f;
+  --tl-surface-dark-hover: #252826;
+  --tl-line-dark: rgba(255, 255, 255, .09);
+  --tl-text-dark-primary: #f4f6f4;
+  --tl-text-dark-secondary: #9ba39d;
+  --tl-accent: #22d47a;
+  --tl-danger: #d86464;
+
+  /* Motion */
+  --tl-motion-fast: 140ms;
+  --tl-motion-standard: 200ms;
+  --tl-ease-standard: cubic-bezier(.2, .75, .25, 1);
+}
