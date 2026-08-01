@@ -1,0 +1,1 @@
+Validate that selecting a player preserves the squad list scroll anchor and does not jump back to goalkeepers.
