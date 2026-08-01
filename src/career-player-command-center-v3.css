@@ -1,0 +1,20 @@
+/* Player command center v3: actions start immediately, without helper copy. */
+
+.player-console-actions {
+  grid-template-rows: auto !important;
+  padding: 16px !important;
+}
+
+.player-console-actions > header {
+  display: none !important;
+}
+
+.player-console-command-grid {
+  align-self: start;
+}
+
+@media (max-height: 760px) and (min-width: 1241px) {
+  .player-console-actions {
+    padding: 12px !important;
+  }
+}
