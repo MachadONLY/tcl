@@ -1,0 +1,1 @@
+Validate player profile updates, preserved squad scroll and bottom navigation controls.
