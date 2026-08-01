@@ -1,0 +1,1 @@
+Validate command center layout, squad scroll, player actions and production build.
