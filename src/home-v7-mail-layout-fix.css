@@ -1,0 +1,135 @@
+/*
+ * Mailbox geometry hotfix.
+ * The v6 client must always occupy the complete inbox pane. The previous
+ * percentage-height chain could collapse, clipping the list and leaving a
+ * large empty block underneath it.
+ */
+
+.v3-pane-inbox[data-v6-mounted="true"] {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] > .v6-mail-client {
+  position: absolute !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto auto auto minmax(0, 1fr) !important;
+  overflow: hidden !important;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] .v6-search-row[hidden] {
+  display: none !important;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-status {
+  display: none !important;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-client-head {
+  min-height: 70px;
+  flex: 0 0 auto;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-filters {
+  min-height: 52px;
+  flex: 0 0 auto;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-list {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: minmax(94px, 1fr);
+  align-content: stretch;
+  gap: 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+  overscroll-behavior: contain;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-row {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 94px;
+  max-height: 126px;
+  align-self: stretch;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-open {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-summary {
+  min-width: 0;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-summary > b,
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-summary > small,
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-sender strong,
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-meta i {
+  max-width: 100%;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] .v6-row-delete {
+  opacity: 0.54;
+}
+
+.v3-pane-inbox[data-v6-mounted="true"] .v6-mail-row:hover .v6-row-delete,
+.v3-pane-inbox[data-v6-mounted="true"] .v6-row-delete:focus-visible {
+  opacity: 1;
+}
+
+@media (max-width: 1180px) {
+  .v3-pane-inbox[data-v6-mounted="true"] .v6-mail-list {
+    grid-auto-rows: minmax(90px, 1fr);
+    gap: 7px;
+    padding-inline: 10px;
+  }
+
+  .v3-pane-inbox[data-v6-mounted="true"] .v6-mail-row {
+    min-height: 90px;
+    max-height: 118px;
+  }
+}
+
+@media (max-width: 620px) {
+  .v3-pane-inbox[data-v6-mounted="true"] .v6-mail-client-head {
+    min-height: 66px;
+  }
+
+  .v3-pane-inbox[data-v6-mounted="true"] .v6-mail-filters {
+    min-height: 48px;
+    overflow-x: auto;
+  }
+
+  .v3-pane-inbox[data-v6-mounted="true"] .v6-mail-list {
+    grid-auto-rows: minmax(88px, auto);
+    align-content: start;
+    padding: 8px;
+  }
+
+  .v3-pane-inbox[data-v6-mounted="true"] .v6-mail-row {
+    min-height: 88px;
+    max-height: none;
+  }
+}
