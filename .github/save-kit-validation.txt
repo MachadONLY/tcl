@@ -1,1 +1,0 @@
-Validate save-aware club kit overlays, generated player identities, production build and live roster checks.
