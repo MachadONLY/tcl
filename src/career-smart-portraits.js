@@ -4,7 +4,7 @@ const FACE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_det
 const DB_NAME = "touchline-player-portraits";
 const DB_VERSION = 1;
 const STORE_NAME = "portraits";
-const PIPELINE_VERSION = "smart-face-v3";
+const PIPELINE_VERSION = "smart-face-v4";
 const objectUrls = new Set();
 const processing = new WeakSet();
 const observed = new WeakSet();
@@ -53,7 +53,7 @@ async function writeCachedPortrait(key, blob) {
       transaction.onerror = () => reject(transaction.error);
     });
   } catch {
-    // IndexedDB is an optimization, never a rendering dependency.
+    // Cache is an optimization, not a rendering dependency.
   }
 }
 
@@ -63,7 +63,7 @@ async function createDetector() {
     const { FilesetResolver, FaceDetector } = await import(/* @vite-ignore */ VISION_MODULE_URL);
     const fileset = await FilesetResolver.forVisionTasks(VISION_WASM_ROOT);
 
-    const options = delegate => FaceDetector.createFromOptions(fileset, {
+    const instantiate = delegate => FaceDetector.createFromOptions(fileset, {
       baseOptions: {
         modelAssetPath: FACE_MODEL_URL,
         delegate
@@ -74,9 +74,9 @@ async function createDetector() {
     });
 
     try {
-      return await options("GPU");
+      return await instantiate("GPU");
     } catch {
-      return options("CPU");
+      return instantiate("CPU");
     }
   })();
   return detectorPromise;
@@ -100,10 +100,13 @@ function desiredOutputSize(face) {
   return 224;
 }
 
-function sourceIdentity(image, name, outputSize) {
+function liveSource(image) {
+  return String(image.currentSrc || image.src || "");
+}
+
+function sourceIdentity(image, name, outputSize, source) {
   const originalSources = image.dataset.originalSources || "";
   const fplIdentity = image.dataset.fplPortraitIdentity || "";
-  const source = image.currentSrc || image.src || "";
   return `${PIPELINE_VERSION}|${name}|${outputSize}|${fplIdentity}|${source}|${originalSources}`;
 }
 
@@ -137,13 +140,14 @@ function computeFaceCrop(box, imageWidth, imageHeight) {
   const width = Number(box.width || 0);
   const height = Number(box.height || 0);
 
-  // MediaPipe's box covers the facial features. Extend upward for hair and only
-  // slightly below the chin. This deliberately excludes the player's shirt.
-  let cropSize = Math.max(width * 1.82, height * 1.72);
+  // Extend the detected facial-feature box to include hair and ears, while
+  // stopping just below the chin. This creates a consistent identity portrait
+  // without exposing the source club shirt.
+  let cropSize = Math.max(width * 1.82, height * 1.7);
   cropSize = Math.min(cropSize, imageWidth, imageHeight);
 
   const centerX = x + width * 0.5;
-  const centerY = y + height * 0.43;
+  const centerY = y + height * 0.39;
   const left = clamp(centerX - cropSize * 0.5, 0, Math.max(0, imageWidth - cropSize));
   const top = clamp(centerY - cropSize * 0.5, 0, Math.max(0, imageHeight - cropSize));
 
@@ -157,15 +161,15 @@ function paintNeutralBackground(context, size) {
   context.fillStyle = gradient;
   context.fillRect(0, 0, size, size);
 
-  const light = context.createRadialGradient(size * 0.5, size * 0.24, 0, size * 0.5, size * 0.24, size * 0.68);
-  light.addColorStop(0, "rgba(255,255,255,.82)");
+  const light = context.createRadialGradient(size * 0.5, size * 0.22, 0, size * 0.5, size * 0.22, size * 0.72);
+  light.addColorStop(0, "rgba(255,255,255,.76)");
   light.addColorStop(1, "rgba(255,255,255,0)");
   context.fillStyle = light;
   context.fillRect(0, 0, size, size);
 }
 
-async function imageBlob(image) {
-  const response = await fetch(image.currentSrc || image.src, {
+async function imageBlob(source) {
+  const response = await fetch(source, {
     credentials: "omit",
     cache: "force-cache"
   });
@@ -175,35 +179,31 @@ async function imageBlob(image) {
   return blob;
 }
 
-async function normalizePortrait(image, face) {
+async function generatePortrait(image, face, source) {
   const name = inferName(face, image);
   const outputSize = desiredOutputSize(face);
-  const identity = sourceIdentity(image, name, outputSize);
-  const cacheKey = await sha256(identity);
+  const cacheKey = await sha256(sourceIdentity(image, name, outputSize, source));
 
   const cached = await readCachedPortrait(cacheKey);
-  if (cached instanceof Blob) {
-    applyNormalizedBlob(image, face, cached, cacheKey);
-    return true;
-  }
+  if (cached instanceof Blob) return { blob: cached, cacheKey };
 
-  const sourceBlob = await imageBlob(image);
+  const sourceBlob = await imageBlob(source);
   const bitmap = await createImageBitmap(sourceBlob);
 
   try {
     const detector = await createDetector();
     const result = detector.detect(bitmap);
     const detection = bestDetection(result);
-    if (!detection) return false;
+    if (!detection) return null;
 
     const crop = computeFaceCrop(detection.boundingBox, bitmap.width, bitmap.height);
-    if (crop.size < 38) return false;
+    if (crop.size < 38) return null;
 
     const canvas = document.createElement("canvas");
     canvas.width = outputSize;
     canvas.height = outputSize;
     const context = canvas.getContext("2d", { alpha: false });
-    if (!context) return false;
+    if (!context) return null;
 
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
@@ -220,12 +220,11 @@ async function normalizePortrait(image, face) {
       outputSize
     );
 
-    const normalizedBlob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", 0.91));
-    if (!(normalizedBlob instanceof Blob)) return false;
+    const normalizedBlob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", 0.92));
+    if (!(normalizedBlob instanceof Blob)) return null;
 
     await writeCachedPortrait(cacheKey, normalizedBlob);
-    applyNormalizedBlob(image, face, normalizedBlob, cacheKey);
-    return true;
+    return { blob: normalizedBlob, cacheKey };
   } finally {
     bitmap.close?.();
   }
@@ -242,32 +241,61 @@ function applyNormalizedBlob(image, face, blob, cacheKey) {
   objectUrls.add(objectUrl);
   image.dataset.smartPortraitObjectUrl = objectUrl;
   image.dataset.smartPortraitKey = cacheKey;
-  image.dataset.smartPortraitReady = "true";
-  image.src = objectUrl;
-  image.onload = () => {
+  image.dataset.smartPortraitApplying = "true";
+
+  image.addEventListener("load", () => {
+    image.dataset.smartPortraitReady = "true";
+    delete image.dataset.smartPortraitApplying;
     face.classList.add("smart-portrait-ready", "photo-ready", "has-photo");
-    face.classList.remove("smart-portrait-processing", "photo-loading", "photo-failed");
-  };
+    face.classList.remove("smart-portrait-processing", "smart-portrait-unresolved", "photo-loading", "photo-failed");
+  }, { once: true });
+
+  image.src = objectUrl;
+}
+
+function scheduleImage(image) {
+  if (image.closest(".career-face.hero, .career-face.transfer")) {
+    queueMicrotask(() => processPortrait(image));
+  } else {
+    visibilityObserver.observe(image);
+  }
 }
 
 async function processPortrait(image) {
   const face = image.closest(".career-face");
-  if (!face || processing.has(image)) return;
+  if (!face || processing.has(image)) {
+    if (face) image.dataset.smartPortraitPending = "true";
+    return;
+  }
   if (image.dataset.smartPortraitReady === "true") return;
   if (!image.complete || image.naturalWidth < 48 || image.naturalHeight < 48) return;
-  if (String(image.currentSrc || image.src).startsWith("blob:")) return;
+
+  const source = liveSource(image);
+  if (!source || source.startsWith("blob:") || source.startsWith("data:")) return;
 
   processing.add(image);
   face.classList.add("smart-portrait-processing");
+  face.classList.remove("smart-portrait-unresolved");
 
   try {
-    const success = await normalizePortrait(image, face);
-    if (!success) face.classList.add("smart-portrait-unresolved");
+    const result = await generatePortrait(image, face, source);
+    if (liveSource(image) !== source) {
+      image.dataset.smartPortraitPending = "true";
+      return;
+    }
+    if (result) applyNormalizedBlob(image, face, result.blob, result.cacheKey);
+    else face.classList.add("smart-portrait-unresolved");
   } catch {
     face.classList.add("smart-portrait-unresolved");
   } finally {
     processing.delete(image);
     face.classList.remove("smart-portrait-processing");
+
+    if (image.dataset.smartPortraitPending === "true") {
+      delete image.dataset.smartPortraitPending;
+      image.dataset.smartPortraitReady = "false";
+      queueMicrotask(() => scheduleImage(image));
+    }
   }
 }
 
@@ -282,18 +310,21 @@ const visibilityObserver = new IntersectionObserver(entries => {
 function observeImage(image) {
   if (observed.has(image)) return;
   observed.add(image);
-
   image.crossOrigin = "anonymous";
+
   image.addEventListener("load", () => {
+    const source = liveSource(image);
+    if (image.dataset.smartPortraitApplying === "true" || source.startsWith("blob:")) return;
+
     image.dataset.smartPortraitReady = "false";
-    if (image.closest(".career-face.hero, .career-face.transfer")) processPortrait(image);
-    else visibilityObserver.observe(image);
+    if (processing.has(image)) {
+      image.dataset.smartPortraitPending = "true";
+      return;
+    }
+    scheduleImage(image);
   });
 
-  if (image.complete && image.naturalWidth >= 48) {
-    if (image.closest(".career-face.hero, .career-face.transfer")) processPortrait(image);
-    else visibilityObserver.observe(image);
-  }
+  if (image.complete && image.naturalWidth >= 48) scheduleImage(image);
 }
 
 function scan() {
