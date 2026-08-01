@@ -1,0 +1,1 @@
+Validate MediaPipe face detection portrait normalization, IndexedDB WebP cache and production build.
