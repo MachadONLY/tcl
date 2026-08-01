@@ -7,47 +7,86 @@ function isPlayerRole(value) {
   return /\bjogador\b|\bplayer\b/i.test(String(value || ""));
 }
 
+function resetAvatar(avatar) {
+  avatar.querySelectorAll(":scope > img.v8-player-face").forEach(image => image.remove());
+  avatar.classList.remove("v8-face-loading", "v8-face-ready", "v8-face-missing");
+  delete avatar.dataset.faceSource;
+  delete avatar.dataset.faceLoadingFor;
+}
+
 function mountFace(avatar, playerName, teamHint = DEFAULT_TEAM) {
   if (!avatar || !playerName) return;
-  if (avatar.dataset.facePlayer === playerName) return;
+
+  if (
+    avatar.dataset.facePlayer === playerName &&
+    avatar.classList.contains("v8-face-ready")
+  ) {
+    return;
+  }
+
+  if (avatar.dataset.faceLoadingFor === playerName) return;
 
   const player = getPlayerFace(playerName, teamHint);
-  avatar.dataset.facePlayer = playerName;
-
-  if (!player?.photo) {
+  if (!player) {
+    resetAvatar(avatar);
+    avatar.dataset.facePlayer = playerName;
     avatar.classList.add("v8-face-missing");
     return;
   }
 
-  avatar.classList.remove("v8-face-missing");
+  const sources = [...new Set(player.photoSources || [player.photo])].filter(Boolean);
+  if (!sources.length) {
+    resetAvatar(avatar);
+    avatar.dataset.facePlayer = playerName;
+    avatar.classList.add("v8-face-missing");
+    return;
+  }
+
+  resetAvatar(avatar);
+  avatar.dataset.faceLoadingFor = playerName;
   avatar.classList.add("v8-face-loading");
-  avatar.dataset.faceSource = player.source || "api-football";
   avatar.title = `${player.name}${player.teamName ? ` · ${player.teamName}` : ""}`;
 
-  const existing = avatar.querySelector(":scope > img.v8-player-face");
-  existing?.remove();
-
-  const image = document.createElement("img");
-  image.className = "v8-player-face";
-  image.alt = `Foto de ${player.name}`;
-  image.src = player.photo;
-  image.loading = "lazy";
-  image.decoding = "async";
-  image.referrerPolicy = "no-referrer";
-
-  image.addEventListener("load", () => {
-    avatar.classList.remove("v8-face-loading");
-    avatar.classList.add("v8-face-ready");
-  }, { once: true });
-
-  image.addEventListener("error", () => {
-    image.remove();
-    avatar.classList.remove("v8-face-loading", "v8-face-ready");
-    avatar.classList.add("v8-face-missing");
-  }, { once: true });
-
   const numberBadge = avatar.querySelector(":scope > small");
-  avatar.insertBefore(image, numberBadge || null);
+  let sourceIndex = 0;
+
+  const tryNextSource = () => {
+    const source = sources[sourceIndex];
+    if (!source) {
+      resetAvatar(avatar);
+      avatar.dataset.facePlayer = playerName;
+      avatar.classList.add("v8-face-missing");
+      return;
+    }
+
+    const image = document.createElement("img");
+    image.className = "v8-player-face";
+    image.alt = `Foto de ${player.name}`;
+    image.src = source;
+    image.loading = "eager";
+    image.decoding = "async";
+
+    image.addEventListener("load", () => {
+      avatar.querySelectorAll(":scope > img.v8-player-face").forEach(other => {
+        if (other !== image) other.remove();
+      });
+      avatar.classList.remove("v8-face-loading", "v8-face-missing");
+      avatar.classList.add("v8-face-ready");
+      avatar.dataset.facePlayer = playerName;
+      avatar.dataset.faceSource = source;
+      delete avatar.dataset.faceLoadingFor;
+    }, { once: true });
+
+    image.addEventListener("error", () => {
+      image.remove();
+      sourceIndex += 1;
+      tryNextSource();
+    }, { once: true });
+
+    avatar.insertBefore(image, numberBadge || null);
+  };
+
+  tryNextSource();
 }
 
 function decorateMailRows() {
