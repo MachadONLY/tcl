@@ -1,4 +1,4 @@
-const COMMAND_CENTER_VERSION = "3";
+const COMMAND_CENTER_VERSION = "4";
 let commandCenterQueued = false;
 
 function cleanText(value, fallback = "—") {
@@ -37,10 +37,6 @@ function selectedSquadRow() {
   return document.querySelector(".career-squad-row.selected");
 }
 
-function selectedSquadNumber() {
-  return cleanText(selectedSquadRow()?.querySelector(".fm-shirt-number")?.textContent, "—");
-}
-
 function selectedSquadPortrait(name) {
   const row = selectedSquadRow();
   const image = row?.querySelector(".fm-squad-avatar img");
@@ -63,7 +59,6 @@ function extractProfile(profile) {
     name,
     position,
     nationality: cleanText(nationality, "Primeiro time"),
-    number: selectedSquadNumber(),
     portrait: selectedSquadPortrait(name),
     overall: cleanText(profile.querySelector(".classic-profile-ovr b")?.textContent, "—"),
     status: readMetric(profile, "Situação") || cleanText(profile.querySelector(".classic-profile-identity > div > small")?.textContent, "Disponível"),
@@ -167,7 +162,6 @@ function renderCommandCenter(profile) {
       <div class="player-console-player">
         ${portraitMarkup(data)}
         <div class="player-console-title">
-          <span class="player-console-squad-number">${data.number === "—" ? "ELENCO" : `CAMISA ${escapeMarkup(data.number)}`}</span>
           <h2>${escapeMarkup(data.name)}</h2>
           <p><i></i>${escapeMarkup(data.status)}</p>
         </div>
