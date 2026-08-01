@@ -1,9 +1,28 @@
-/* Squad management panel — fixed viewport composition, no internal scrollbar */
+/*
+ * Squad management composition
+ * Uses the Touchline 8-point grid: compact information, clear hierarchy,
+ * predictable controls and no nested scrolling.
+ */
+
+.career-squad-fotmob .career-squad-layout {
+  grid-template-columns: minmax(520px, 1.08fr) minmax(420px, .92fr) !important;
+  align-items: start !important;
+  gap: var(--tl-panel-gap) !important;
+  padding: var(--tl-space-4) var(--tl-space-5) var(--tl-space-5) !important;
+}
+
+.career-squad-fotmob .career-squad-table,
+.career-squad-fotmob .career-player-profile.fm-management-panel {
+  border-radius: var(--tl-radius-lg) !important;
+}
 
 .career-squad-fotmob .career-player-profile.fm-management-panel {
   min-height: 0 !important;
-  grid-template-rows: 40px 92px 100px 54px minmax(0, 1fr) !important;
-  align-content: stretch !important;
+  height: auto !important;
+  max-height: none !important;
+  grid-template-rows: 36px 92px 96px 48px auto !important;
+  align-self: start !important;
+  align-content: start !important;
   overflow: hidden !important;
   scrollbar-width: none !important;
 }
@@ -14,19 +33,28 @@
 }
 
 .career-squad-fotmob .classic-profile-kicker {
-  min-height: 40px !important;
-  padding: 0 18px !important;
+  min-height: 36px !important;
+  padding: 0 var(--tl-space-4) !important;
+}
+
+.career-squad-fotmob .classic-profile-kicker span {
+  font-size: 9px !important;
+}
+
+.career-squad-fotmob .classic-profile-kicker small {
+  font-size: 10px !important;
 }
 
 .career-squad-fotmob .classic-profile-identity {
   min-height: 92px !important;
-  gap: 18px !important;
-  padding: 12px 18px !important;
+  gap: var(--tl-space-4) !important;
+  padding: var(--tl-space-3) var(--tl-space-4) !important;
 }
 
 .career-squad-fotmob .classic-profile-identity h2 {
-  margin: 7px 0 2px !important;
-  font-size: clamp(27px, 2vw, 34px) !important;
+  max-width: 100% !important;
+  margin: var(--tl-space-2) 0 var(--tl-space-1) !important;
+  font-size: clamp(28px, 2vw, 34px) !important;
   line-height: .94 !important;
 }
 
@@ -35,55 +63,63 @@
 }
 
 .career-squad-fotmob .classic-profile-identity .classic-position {
-  height: 25px !important;
-  min-width: 39px !important;
-  padding: 0 7px !important;
+  min-width: 40px !important;
+  height: 26px !important;
+  padding: 0 var(--tl-space-2) !important;
+  border-radius: var(--tl-radius-xs) !important;
   font-size: 11px !important;
 }
 
 .career-squad-fotmob .classic-profile-ovr {
-  width: 62px !important;
-  height: 62px !important;
-  border-radius: 12px !important;
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: var(--tl-radius-md) !important;
 }
 
 .career-squad-fotmob .classic-profile-ovr b {
-  font-size: 29px !important;
+  font-size: 30px !important;
 }
 
 .career-squad-fotmob .classic-contract-summary {
-  height: 100px !important;
+  height: 96px !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  grid-template-rows: repeat(2, 50px) !important;
+  grid-template-rows: repeat(2, 48px) !important;
 }
 
 .career-squad-fotmob .classic-contract-summary > span {
   min-height: 0 !important;
-  height: 50px !important;
+  height: 48px !important;
   gap: 2px !important;
-  padding: 7px 14px !important;
+  padding: var(--tl-space-2) var(--tl-space-3) !important;
 }
 
 .career-squad-fotmob .classic-contract-summary small {
   font-size: 8px !important;
+  line-height: 1 !important;
 }
 
 .career-squad-fotmob .classic-contract-summary strong {
-  font-size: 10px !important;
+  font-size: 11px !important;
+  line-height: 1.05 !important;
 }
 
 .career-squad-fotmob .classic-management-title {
-  min-height: 54px !important;
+  min-height: 48px !important;
   display: grid !important;
   align-content: center !important;
-  gap: 3px !important;
-  padding: 8px 18px !important;
+  gap: var(--tl-space-1) !important;
+  padding: var(--tl-space-2) var(--tl-space-4) !important;
+}
+
+.career-squad-fotmob .classic-management-title span {
+  font-size: 9px !important;
 }
 
 .career-squad-fotmob .classic-management-title p {
   max-width: 100% !important;
   margin: 0 !important;
   overflow: hidden !important;
+  color: var(--tl-text-dark-secondary) !important;
   font-size: 9px !important;
   line-height: 1.2 !important;
   text-overflow: ellipsis !important;
@@ -92,36 +128,43 @@
 
 .career-squad-fotmob .classic-management-actions {
   min-height: 0 !important;
-  height: 100% !important;
+  height: auto !important;
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  align-content: stretch !important;
-  gap: 9px !important;
-  padding: 10px 12px 12px !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: repeat(3, 58px) !important;
+  align-content: start !important;
+  gap: var(--tl-space-2) !important;
+  padding: var(--tl-space-3) var(--tl-space-4) var(--tl-space-4) !important;
   overflow: hidden !important;
 }
 
 .career-squad-fotmob .classic-action {
   position: relative !important;
   min-width: 0 !important;
-  min-height: 0 !important;
-  height: 100% !important;
+  min-height: 58px !important;
+  height: 58px !important;
   display: grid !important;
-  grid-template-columns: 32px minmax(0, 1fr) !important;
-  grid-template-rows: auto 1fr !important;
-  align-content: center !important;
+  grid-template-columns: 34px minmax(0, 1fr) 18px !important;
+  grid-template-rows: 1fr !important;
   align-items: center !important;
-  column-gap: 9px !important;
-  row-gap: 2px !important;
-  padding: 10px 25px 10px 10px !important;
-  border-radius: 10px !important;
+  gap: var(--tl-space-3) !important;
+  padding: var(--tl-space-2) var(--tl-space-3) !important;
+  border-radius: var(--tl-radius-md) !important;
+  transition:
+    transform var(--tl-motion-fast) var(--tl-ease-standard),
+    border-color var(--tl-motion-fast) var(--tl-ease-standard),
+    background var(--tl-motion-fast) var(--tl-ease-standard) !important;
+}
+
+.career-squad-fotmob .classic-action:hover {
+  transform: translateY(-1px) !important;
 }
 
 .career-squad-fotmob .classic-action-icon {
-  grid-row: 1 / span 2 !important;
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 8px !important;
+  grid-row: auto !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: var(--tl-radius-sm) !important;
   font-size: 16px !important;
 }
 
@@ -134,75 +177,97 @@
 
 .career-squad-fotmob .classic-action strong {
   overflow: hidden !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   line-height: 1.1 !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
 
 .career-squad-fotmob .classic-action small {
-  display: -webkit-box !important;
+  display: block !important;
   overflow: hidden !important;
-  font-size: 8px !important;
-  line-height: 1.2 !important;
-  white-space: normal !important;
-  -webkit-box-orient: vertical !important;
-  -webkit-line-clamp: 2 !important;
+  color: var(--tl-text-dark-secondary) !important;
+  font-size: 9px !important;
+  line-height: 1.15 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 .career-squad-fotmob .classic-action > b {
-  position: absolute !important;
-  top: 50% !important;
-  right: 9px !important;
-  transform: translateY(-50%) !important;
-  font-size: 16px !important;
+  position: static !important;
+  transform: none !important;
+  justify-self: end !important;
+  color: #8e9690 !important;
+  font-size: 17px !important;
 }
 
-@media (max-height: 820px) {
+.career-squad-fotmob .classic-action-primary {
+  border-color: rgba(34, 212, 122, .38) !important;
+  background: linear-gradient(135deg, rgba(31, 96, 64, .7), rgba(23, 65, 46, .72)) !important;
+}
+
+.career-squad-fotmob .classic-action-danger {
+  border-color: rgba(216, 100, 100, .22) !important;
+  background: rgba(91, 35, 35, .2) !important;
+}
+
+@media (max-width: 1240px) {
+  .career-squad-fotmob .career-squad-layout {
+    grid-template-columns: minmax(460px, 1fr) minmax(380px, .9fr) !important;
+    padding-inline: var(--tl-space-4) !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .career-squad-fotmob .career-squad-layout {
+    grid-template-columns: 1fr !important;
+  }
+
   .career-squad-fotmob .career-player-profile.fm-management-panel {
-    grid-template-rows: 36px 82px 90px 46px minmax(0, 1fr) !important;
+    width: 100% !important;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 981px) {
+  .career-squad-fotmob .career-player-profile.fm-management-panel {
+    grid-template-rows: 34px 82px 88px 42px auto !important;
   }
 
   .career-squad-fotmob .classic-profile-kicker {
-    min-height: 36px !important;
+    min-height: 34px !important;
   }
 
   .career-squad-fotmob .classic-profile-identity {
     min-height: 82px !important;
-    padding-block: 9px !important;
+    padding-block: var(--tl-space-2) !important;
   }
 
   .career-squad-fotmob .classic-profile-identity h2 {
-    font-size: clamp(25px, 1.8vw, 31px) !important;
+    font-size: 27px !important;
   }
 
   .career-squad-fotmob .classic-contract-summary {
-    height: 90px !important;
-    grid-template-rows: repeat(2, 45px) !important;
+    height: 88px !important;
+    grid-template-rows: repeat(2, 44px) !important;
   }
 
   .career-squad-fotmob .classic-contract-summary > span {
-    height: 45px !important;
-    padding-block: 5px !important;
+    height: 44px !important;
+    padding-block: 6px !important;
   }
 
   .career-squad-fotmob .classic-management-title {
-    min-height: 46px !important;
+    min-height: 42px !important;
     padding-block: 6px !important;
   }
 
   .career-squad-fotmob .classic-management-actions {
-    padding-top: 8px !important;
-  }
-}
-
-@media (max-width: 1180px) {
-  .career-squad-fotmob .classic-management-actions {
-    grid-template-columns: 1fr !important;
-    grid-template-rows: repeat(3, minmax(58px, 1fr)) !important;
+    grid-template-rows: repeat(3, 52px) !important;
+    padding-block: var(--tl-space-2) var(--tl-space-3) !important;
   }
 
   .career-squad-fotmob .classic-action {
-    min-height: 58px !important;
+    min-height: 52px !important;
+    height: 52px !important;
   }
 }
