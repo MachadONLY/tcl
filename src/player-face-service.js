@@ -2,15 +2,18 @@ import { PREMIER_LEAGUE_PLAYERS, PLAYER_FACE_META } from "./data/premier-league-
 
 const CURATED_FALLBACKS = Object.freeze({
   "kobbie mainoo": {
-    id: "espn-328466",
+    id: "manutd-kobbie-mainoo",
     name: "Kobbie Mainoo",
     normalizedName: "kobbie mainoo",
     teamName: "Manchester United",
     teamCode: "MUN",
     position: "Midfielder",
     number: 37,
-    photo: "https://a.espncdn.com/i/headshots/soccer/players/full/328466.png",
-    source: "curated-fallback"
+    photo: "https://dynamic-crop-cdn.scoreplay.io/472/4896330/media_102559979_102167103.jpg?f=center&fmt=webp&h=981&w=720",
+    photoFallbacks: [
+      "https://a.espncdn.com/i/headshots/soccer/players/full/328466.png"
+    ],
+    source: "official-club-fallback"
   }
 });
 
@@ -57,15 +60,28 @@ function chooseBest(matches, teamHint) {
   return matches.find(player => teamMatches(player, teamHint)) || matches[0];
 }
 
+function withPhotoSources(player, source) {
+  if (!player) return null;
+  const photoSources = [player.photo, ...(player.photoFallbacks || [])].filter(Boolean);
+  return {
+    ...player,
+    photo: photoSources[0] || null,
+    photoSources,
+    source: player.source || source
+  };
+}
+
 export function getPlayerFace(playerName, teamHint = "") {
   const normalized = normalizePlayerName(playerName);
   if (!normalized) return null;
 
   const exact = chooseBest(byExactName.get(normalized), teamHint);
-  if (exact) return { ...exact, source: "api-football" };
+  if (exact) return withPhotoSources(exact, "api-football");
 
   const fallback = CURATED_FALLBACKS[normalized];
-  if (fallback && teamMatches(fallback, teamHint)) return fallback;
+  if (fallback && teamMatches(fallback, teamHint)) {
+    return withPhotoSources(fallback, "curated-fallback");
+  }
 
   const tokens = normalized.split(" ");
   if (tokens.length > 1) {
@@ -74,7 +90,7 @@ export function getPlayerFace(playerName, teamHint = "") {
       const candidate = player.normalizedName || normalizePlayerName(player.name);
       return candidate.includes(tokens[0]) && teamMatches(player, teamHint);
     });
-    if (fuzzy) return { ...fuzzy, source: "api-football" };
+    if (fuzzy) return withPhotoSources(fuzzy, "api-football");
   }
 
   return null;
@@ -84,6 +100,7 @@ export function playerFaceCoverage() {
   return {
     ...PLAYER_FACE_META,
     available: PREMIER_LEAGUE_PLAYERS.length,
+    curatedFallbacks: Object.keys(CURATED_FALLBACKS).length,
     ready: PREMIER_LEAGUE_PLAYERS.length > 0
   };
 }
