@@ -1,0 +1,1 @@
+Validate selected-player portrait reuse, simplified commands and production build.
