@@ -1,0 +1,35 @@
+name: Touchline Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Syntax check career modules
+        run: |
+          node --check src/career-mode.js
+          node --check src/career-mode-data.js
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Run MVP smoke tests
+        run: npm run test:mvp
