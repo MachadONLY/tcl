@@ -1,0 +1,1 @@
+Validate in-place squad profile updates, unchanged list scroll, player actions and bottom navigation.
