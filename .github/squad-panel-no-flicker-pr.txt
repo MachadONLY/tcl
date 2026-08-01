@@ -1,0 +1,1 @@
+Validate granular player-panel updates without DOM replacement, portrait preloading, scroll stability and navigation.
