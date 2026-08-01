@@ -1,4 +1,5 @@
 import { PREMIER_LEAGUE_PLAYERS, PLAYER_FACE_META } from "./data/premier-league-player-faces.js";
+import { loadPremierLeagueLive } from "./premier-league-live.js";
 
 const MUN = "Manchester United";
 
@@ -41,39 +42,46 @@ const FALLBACK_MARKET = [
   [210,"Moisés Caicedo","CHE","Chelsea","CDM",24,86,89,90000000,160000,25,"Ecuador"],
   [211,"Levi Colwill","CHE","Chelsea","CB",23,82,87,52000000,110000,6,"England"],
   [212,"Enzo Fernández","CHE","Chelsea","CM",25,86,89,92000000,180000,8,"Argentina"],
-  [213,"Alexander Isak","NEW","Newcastle","ST",26,88,89,125000000,180000,14,"Sweden"],
-  [214,"Anthony Gordon","NEW","Newcastle","LW",25,84,87,70000000,120000,10,"England"],
-  [215,"Bruno Guimarães","NEW","Newcastle","CM",28,86,87,85000000,180000,39,"Brazil"],
-  [216,"Sandro Tonali","NEW","Newcastle","CM",26,85,87,76000000,160000,8,"Italy"],
+  [213,"Alexander Isak","NEW","Newcastle United","ST",26,88,89,125000000,180000,14,"Sweden"],
+  [214,"Anthony Gordon","NEW","Newcastle United","LW",25,84,87,70000000,120000,10,"England"],
+  [215,"Bruno Guimarães","NEW","Newcastle United","CM",28,86,87,85000000,180000,39,"Brazil"],
+  [216,"Sandro Tonali","NEW","Newcastle United","CM",26,85,87,76000000,160000,8,"Italy"],
   [217,"Mohamed Salah","LIV","Liverpool","RW",34,89,89,68000000,350000,11,"Egypt"],
   [218,"Virgil van Dijk","LIV","Liverpool","CB",35,88,88,35000000,280000,4,"Netherlands"],
   [219,"Alexis Mac Allister","LIV","Liverpool","CM",27,86,87,80000000,180000,10,"Argentina"],
   [220,"Dominik Szoboszlai","LIV","Liverpool","CAM",25,85,88,76000000,165000,8,"Hungary"],
-  [221,"Cristian Romero","TOT","Tottenham","CB",28,86,86,65000000,180000,17,"Argentina"],
-  [222,"James Maddison","TOT","Tottenham","CAM",29,84,84,48000000,180000,10,"England"],
-  [223,"Micky van de Ven","TOT","Tottenham","CB",25,84,88,72000000,130000,37,"Netherlands"],
+  [221,"Cristian Romero","TOT","Tottenham Hotspur","CB",28,86,86,65000000,180000,17,"Argentina"],
+  [222,"James Maddison","TOT","Tottenham Hotspur","CAM",29,84,84,48000000,180000,10,"England"],
+  [223,"Micky van de Ven","TOT","Tottenham Hotspur","CB",25,84,88,72000000,130000,37,"Netherlands"],
   [224,"Morgan Rogers","AVL","Aston Villa","CAM",24,84,89,76000000,110000,27,"England"],
   [225,"Ollie Watkins","AVL","Aston Villa","ST",30,85,85,60000000,160000,11,"England"],
   [226,"Youri Tielemans","AVL","Aston Villa","CM",29,84,84,50000000,150000,8,"Belgium"],
-  [227,"João Pedro","BHA","Brighton","CF",24,83,88,68000000,90000,9,"Brazil"],
-  [228,"Carlos Baleba","BHA","Brighton","CDM",22,81,88,55000000,75000,20,"Cameroon"],
+  [227,"João Pedro","BHA","Brighton & Hove Albion","CF",24,83,88,68000000,90000,9,"Brazil"],
+  [228,"Carlos Baleba","BHA","Brighton & Hove Albion","CDM",22,81,88,55000000,75000,20,"Cameroon"],
   [229,"Eberechi Eze","CRY","Crystal Palace","CAM",28,84,84,56000000,130000,10,"England"],
   [230,"Marc Guéhi","CRY","Crystal Palace","CB",26,84,86,62000000,120000,6,"England"],
-  [231,"Antoine Semenyo","BOU","Bournemouth","LW",26,82,85,48000000,85000,24,"Ghana"],
+  [231,"Antoine Semenyo","BOU","AFC Bournemouth","LW",26,82,85,48000000,85000,24,"Ghana"],
   [232,"Jarrad Branthwaite","EVE","Everton","CB",24,83,88,65000000,90000,32,"England"],
   [233,"Murillo","NFO","Nottingham Forest","CB",24,83,87,60000000,85000,5,"Brazil"],
-  [234,"Morgan Gibbs-White","NFO","Nottingham Forest","CAM",26,83,85,52000000,100000,10,"England"],
-  [235,"Milos Kerkez","BOU","Bournemouth","LB",22,82,88,58000000,80000,3,"Hungary"],
-  [236,"Bryan Mbeumo","BRE","Brentford","RW",26,84,85,62000000,120000,19,"Cameroon"]
+  [234,"Morgan Gibbs-White","NFO","Nottingham Forest","CAM",26,83,85,52000000,100000,10,"England"]
 ];
 
-const TEAM_BUDGETS = {
-  ARS: 180000000, MCI: 220000000, CHE: 190000000, MUN: 180000000,
-  LIV: 165000000, NEW: 150000000, TOT: 135000000, AVL: 105000000,
-  BHA: 85000000, BOU: 70000000, FUL: 65000000, CRY: 70000000,
-  BRE: 65000000, WHU: 75000000, EVE: 60000000, NFO: 70000000,
-  WOL: 55000000, LEE: 50000000, BUR: 45000000, SUN: 45000000
-};
+const TEAM_BUDGETS = Object.freeze({
+  ARS:180000000, AVL:105000000, BHA:85000000, BOU:70000000, BRE:65000000,
+  CHE:190000000, COV:48000000, CRY:70000000, EVE:60000000, FUL:65000000,
+  HUL:45000000, IPS:52000000, LEE:50000000, LIV:165000000, MCI:220000000,
+  MUN:180000000, NEW:150000000, NFO:70000000, SUN:50000000, TOT:135000000,
+  WHU:75000000, WOL:55000000, BUR:45000000
+});
+
+function normalizeKey(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -103,13 +111,27 @@ function generatedMetrics(player) {
 
 function fromTuple(tuple) {
   const [id,name,teamCode,teamName,position,age,rating,potential,value,wage,number,nationality,photo] = tuple;
-  return { id:String(id),name,teamCode,teamName,position,age,rating,potential,value,wage,number,nationality,photo:photo||null };
+  return {
+    id:String(id), name, teamCode, teamName, position, age, rating, potential,
+    value, wage, number, nationality, photo:photo || null, photoFallbacks:[]
+  };
 }
 
-function fromApi(player) {
+export function normalizePosition(value) {
+  const position = String(value || "").toUpperCase().trim();
+  if (["G","GK"].includes(position) || position.includes("GOAL")) return "GK";
+  if (["D","DEF"].includes(position) || position.includes("DEFENDER")) return "CB";
+  if (["M","MID"].includes(position) || position.includes("MIDFIELDER")) return "CM";
+  if (["F","A","FW"].includes(position) || position.includes("ATTACK") || position.includes("FORWARD")) return "ST";
+  return position || "CM";
+}
+
+function fromProvider(player, provider) {
   const metrics = generatedMetrics(player);
+  const photoSources = [...new Set([player.photo, ...(player.photoFallbacks || [])].filter(Boolean))];
   return {
     id: String(player.id),
+    providerId: player.providerId || String(player.id),
     name: player.name,
     teamCode: player.teamCode || String(player.teamId || "CLB"),
     teamName: player.teamName || "Premier League",
@@ -121,39 +143,82 @@ function fromApi(player) {
     wage: metrics.wage,
     number: player.number,
     nationality: player.nationality || "—",
-    photo: player.photo || null,
+    photo: photoSources[0] || null,
+    photoFallbacks: photoSources.slice(1),
     teamLogo: player.teamLogo || null,
+    source: player.source || provider,
     live: true
   };
 }
 
-export function normalizePosition(value) {
-  const position = String(value || "").toUpperCase();
-  if (position.includes("GOAL")) return "GK";
-  if (position.includes("DEFENDER")) return "CB";
-  if (position.includes("MIDFIELDER")) return "CM";
-  if (position.includes("ATTACK")) return "ST";
-  return position || "CM";
-}
+const liveSnapshot = await loadPremierLeagueLive().catch(error => ({
+  teams: [],
+  players: [],
+  meta: { ready:false, provider:"offline fallback", error:error.message }
+}));
 
 const fallback = [...FALLBACK_SQUAD, ...FALLBACK_MARKET].map(fromTuple);
-const apiPlayers = PREMIER_LEAGUE_PLAYERS.map(fromApi);
-const apiByName = new Map(apiPlayers.map(player => [player.name.toLowerCase(), player]));
+const fallbackByName = new Map(fallback.map(player => [normalizeKey(player.name), player]));
+const apiPlayers = PREMIER_LEAGUE_PLAYERS.map(player => fromProvider(player, "api-football"));
+const apiByName = new Map(apiPlayers.map(player => [normalizeKey(player.name), player]));
+const espnPlayers = liveSnapshot.players.map(player => fromProvider(player, "espn-live"));
 
-export const CAREER_PLAYERS = Object.freeze([
-  ...fallback.map(player => ({ ...player, ...(apiByName.get(player.name.toLowerCase()) || {}) })),
-  ...apiPlayers.filter(player => !fallback.some(item => item.name.toLowerCase() === player.name.toLowerCase()))
-]);
+function enrichLivePlayer(player) {
+  const key = normalizeKey(player.name);
+  const curated = fallbackByName.get(key);
+  const api = apiByName.get(key);
+  const realPhotoSources = [...new Set([
+    api?.photo,
+    ...(api?.photoFallbacks || []),
+    player.photo,
+    ...(player.photoFallbacks || []),
+    curated?.photo
+  ].filter(Boolean))];
 
-export const USER_SQUAD = Object.freeze(CAREER_PLAYERS.filter(player => player.teamCode === "MUN" || player.teamName === MUN));
-export const TRANSFER_MARKET = Object.freeze(CAREER_PLAYERS.filter(player => player.teamCode !== "MUN" && player.teamName !== MUN));
+  return {
+    ...player,
+    rating: curated?.rating ?? player.rating,
+    potential: curated?.potential ?? player.potential,
+    value: curated?.value ?? player.value,
+    wage: curated?.wage ?? player.wage,
+    photo: realPhotoSources[0] || player.photo,
+    photoFallbacks: realPhotoSources.slice(1)
+  };
+}
+
+const liveReady = liveSnapshot.meta?.ready || espnPlayers.length >= 300;
+let resolvedPlayers;
+
+if (liveReady) {
+  resolvedPlayers = espnPlayers.map(enrichLivePlayer);
+} else if (apiPlayers.length >= 100) {
+  const apiByKey = new Map(apiPlayers.map(player => [normalizeKey(player.name), player]));
+  resolvedPlayers = [
+    ...fallback.map(player => ({ ...player, ...(apiByKey.get(normalizeKey(player.name)) || {}) })),
+    ...apiPlayers.filter(player => !fallbackByName.has(normalizeKey(player.name)))
+  ];
+} else {
+  resolvedPlayers = fallback;
+}
+
+export const CAREER_PLAYERS = Object.freeze(resolvedPlayers);
+export const USER_SQUAD = Object.freeze(
+  CAREER_PLAYERS.filter(player => player.teamCode === "MUN" || player.teamName === MUN)
+);
+export const TRANSFER_MARKET = Object.freeze(
+  CAREER_PLAYERS.filter(player => player.teamCode !== "MUN" && player.teamName !== MUN)
+);
 
 export const CAREER_META = Object.freeze({
-  source: PLAYER_FACE_META,
-  liveCatalog: apiPlayers.length > 0,
+  source: liveReady ? liveSnapshot.meta : PLAYER_FACE_META,
+  provider: liveReady ? "ESPN public soccer feed" : apiPlayers.length ? "API-Football" : "Touchline fallback",
+  liveCatalog: liveReady || apiPlayers.length >= 100,
+  playerCount: CAREER_PLAYERS.length,
+  teamCount: liveReady ? liveSnapshot.teams.length : new Set(CAREER_PLAYERS.map(player => player.teamCode)).size,
   transferBudget: TEAM_BUDGETS.MUN,
   wageBudget: 3900000,
-  teamBudgets: TEAM_BUDGETS
+  teamBudgets: TEAM_BUDGETS,
+  budgetType: "Touchline career estimate"
 });
 
 export const FORMATIONS = Object.freeze({
@@ -172,10 +237,22 @@ export const FORMATIONS = Object.freeze({
   ]
 });
 
-export const DEFAULT_XI = Object.freeze([
-  "André Onana","Diogo Dalot","Leny Yoro","Matthijs de Ligt","Patrick Dorgu",
-  "Manuel Ugarte","Kobbie Mainoo","Bryan Mbeumo","Bruno Fernandes","Matheus Cunha","Benjamin Šeško"
-]);
+function buildDefaultXI() {
+  const preferred = [
+    "André Onana","Altay Bayındır","Diogo Dalot","Leny Yoro","Matthijs de Ligt",
+    "Lisandro Martínez","Patrick Dorgu","Manuel Ugarte","Kobbie Mainoo",
+    "Bryan Mbeumo","Bruno Fernandes","Matheus Cunha","Benjamin Šeško","Rasmus Højlund"
+  ];
+  const byName = new Map(USER_SQUAD.map(player => [normalizeKey(player.name), player.name]));
+  const chosen = preferred.map(name => byName.get(normalizeKey(name))).filter(Boolean);
+  const extras = [...USER_SQUAD]
+    .sort((a,b) => b.rating - a.rating)
+    .map(player => player.name)
+    .filter(name => !chosen.includes(name));
+  return [...chosen, ...extras].slice(0, 11);
+}
+
+export const DEFAULT_XI = Object.freeze(buildDefaultXI());
 
 export const SCOUTS = Object.freeze([
   { id:"s1",name:"Rui Faria",experience:5,judgement:4,region:"Portugal & Spain",status:"available" },
