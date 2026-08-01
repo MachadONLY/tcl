@@ -22,15 +22,6 @@ function writeSelectedPlayer(playerId) {
   return save;
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
 function cleanText(value, fallback = "—") {
   const text = String(value ?? "").trim();
   if (!text || /^(undefined|null|nan(?:\s*anos?)?)$/i.test(text)) return fallback;
@@ -49,7 +40,9 @@ function initials(value) {
 
 function deterministicContractYears(id) {
   let hash = 0;
-  for (const character of String(id || "")) hash = ((hash << 5) - hash + character.charCodeAt(0)) | 0;
+  for (const character of String(id || "")) {
+    hash = ((hash << 5) - hash + character.charCodeAt(0)) | 0;
+  }
   return 2 + (Math.abs(hash) % 4);
 }
 
@@ -57,58 +50,107 @@ function portraitData(row, player) {
   const image = row.querySelector(".fm-squad-avatar img");
   return {
     source: image?.currentSrc || image?.getAttribute("src") || "",
-    fallback: cleanText(row.querySelector(".fm-squad-avatar > span")?.textContent, initials(player.name))
+    fallback: cleanText(
+      row.querySelector(".fm-squad-avatar > span")?.textContent,
+      initials(player.name)
+    )
   };
 }
 
-function portraitMarkup(data) {
-  return `<span class="player-console-portrait${data.source ? " has-source" : " no-source"}" aria-hidden="true">
-    <span>${escapeHtml(data.fallback)}</span>
-    ${data.source ? `<img src="${escapeHtml(data.source)}" alt="" loading="eager" decoding="async" referrerpolicy="no-referrer" />` : ""}
-  </span>`;
+function setText(root, selector, value) {
+  const element = root.querySelector(selector);
+  if (element && element.textContent !== String(value)) element.textContent = String(value);
 }
 
-function metric(label, value, emphasis = false) {
-  return `<div class="player-console-metric${emphasis ? " emphasis" : ""}">
-    <span>${escapeHtml(label)}</span>
-    <strong>${escapeHtml(value)}</strong>
-  </div>`;
+function setMetric(profile, label, value) {
+  const normalized = label.toLowerCase();
+  const metric = [...profile.querySelectorAll(".player-console-metric")]
+    .find(item => item.querySelector("span")?.textContent?.trim().toLowerCase() === normalized);
+  const output = metric?.querySelector("strong");
+  if (output && output.textContent !== String(value)) output.textContent = String(value);
 }
 
-function command(action, title, detail, tone, icon, playerId) {
-  return `<button type="button" class="player-console-command ${tone}" data-classic-player-action="${action}" data-player-id="${escapeHtml(playerId)}">
-    <span class="player-console-command-icon" aria-hidden="true">${icon}</span>
-    <span class="player-console-command-copy">
-      <strong>${escapeHtml(title)}</strong>
-      <small>${escapeHtml(detail)}</small>
-    </span>
-    <span class="player-console-command-arrow" aria-hidden="true">›</span>
-  </button>`;
+function updateStatus(profile, status) {
+  const statusLine = profile.querySelector(".player-console-title p");
+  if (!statusLine) return;
+
+  let dot = statusLine.querySelector("i");
+  if (!dot) dot = document.createElement("i");
+
+  const currentText = [...statusLine.childNodes]
+    .filter(node => node.nodeType === Node.TEXT_NODE)
+    .map(node => node.textContent)
+    .join("")
+    .trim();
+
+  if (currentText === status && statusLine.firstElementChild === dot) return;
+  statusLine.replaceChildren(dot, document.createTextNode(status));
 }
 
-function activatePortrait(profile) {
-  const image = profile.querySelector(".player-console-portrait img");
-  if (!image) return;
+function updatePortrait(profile, portrait, playerId) {
+  const holder = profile.querySelector(".player-console-portrait");
+  if (!holder) return;
 
-  const loaded = () => image.closest(".player-console-portrait")?.classList.add("loaded");
-  const failed = () => {
-    const portrait = image.closest(".player-console-portrait");
-    image.remove();
-    portrait?.classList.remove("loaded", "has-source");
-    portrait?.classList.add("no-source");
-  };
-
-  image.addEventListener("load", loaded, { once: true });
-  image.addEventListener("error", failed, { once: true });
-  if (image.complete) {
-    if (image.naturalWidth > 0) loaded();
-    else failed();
+  const fallback = holder.querySelector(":scope > span");
+  if (fallback && fallback.textContent !== portrait.fallback) {
+    fallback.textContent = portrait.fallback;
   }
+
+  const currentImage = holder.querySelector("img");
+  const currentSource = currentImage?.currentSrc || currentImage?.getAttribute("src") || "";
+
+  if (!portrait.source) {
+    currentImage?.remove();
+    holder.classList.remove("loaded", "has-source");
+    holder.classList.add("no-source");
+    return;
+  }
+
+  if (currentSource === portrait.source) {
+    holder.classList.add("loaded", "has-source");
+    holder.classList.remove("no-source");
+    return;
+  }
+
+  // Preload the next portrait while the previous one stays visible. Only swap
+  // after decoding succeeds, eliminating the empty-frame flash between players.
+  const nextImage = new Image();
+  nextImage.alt = "";
+  nextImage.loading = "eager";
+  nextImage.decoding = "async";
+  nextImage.referrerPolicy = "no-referrer";
+  nextImage.src = portrait.source;
+
+  const commitPortrait = () => {
+    if (profile.dataset.selectedPlayerId !== String(playerId)) return;
+    const activeImage = holder.querySelector("img");
+    if (activeImage) activeImage.replaceWith(nextImage);
+    else holder.append(nextImage);
+    holder.classList.add("loaded", "has-source");
+    holder.classList.remove("no-source");
+  };
+
+  const failPortrait = () => {
+    if (profile.dataset.selectedPlayerId !== String(playerId)) return;
+    currentImage?.remove();
+    holder.classList.remove("loaded", "has-source");
+    holder.classList.add("no-source");
+  };
+
+  if (nextImage.complete && nextImage.naturalWidth > 0) {
+    nextImage.decode?.().catch(() => {}).finally(commitPortrait);
+    return;
+  }
+
+  nextImage.addEventListener("load", () => {
+    nextImage.decode?.().catch(() => {}).finally(commitPortrait);
+  }, { once: true });
+  nextImage.addEventListener("error", failPortrait, { once: true });
 }
 
-function renderProfile(row, player, save) {
-  const profile = document.querySelector(".career-player-profile");
-  if (!profile) return;
+function updateProfile(row, player, save) {
+  const profile = document.querySelector(".career-player-profile.player-command-center");
+  if (!profile) return false;
 
   const negotiation = save.contractNegotiations?.[String(player.id)];
   const status = cleanText(save.playerStatus?.[String(player.id)], "Disponível");
@@ -118,76 +160,46 @@ function renderProfile(row, player, save) {
     : formatMoney(player.wage, true);
   const portrait = portraitData(row, player);
 
-  const commands = [
-    command("renew", "Renovar contrato", "Negociar novo vínculo", "primary", "↻", player.id),
-    command("list", "Colocar à venda", "Abrir para propostas", "neutral", "⇄", player.id),
-    command("release", "Rescindir contrato", "Encerrar vínculo", "danger", "×", player.id)
-  ].join("");
-
   profile.dataset.selectedPlayerId = String(player.id);
-  profile.dataset.commandCenterVersion = "4";
-  profile.classList.add("player-command-center");
-  profile.innerHTML = `
-    <div class="player-console-topbar">
-      <div>
-        <span>GESTÃO DO JOGADOR</span>
-        <small>PRIMEIRO TIME</small>
-      </div>
-      <div class="player-console-context">
-        <span>${escapeHtml(player.position)}</span>
-        <i></i>
-        <small>${escapeHtml(cleanText(player.nationality, "—"))}</small>
-      </div>
-    </div>
 
-    <section class="player-console-identity">
-      <div class="player-console-player">
-        ${portraitMarkup(portrait)}
-        <div class="player-console-title">
-          <h2>${escapeHtml(player.name)}</h2>
-          <p><i></i>${escapeHtml(status)}</p>
-        </div>
-      </div>
-      <div class="player-console-overall" aria-label="Overall ${escapeHtml(player.rating)}">
-        <span>OVERALL</span>
-        <strong>${escapeHtml(player.rating)}</strong>
-      </div>
-    </section>
+  setText(profile, ".player-console-context > span", player.position);
+  setText(profile, ".player-console-context > small", cleanText(player.nationality, "—"));
+  setText(profile, ".player-console-title h2", player.name);
+  updateStatus(profile, status);
+  setText(profile, ".player-console-overall strong", player.rating);
 
-    <section class="player-console-dashboard" aria-label="Resumo do jogador">
-      ${metric("Idade", player.age)}
-      ${metric("Salário semanal", salary)}
-      ${metric("Contrato", `${years} anos`, true)}
-      ${metric("Valor de mercado", formatMoney(player.value, true))}
-      ${metric("Potencial", player.potential)}
-      ${metric("Situação", status)}
-    </section>
+  const overall = profile.querySelector(".player-console-overall");
+  if (overall) overall.setAttribute("aria-label", `Overall ${player.rating}`);
 
-    <section class="player-console-actions">
-      <div class="player-console-command-grid">${commands}</div>
-    </section>
-  `;
+  setMetric(profile, "Idade", player.age);
+  setMetric(profile, "Salário semanal", salary);
+  setMetric(profile, "Contrato", `${years} anos`);
+  setMetric(profile, "Valor de mercado", formatMoney(player.value, true));
+  setMetric(profile, "Potencial", player.potential);
+  setMetric(profile, "Situação", status);
 
-  profile.classList.remove("player-console-swap");
-  void profile.offsetWidth;
-  profile.classList.add("player-console-swap");
-  activatePortrait(profile);
+  profile.querySelectorAll("[data-classic-player-action]").forEach(button => {
+    button.dataset.playerId = String(player.id);
+  });
+
+  updatePortrait(profile, portrait, player.id);
+  return true;
 }
 
 function selectRow(row) {
   const playerId = String(row.dataset.squadPlayer || "");
   const player = playersById.get(playerId);
-  if (!player) return;
+  if (!player || row.classList.contains("selected")) return;
 
   document.querySelectorAll(".career-squad-scroll [data-squad-player]")
     .forEach(candidate => candidate.classList.toggle("selected", candidate === row));
 
   const save = writeSelectedPlayer(playerId);
-  renderProfile(row, player, save);
+  updateProfile(row, player, save);
 }
 
-// Capture only squad-row clicks. No route rerender, no hashchange and no scroll
-// restoration are needed because the list DOM never changes.
+// Squad selection is intentionally local. The route is not rendered again,
+// the list DOM is untouched and the scroll container never changes position.
 document.addEventListener("click", event => {
   if (!isSquadRoute()) return;
   const row = event.target.closest(".career-squad-scroll [data-squad-player]");
