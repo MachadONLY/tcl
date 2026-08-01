@@ -75,10 +75,27 @@ function kitFor(clubName) {
   return CLUB_KITS[key] || CLUB_KITS["manchester united"];
 }
 
+function realPortraitHasLoaded(face) {
+  const image = face.querySelector(":scope > img");
+  if (!image) return false;
+  const source = String(image.currentSrc || image.src || "");
+  return Boolean(
+    source &&
+    !source.startsWith("data:image/svg+xml") &&
+    image.complete &&
+    image.naturalWidth > 0
+  );
+}
+
 function ensureKitLayer(face) {
   const club = inferClub(face);
   const identity = normalize(club) || "manchester united";
   const kit = kitFor(club);
+
+  if (realPortraitHasLoaded(face)) {
+    face.classList.remove("generated-player-face", "photo-failed");
+    face.classList.add("has-photo", "photo-ready");
+  }
 
   face.dataset.saveClub = club;
   face.style.setProperty("--kit-primary", kit.primary);
@@ -113,6 +130,11 @@ function queueScan() {
 }
 
 const observer = new MutationObserver(queueScan);
-observer.observe(document.body, { childList: true, subtree: true });
+observer.observe(document.body, {
+  childList: true,
+  subtree: true,
+  attributes: true,
+  attributeFilter: ["src", "class"]
+});
 document.addEventListener("DOMContentLoaded", queueScan, { once: true });
 queueScan();
