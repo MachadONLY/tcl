@@ -10,7 +10,7 @@
   --kit-primary: #d71920;
   --kit-secondary: #111611;
   --kit-accent: #f5c542;
-  --kit-start: 58%;
+  --kit-start: 50%;
 }
 
 .career-face > .career-save-kit {
@@ -61,7 +61,7 @@
 .career-face > .career-save-kit .career-save-kit-badge {
   position: absolute;
   z-index: 3;
-  top: calc(var(--kit-start) + 22%);
+  top: calc(var(--kit-start) + 25%);
   left: 28%;
   width: 16%;
   aspect-ratio: 1;
@@ -77,7 +77,7 @@
 .career-face.small,
 .career-face.tiny,
 .career-squad-row .career-face {
-  --kit-start: 55%;
+  --kit-start: 49%;
 }
 
 .career-face.small > .career-save-kit .career-save-kit-badge,
@@ -88,11 +88,11 @@
 
 .career-face.hero,
 .career-face.transfer {
-  --kit-start: 59%;
+  --kit-start: 52%;
 }
 
 .career-face.pitch {
-  --kit-start: 56%;
+  --kit-start: 50%;
 }
 
 /* Keep the identity layer readable without destructive zoom or fog. */
