@@ -1,14 +1,17 @@
 /*
  * Squad management composition
- * Uses the Touchline 8-point grid: compact information, clear hierarchy,
- * predictable controls and no nested scrolling.
+ * Touchline 8-point grid: one scrollable roster, one stable management panel.
+ * Every visual region owns its space; badges, rules and content never overlap.
  */
 
 .career-squad-fotmob .career-squad-layout {
+  height: 100% !important;
+  min-height: 0 !important;
   grid-template-columns: minmax(520px, 1.08fr) minmax(420px, .92fr) !important;
-  align-items: start !important;
+  align-items: stretch !important;
   gap: var(--tl-panel-gap) !important;
   padding: var(--tl-space-4) var(--tl-space-5) var(--tl-space-5) !important;
+  overflow: hidden !important;
 }
 
 .career-squad-fotmob .career-squad-table,
@@ -16,11 +19,60 @@
   border-radius: var(--tl-radius-lg) !important;
 }
 
+/* The roster is the only continuously scrollable region on this screen. */
+.career-squad-fotmob .career-squad-table {
+  height: 100% !important;
+  min-height: 0 !important;
+  align-self: stretch !important;
+  overflow: hidden !important;
+}
+
+.career-squad-fotmob .career-squad-scroll {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, .26) transparent;
+}
+
+.career-squad-fotmob .career-squad-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.career-squad-fotmob .career-squad-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.career-squad-fotmob .career-squad-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .26);
+  background-clip: padding-box;
+}
+
+.career-squad-fotmob .career-squad-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, .4);
+  background-clip: padding-box;
+}
+
+.career-squad-fotmob .classic-position-group > header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: rgba(23, 24, 23, .97) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Management panel stays still and fits entirely inside the viewport. */
 .career-squad-fotmob .career-player-profile.fm-management-panel {
   min-height: 0 !important;
   height: auto !important;
-  max-height: none !important;
-  grid-template-rows: 36px 92px 96px 48px auto !important;
+  max-height: 100% !important;
+  grid-template-rows: 38px 104px 96px 46px auto !important;
   align-self: start !important;
   align-content: start !important;
   overflow: hidden !important;
@@ -33,8 +85,8 @@
 }
 
 .career-squad-fotmob .classic-profile-kicker {
-  min-height: 36px !important;
-  padding: 0 var(--tl-space-4) !important;
+  min-height: 38px !important;
+  padding: 0 18px !important;
 }
 
 .career-squad-fotmob .classic-profile-kicker span {
@@ -45,34 +97,54 @@
   font-size: 10px !important;
 }
 
+/* Dedicated identity zone: badge, name and status have explicit spacing. */
 .career-squad-fotmob .classic-profile-identity {
-  min-height: 92px !important;
+  min-height: 104px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 64px !important;
+  align-items: center !important;
   gap: var(--tl-space-4) !important;
-  padding: var(--tl-space-3) var(--tl-space-4) !important;
+  padding: 16px 18px 14px !important;
 }
 
-.career-squad-fotmob .classic-profile-identity h2 {
-  max-width: 100% !important;
-  margin: var(--tl-space-2) 0 var(--tl-space-1) !important;
-  font-size: clamp(28px, 2vw, 34px) !important;
-  line-height: .94 !important;
-}
-
-.career-squad-fotmob .classic-profile-identity > div > small {
-  font-size: 10px !important;
+.career-squad-fotmob .classic-profile-identity > div {
+  min-width: 0 !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: start !important;
+  gap: 4px !important;
 }
 
 .career-squad-fotmob .classic-profile-identity .classic-position {
   min-width: 40px !important;
   height: 26px !important;
+  margin: 0 0 4px !important;
   padding: 0 var(--tl-space-2) !important;
   border-radius: var(--tl-radius-xs) !important;
   font-size: 11px !important;
+  line-height: 1 !important;
+}
+
+.career-squad-fotmob .classic-profile-identity h2 {
+  max-width: 100% !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  font-size: clamp(28px, 2vw, 34px) !important;
+  line-height: .98 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.career-squad-fotmob .classic-profile-identity > div > small {
+  margin: 1px 0 0 !important;
+  font-size: 10px !important;
+  line-height: 1.2 !important;
 }
 
 .career-squad-fotmob .classic-profile-ovr {
   width: 64px !important;
   height: 64px !important;
+  align-self: center !important;
   border-radius: var(--tl-radius-md) !important;
 }
 
@@ -104,11 +176,11 @@
 }
 
 .career-squad-fotmob .classic-management-title {
-  min-height: 48px !important;
+  min-height: 46px !important;
   display: grid !important;
   align-content: center !important;
   gap: var(--tl-space-1) !important;
-  padding: var(--tl-space-2) var(--tl-space-4) !important;
+  padding: 7px var(--tl-space-4) !important;
 }
 
 .career-squad-fotmob .classic-management-title span {
@@ -131,7 +203,7 @@
   height: auto !important;
   display: grid !important;
   grid-template-columns: 1fr !important;
-  grid-template-rows: repeat(3, 58px) !important;
+  grid-template-rows: repeat(3, 54px) !important;
   align-content: start !important;
   gap: var(--tl-space-2) !important;
   padding: var(--tl-space-3) var(--tl-space-4) var(--tl-space-4) !important;
@@ -141,8 +213,8 @@
 .career-squad-fotmob .classic-action {
   position: relative !important;
   min-width: 0 !important;
-  min-height: 58px !important;
-  height: 58px !important;
+  min-height: 54px !important;
+  height: 54px !important;
   display: grid !important;
   grid-template-columns: 34px minmax(0, 1fr) 18px !important;
   grid-template-rows: 1fr !important;
@@ -220,7 +292,13 @@
 
 @media (max-width: 980px) {
   .career-squad-fotmob .career-squad-layout {
+    height: auto !important;
     grid-template-columns: 1fr !important;
+    overflow: auto !important;
+  }
+
+  .career-squad-fotmob .career-squad-table {
+    min-height: 520px !important;
   }
 
   .career-squad-fotmob .career-player-profile.fm-management-panel {
@@ -230,7 +308,7 @@
 
 @media (max-height: 760px) and (min-width: 981px) {
   .career-squad-fotmob .career-player-profile.fm-management-panel {
-    grid-template-rows: 34px 82px 88px 42px auto !important;
+    grid-template-rows: 34px 92px 88px 42px auto !important;
   }
 
   .career-squad-fotmob .classic-profile-kicker {
@@ -238,8 +316,8 @@
   }
 
   .career-squad-fotmob .classic-profile-identity {
-    min-height: 82px !important;
-    padding-block: var(--tl-space-2) !important;
+    min-height: 92px !important;
+    padding: 12px 16px 11px !important;
   }
 
   .career-squad-fotmob .classic-profile-identity h2 {
@@ -262,12 +340,12 @@
   }
 
   .career-squad-fotmob .classic-management-actions {
-    grid-template-rows: repeat(3, 52px) !important;
+    grid-template-rows: repeat(3, 50px) !important;
     padding-block: var(--tl-space-2) var(--tl-space-3) !important;
   }
 
   .career-squad-fotmob .classic-action {
-    min-height: 52px !important;
-    height: 52px !important;
+    min-height: 50px !important;
+    height: 50px !important;
   }
 }
