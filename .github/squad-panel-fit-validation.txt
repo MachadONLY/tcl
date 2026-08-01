@@ -1,0 +1,1 @@
+Validate no-scroll player management panel, responsive action layout and production build.
