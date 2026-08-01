@@ -16,6 +16,50 @@ const CURATED_FALLBACKS = Object.freeze({
     ],
     source: "wikimedia-curated-fallback",
     credit: "Bryan Berlin / WikiPortraits · CC BY-SA 4.0"
+  },
+  "dra helena costa": {
+    id: "fictional-performance-doctor",
+    name: "Dra. Helena Costa",
+    normalizedName: "dra helena costa",
+    teamName: "Manchester United",
+    teamCode: "MUN",
+    position: "Performance Doctor",
+    photo: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=480&h=480&q=88",
+    photoFallbacks: [
+      "https://randomuser.me/api/portraits/women/44.jpg",
+      "https://i.pravatar.cc/480?img=47"
+    ],
+    source: "fictional-staff-portrait",
+    credit: "Retrato ilustrativo para personagem fictícia"
+  },
+  "jason mccarthy": {
+    id: "fictional-assistant-coach",
+    name: "Jason McCarthy",
+    normalizedName: "jason mccarthy",
+    teamName: "Manchester United",
+    teamCode: "MUN",
+    position: "Assistant Coach",
+    photo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=480&h=480&q=88",
+    photoFallbacks: [
+      "https://randomuser.me/api/portraits/men/32.jpg",
+      "https://i.pravatar.cc/480?img=12"
+    ],
+    source: "fictional-staff-portrait",
+    credit: "Retrato ilustrativo para personagem fictício"
+  },
+  "omar berrada": {
+    id: "wikimedia-omar-berrada-2024",
+    name: "Omar Berrada",
+    normalizedName: "omar berrada",
+    teamName: "Manchester United",
+    teamCode: "MUN",
+    position: "Chief Executive Officer",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Omar_Berrada%2C_12_November_2024.jpg/330px-Omar_Berrada%2C_12_November_2024.jpg",
+    photoFallbacks: [
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Omar_Berrada%2C_12_November_2024.jpg?width=330"
+    ],
+    source: "wikimedia-curated-fallback",
+    credit: "Ramsey Cardy / Web Summit / Sportsfile · CC BY 2.0"
   }
 });
 
