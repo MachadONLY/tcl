@@ -82,7 +82,7 @@ async function loadCatalog() {
 
   const cached = readCache();
   if (cached) {
-    catalog = buildCatalog({ players: cached.players, elements: cached.players, teams: cached.teams });
+    catalog = buildCatalog({ elements: cached.players, teams: cached.teams });
     return catalog;
   }
 
@@ -186,7 +186,11 @@ function existingFallbacks(image) {
   } catch {
     // Ignore malformed data attributes.
   }
-  return [...new Set(values.filter(source => source && !String(source).includes("resources.premierleague.com")))];
+  return [...new Set(values.filter(source =>
+    source &&
+    !String(source).startsWith("blob:") &&
+    !String(source).includes("resources.premierleague.com")
+  ))];
 }
 
 function installOfficialPortrait(face, player, name) {
@@ -201,12 +205,18 @@ function installOfficialPortrait(face, player, name) {
   if (image.dataset.fplPortraitIdentity === identity) return;
 
   const queue = [...officialSources(player), ...existingFallbacks(image)];
+  if (!queue.length) return;
+
   image.dataset.fplPortraitIdentity = identity;
   image.dataset.fplPortraitQueue = JSON.stringify(queue.slice(1));
+  image.dataset.smartPortraitReady = "false";
   image.alt = name;
   image.decoding = "async";
   image.loading = face.classList.contains("hero") || face.classList.contains("transfer") ? "eager" : "lazy";
+  image.crossOrigin = "anonymous";
   image.referrerPolicy = "no-referrer";
+
+  face.classList.remove("smart-portrait-ready", "smart-portrait-unresolved");
 
   image.onerror = () => {
     let remaining = [];
