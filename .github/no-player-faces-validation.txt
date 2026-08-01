@@ -1,0 +1,1 @@
+Validate removal of player faces, portrait network pipelines and text-only player layouts.
