@@ -1,0 +1,171 @@
+/*
+ * Touchline portrait system
+ * -------------------------
+ * Every player is presented as the same neutral head-and-neck portrait.
+ * Source photos may come from different providers, clubs or seasons, but
+ * club shirts fade out before the bottom edge so transfers never look like
+ * they already belong to the user's team.
+ */
+
+.career-module .career-face,
+.career-modal-layer .career-face {
+  --portrait-bg-top: #f0f5ed;
+  --portrait-bg-bottom: #dce8d7;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 255, 255, .92), transparent 48%),
+    linear-gradient(155deg, var(--portrait-bg-top), var(--portrait-bg-bottom)) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(50, 72, 43, .055),
+    0 5px 15px rgba(29, 40, 25, .055);
+}
+
+.career-module .career-face::before,
+.career-modal-layer .career-face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse at 50% 28%, transparent 32%, rgba(41, 55, 36, .035) 78%, rgba(41, 55, 36, .08) 100%);
+  pointer-events: none;
+}
+
+.career-module .career-face > img,
+.career-modal-layer .career-face > img {
+  inset: -8% -10% -4% !important;
+  z-index: 2;
+  width: 120% !important;
+  height: 116% !important;
+  border-radius: inherit;
+  object-fit: cover !important;
+  object-position: 50% 5% !important;
+  background: transparent !important;
+  filter: saturate(.92) contrast(1.025) brightness(1.015);
+  transform: translateZ(0);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 54%,
+    rgba(0, 0, 0, .96) 62%,
+    rgba(0, 0, 0, .62) 73%,
+    rgba(0, 0, 0, .16) 86%,
+    transparent 96%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 54%,
+    rgba(0, 0, 0, .96) 62%,
+    rgba(0, 0, 0, .62) 73%,
+    rgba(0, 0, 0, .16) 86%,
+    transparent 96%
+  );
+}
+
+.career-module .career-face::after,
+.career-modal-layer .career-face::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  height: 33%;
+  border-radius: 0 0 inherit inherit;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(224, 234, 219, .5) 48%,
+    rgba(220, 232, 215, .94) 100%
+  );
+  pointer-events: none;
+}
+
+/* Small list portraits are cropped more tightly so the face remains legible. */
+.career-module .career-face.tiny > img,
+.career-module .career-face.small > img,
+.career-module .career-face:not(.hero):not(.transfer):not(.pitch) > img,
+.career-modal-layer .career-face.tiny > img,
+.career-modal-layer .career-face.small > img {
+  inset: -13% -14% -2% !important;
+  width: 128% !important;
+  height: 119% !important;
+  object-position: 50% 3% !important;
+}
+
+.career-module .career-face.tiny::after,
+.career-module .career-face.small::after,
+.career-module .career-face:not(.hero):not(.transfer):not(.pitch)::after,
+.career-modal-layer .career-face.tiny::after,
+.career-modal-layer .career-face.small::after {
+  height: 29%;
+}
+
+/* Large profile portrait: face, hair and a minimal amount of shoulder only. */
+.career-module .career-face.hero > img,
+.career-modal-layer .career-face.hero > img {
+  inset: -7% -8% -3% !important;
+  width: 116% !important;
+  height: 113% !important;
+  object-position: 50% 2% !important;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 56%, rgba(0, 0, 0, .9) 66%, rgba(0, 0, 0, .3) 80%, transparent 93%);
+  mask-image: linear-gradient(to bottom, #000 0 56%, rgba(0, 0, 0, .9) 66%, rgba(0, 0, 0, .3) 80%, transparent 93%);
+}
+
+.career-module .career-face.hero::after,
+.career-modal-layer .career-face.hero::after {
+  height: 31%;
+}
+
+/* FIFA-style transfer card uses the same neutral identity treatment. */
+.career-module .career-face.transfer,
+.career-modal-layer .career-face.transfer {
+  border: 1px solid rgba(50, 72, 43, .08) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, .96), transparent 50%),
+    linear-gradient(155deg, #f0f5ed, #dce8d7) !important;
+}
+
+.career-module .career-face.transfer > img,
+.career-modal-layer .career-face.transfer > img {
+  inset: -6% -10% -2% !important;
+  width: 120% !important;
+  height: 112% !important;
+  object-position: 50% 2% !important;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 54%, rgba(0, 0, 0, .92) 64%, rgba(0, 0, 0, .28) 79%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 0 54%, rgba(0, 0, 0, .92) 64%, rgba(0, 0, 0, .28) 79%, transparent 92%);
+}
+
+.career-module .career-face.transfer::after,
+.career-modal-layer .career-face.transfer::after {
+  height: 34%;
+}
+
+/* Shirt numbers must always remain above the portrait fade. */
+.career-module .career-face > small,
+.career-modal-layer .career-face > small,
+.career-module .career-face > b,
+.career-modal-layer .career-face > b {
+  z-index: 5;
+}
+
+.career-module .career-face.photo-loading > img,
+.career-modal-layer .career-face.photo-loading > img {
+  opacity: 0;
+}
+
+.career-module .career-face.photo-ready > img,
+.career-modal-layer .career-face.photo-ready > img {
+  opacity: 1;
+  transition: opacity 220ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .career-module .career-face > img,
+  .career-modal-layer .career-face > img {
+    transition: none !important;
+  }
+}
