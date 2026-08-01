@@ -1,4 +1,4 @@
-const COMMAND_CENTER_VERSION = "1";
+const COMMAND_CENTER_VERSION = "2";
 let commandCenterQueued = false;
 
 function cleanText(value, fallback = "—") {
@@ -16,6 +16,16 @@ function escapeMarkup(value) {
     .replaceAll("'", "&#039;");
 }
 
+function initials(value) {
+  return String(value || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0]?.toUpperCase() || "")
+    .join("") || "PL";
+}
+
 function readMetric(profile, label) {
   const normalized = label.toLowerCase();
   const item = [...profile.querySelectorAll(".classic-contract-summary > span")]
@@ -23,9 +33,21 @@ function readMetric(profile, label) {
   return cleanText(item?.querySelector("strong")?.textContent);
 }
 
+function selectedSquadRow() {
+  return document.querySelector(".career-squad-row.selected");
+}
+
 function selectedSquadNumber() {
-  const selected = document.querySelector(".career-squad-row.selected");
-  return cleanText(selected?.querySelector(".fm-shirt-number")?.textContent, "—");
+  return cleanText(selectedSquadRow()?.querySelector(".fm-shirt-number")?.textContent, "—");
+}
+
+function selectedSquadPortrait(name) {
+  const row = selectedSquadRow();
+  const image = row?.querySelector(".fm-squad-avatar img");
+  return {
+    source: image?.getAttribute("src") || image?.currentSrc || "",
+    fallback: cleanText(row?.querySelector(".fm-squad-avatar > span")?.textContent, initials(name))
+  };
 }
 
 function extractProfile(profile) {
@@ -34,13 +56,15 @@ function extractProfile(profile) {
   const nationality = nationalityLine.includes("·")
     ? cleanText(nationalityLine.split("·").at(-1), "")
     : nationalityLine.replace(new RegExp(`^${position}\\s*`, "i"), "").trim();
+  const name = cleanText(profile.querySelector("h2")?.textContent, "Jogador");
 
   return {
     playerId: profile.dataset.selectedPlayerId || "",
-    name: cleanText(profile.querySelector("h2")?.textContent, "Jogador"),
+    name,
     position,
     nationality: cleanText(nationality, "Primeiro time"),
     number: selectedSquadNumber(),
+    portrait: selectedSquadPortrait(name),
     overall: cleanText(profile.querySelector(".classic-profile-ovr b")?.textContent, "—"),
     status: readMetric(profile, "Situação") || cleanText(profile.querySelector(".classic-profile-identity > div > small")?.textContent, "Disponível"),
     age: readMetric(profile, "Idade"),
@@ -58,9 +82,8 @@ function metric(label, value, emphasis = false) {
   </div>`;
 }
 
-function command({ action, index, title, detail, tone = "neutral", icon }) {
+function command({ action, title, detail, tone = "neutral", icon }) {
   return `<button type="button" class="player-console-command ${tone}" data-classic-player-action="${action}" data-player-id="__PLAYER_ID__">
-    <span class="player-console-command-index">${index}</span>
     <span class="player-console-command-icon" aria-hidden="true">${icon}</span>
     <span class="player-console-command-copy">
       <strong>${escapeMarkup(title)}</strong>
@@ -68,6 +91,33 @@ function command({ action, index, title, detail, tone = "neutral", icon }) {
     </span>
     <span class="player-console-command-arrow" aria-hidden="true">›</span>
   </button>`;
+}
+
+function portraitMarkup(data) {
+  return `<span class="player-console-portrait${data.portrait.source ? " has-source" : " no-source"}" aria-hidden="true">
+    <span>${escapeMarkup(data.portrait.fallback)}</span>
+    ${data.portrait.source ? `<img src="${escapeMarkup(data.portrait.source)}" alt="" loading="eager" decoding="async" referrerpolicy="no-referrer" />` : ""}
+  </span>`;
+}
+
+function activatePortrait(profile) {
+  const image = profile.querySelector(".player-console-portrait img");
+  if (!image) return;
+
+  const loaded = () => image.closest(".player-console-portrait")?.classList.add("loaded");
+  const failed = () => {
+    const portrait = image.closest(".player-console-portrait");
+    image.remove();
+    portrait?.classList.remove("loaded", "has-source");
+    portrait?.classList.add("no-source");
+  };
+
+  image.addEventListener("load", loaded, { once: true });
+  image.addEventListener("error", failed, { once: true });
+  if (image.complete) {
+    if (image.naturalWidth > 0) loaded();
+    else failed();
+  }
 }
 
 function renderCommandCenter(profile) {
@@ -78,7 +128,6 @@ function renderCommandCenter(profile) {
   const commands = [
     command({
       action: "renew",
-      index: "01",
       title: "Renovar contrato",
       detail: "Negociar novo vínculo",
       tone: "primary",
@@ -86,14 +135,12 @@ function renderCommandCenter(profile) {
     }),
     command({
       action: "list",
-      index: "02",
       title: "Colocar à venda",
       detail: "Abrir para propostas",
       icon: "⇄"
     }),
     command({
       action: "release",
-      index: "03",
       title: "Rescindir contrato",
       detail: "Encerrar vínculo",
       tone: "danger",
@@ -117,10 +164,13 @@ function renderCommandCenter(profile) {
     </div>
 
     <section class="player-console-identity">
-      <div class="player-console-title">
-        <span class="player-console-squad-number">${data.number === "—" ? "ELENCO" : `CAMISA ${escapeMarkup(data.number)}`}</span>
-        <h2>${escapeMarkup(data.name)}</h2>
-        <p><i></i>${escapeMarkup(data.status)}</p>
+      <div class="player-console-player">
+        ${portraitMarkup(data)}
+        <div class="player-console-title">
+          <span class="player-console-squad-number">${data.number === "—" ? "ELENCO" : `CAMISA ${escapeMarkup(data.number)}`}</span>
+          <h2>${escapeMarkup(data.name)}</h2>
+          <p><i></i>${escapeMarkup(data.status)}</p>
+        </div>
       </div>
       <div class="player-console-overall" aria-label="Overall ${escapeMarkup(data.overall)}">
         <span>OVERALL</span>
@@ -145,6 +195,7 @@ function renderCommandCenter(profile) {
       <div class="player-console-command-grid">${commands}</div>
     </section>
   `;
+  activatePortrait(profile);
 }
 
 function enhanceCommandCenter() {
