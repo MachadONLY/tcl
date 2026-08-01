@@ -1,0 +1,1 @@
+Validate official Premier League portrait catalog, face-only crop, fallbacks and production build.
