@@ -1,0 +1,1 @@
+Validate live Premier League roster loader, build target, career data fallback and portrait recovery.
