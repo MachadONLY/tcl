@@ -1,1 +1,0 @@
-Second validation marker for the FIFA-inspired squad management redesign.
