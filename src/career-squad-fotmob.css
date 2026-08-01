@@ -1,0 +1,319 @@
+/* Touchline squad — FotMob clarity, career-mode depth */
+
+.career-squad-fotmob {
+  --fm-bg: #171817;
+  --fm-panel: #1d1f1e;
+  --fm-panel-soft: #222423;
+  --fm-line: rgba(255, 255, 255, .095);
+  --fm-text: #f5f7f5;
+  --fm-muted: #a3aaa4;
+  --fm-green: #22d47a;
+  --fm-green-soft: rgba(34, 212, 122, .12);
+}
+
+.career-squad-fotmob .career-squad-layout {
+  grid-template-columns: minmax(470px, .92fr) minmax(390px, 1.08fr) !important;
+  gap: 16px !important;
+}
+
+.career-squad-fotmob .career-squad-table,
+.career-squad-fotmob .career-player-profile {
+  border: 1px solid rgba(255, 255, 255, .075) !important;
+  background: var(--fm-bg) !important;
+  box-shadow: 0 20px 54px rgba(14, 18, 14, .18) !important;
+}
+
+.career-squad-fotmob .career-squad-table {
+  grid-template-rows: 38px minmax(0, 1fr) !important;
+}
+
+.career-squad-fotmob .career-table-head {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 70px !important;
+  gap: 12px !important;
+  padding: 0 24px !important;
+  border-bottom: 1px solid var(--fm-line) !important;
+  background: #202220 !important;
+  color: #8e9690 !important;
+  font-size: 9px !important;
+  letter-spacing: .11em !important;
+}
+
+.career-squad-fotmob .career-table-head span:last-child {
+  text-align: right;
+}
+
+.career-squad-fotmob .career-squad-scroll {
+  padding: 0 14px 14px !important;
+  background: var(--fm-bg);
+  scrollbar-color: rgba(255, 255, 255, .22) transparent;
+}
+
+.career-squad-fotmob .classic-position-group {
+  gap: 0 !important;
+  margin: 0 !important;
+}
+
+.career-squad-fotmob .classic-position-group > header {
+  min-height: 32px !important;
+  padding: 8px 10px 5px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .045);
+  color: #737b75 !important;
+  font-size: 9px !important;
+  letter-spacing: .12em !important;
+}
+
+.career-squad-fotmob .classic-position-group > header::before {
+  width: 3px !important;
+  height: 11px !important;
+  border-radius: 99px !important;
+}
+
+.career-squad-fotmob .classic-position-group > header small {
+  margin-left: 2px;
+  background: rgba(255,255,255,.06) !important;
+  color: #929a94 !important;
+}
+
+.career-squad-fotmob .career-squad-row.fm-squad-row {
+  width: 100%;
+  min-width: 0 !important;
+  min-height: 68px !important;
+  display: grid !important;
+  grid-template-columns: 44px 32px minmax(0, 1fr) 46px 28px !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 9px 10px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--fm-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--fm-text) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: background 150ms ease, box-shadow 150ms ease !important;
+}
+
+.career-squad-fotmob .career-squad-row.fm-squad-row:hover {
+  background: rgba(255, 255, 255, .045) !important;
+}
+
+.career-squad-fotmob .career-squad-row.fm-squad-row.selected {
+  background: linear-gradient(90deg, rgba(34, 212, 122, .12), rgba(255, 255, 255, .035)) !important;
+  box-shadow: inset 3px 0 0 var(--fm-green) !important;
+}
+
+.fm-squad-avatar {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 24%, #4a4d4b 0, #383b39 55%, #303230 100%);
+  color: #bdc4be;
+  isolation: isolate;
+}
+
+.fm-squad-avatar > span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .03em;
+}
+
+.fm-squad-avatar > img {
+  position: relative;
+  z-index: 2;
+  width: 92%;
+  height: 92%;
+  display: block;
+  object-fit: contain;
+  object-position: center bottom;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translateY(1px);
+  transition: opacity 170ms ease;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+.fm-squad-avatar.loaded > img {
+  opacity: 1;
+}
+
+.fm-shirt-number {
+  color: #aeb5b0;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 14px;
+  font-weight: 650;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.fm-player-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  align-content: center;
+}
+
+.fm-player-copy strong {
+  overflow: hidden;
+  color: var(--fm-text);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fm-player-copy small {
+  overflow: hidden;
+  color: var(--fm-muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fm-player-ovr {
+  color: var(--fm-green);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 18px;
+  font-weight: 760;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.fm-player-open {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  justify-self: end;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 50%;
+  background: #292c2a;
+  color: var(--fm-green);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1;
+  transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.fm-squad-row:hover .fm-player-open,
+.fm-squad-row.selected .fm-player-open {
+  transform: translateX(1px);
+  border-color: rgba(34, 212, 122, .55);
+  background: var(--fm-green-soft);
+}
+
+/* Player management remains functional, but follows the same dark visual system. */
+.career-squad-fotmob .fm-management-panel {
+  color: var(--fm-text);
+}
+
+.career-squad-fotmob .classic-profile-kicker,
+.career-squad-fotmob .classic-profile-identity,
+.career-squad-fotmob .classic-contract-summary,
+.career-squad-fotmob .classic-management-title {
+  border-color: var(--fm-line) !important;
+  background: transparent !important;
+}
+
+.career-squad-fotmob .classic-profile-kicker {
+  background: #202220 !important;
+}
+
+.career-squad-fotmob .classic-profile-kicker span,
+.career-squad-fotmob .classic-management-title span {
+  color: var(--fm-green) !important;
+}
+
+.career-squad-fotmob .classic-profile-kicker small,
+.career-squad-fotmob .classic-profile-identity > div > small,
+.career-squad-fotmob .classic-management-title p,
+.career-squad-fotmob .classic-contract-summary small {
+  color: #8e9690 !important;
+}
+
+.career-squad-fotmob .classic-profile-identity h2,
+.career-squad-fotmob .classic-contract-summary strong {
+  color: var(--fm-text) !important;
+}
+
+.career-squad-fotmob .classic-profile-ovr {
+  background: var(--fm-green-soft) !important;
+  color: var(--fm-green) !important;
+  box-shadow: inset 0 0 0 1px rgba(34, 212, 122, .2) !important;
+}
+
+.career-squad-fotmob .classic-contract-summary > span {
+  border-color: var(--fm-line) !important;
+}
+
+.career-squad-fotmob .classic-management-actions {
+  padding: 0 16px 16px !important;
+}
+
+.career-squad-fotmob .classic-action {
+  border-color: var(--fm-line) !important;
+  background: #222423 !important;
+  color: var(--fm-text) !important;
+}
+
+.career-squad-fotmob .classic-action:hover {
+  border-color: rgba(34, 212, 122, .42) !important;
+  background: #282b29 !important;
+  box-shadow: 0 9px 24px rgba(0, 0, 0, .18) !important;
+}
+
+.career-squad-fotmob .classic-action-icon {
+  background: rgba(34, 212, 122, .1) !important;
+  color: var(--fm-green) !important;
+}
+
+.career-squad-fotmob .classic-action strong {
+  color: var(--fm-text) !important;
+}
+
+.career-squad-fotmob .classic-action small,
+.career-squad-fotmob .classic-action > b {
+  color: #939b95 !important;
+}
+
+.career-squad-fotmob .classic-action-primary {
+  border-color: rgba(34, 212, 122, .46) !important;
+  background: linear-gradient(135deg, #1d4c35, #173c2b) !important;
+}
+
+.career-squad-fotmob .classic-action-danger {
+  border-color: rgba(220, 84, 84, .2) !important;
+  background: rgba(116, 35, 35, .12) !important;
+}
+
+@media (max-width: 1120px) {
+  .career-squad-fotmob .career-squad-layout {
+    grid-template-columns: minmax(410px, 1fr) minmax(330px, .85fr) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fm-squad-avatar > img,
+  .fm-player-open,
+  .career-squad-fotmob .career-squad-row.fm-squad-row {
+    transition: none !important;
+  }
+}
