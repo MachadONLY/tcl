@@ -62,19 +62,20 @@
 .player-console-title {
   min-width: 0;
   display: grid !important;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "badge name"
-    ". status";
-  align-items: center;
-  column-gap: 10px;
+    "badge"
+    "name"
+    "status";
+  justify-items: start;
+  align-content: center;
   row-gap: 6px;
 }
 
 .player-console-squad-number {
   grid-area: badge;
-  align-self: center;
-  margin: 0 !important;
+  justify-self: start;
+  margin: 0 0 0 2px !important;
 }
 
 .player-console-title h2 {
