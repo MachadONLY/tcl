@@ -1,4 +1,4 @@
-const COMMAND_CENTER_VERSION = "2";
+const COMMAND_CENTER_VERSION = "3";
 let commandCenterQueued = false;
 
 function cleanText(value, fallback = "—") {
@@ -188,10 +188,6 @@ function renderCommandCenter(profile) {
     </section>
 
     <section class="player-console-actions">
-      <header>
-        <div><span>COMANDOS DO CLUBE</span><strong>Escolha a próxima decisão</strong></div>
-        <small>As alterações são aplicadas ao save atual.</small>
-      </header>
       <div class="player-console-command-grid">${commands}</div>
     </section>
   `;
