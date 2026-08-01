@@ -194,6 +194,35 @@ function normalizePlayer(entry, team) {
   };
 }
 
+export function normalizePremierLeagueSnapshot(payload) {
+  const teams = parseTeams(payload?.teams);
+  const rosterByTeam = new Map(
+    (payload?.rosters || []).map(item => [String(item.teamId), item.roster])
+  );
+
+  const players = teams.flatMap(team => {
+    const roster = rosterByTeam.get(team.id);
+    return collectAthletes(roster)
+      .map(entry => normalizePlayer(entry, team))
+      .filter(player => player.name && player.id);
+  });
+
+  const deduped = [...new Map(players.map(player => [`${player.teamId}:${player.providerId}`, player])).values()];
+  return {
+    teams,
+    players: deduped,
+    meta: {
+      ready: teams.length === 20 && deduped.length >= 300,
+      provider: "ESPN public soccer feed",
+      league: "Premier League",
+      season: 2026,
+      teamCount: teams.length,
+      playerCount: deduped.length,
+      generatedAt: payload?.generatedAt || new Date().toISOString()
+    }
+  };
+}
+
 function readCache() {
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
@@ -228,34 +257,7 @@ export async function loadPremierLeagueLive() {
     throw new Error(`ESPN live catalog returned HTTP ${response.status}`);
   }
 
-  const payload = await response.json();
-  const teams = parseTeams(payload.teams);
-  const rosterByTeam = new Map(
-    (payload.rosters || []).map(item => [String(item.teamId), item.roster])
-  );
-
-  const players = teams.flatMap(team => {
-    const roster = rosterByTeam.get(team.id);
-    return collectAthletes(roster)
-      .map(entry => normalizePlayer(entry, team))
-      .filter(player => player.name && player.id);
-  });
-
-  const deduped = [...new Map(players.map(player => [`${player.teamId}:${player.providerId}`, player])).values()];
-  const snapshot = {
-    teams,
-    players: deduped,
-    meta: {
-      ready: teams.length === 20 && deduped.length >= 300,
-      provider: "ESPN public soccer feed",
-      league: "Premier League",
-      season: 2026,
-      teamCount: teams.length,
-      playerCount: deduped.length,
-      generatedAt: payload.generatedAt || new Date().toISOString()
-    }
-  };
-
+  const snapshot = normalizePremierLeagueSnapshot(await response.json());
   if (snapshot.players.length >= 100) writeCache(snapshot);
   return snapshot;
 }
