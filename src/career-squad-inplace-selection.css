@@ -1,20 +1,27 @@
-.career-player-profile.player-console-swap {
-  animation: player-console-swap-in 180ms cubic-bezier(.2, .75, .25, 1) both;
+/* In-place squad selection keeps the command center permanently mounted. */
+
+.career-player-profile.player-command-center {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
 }
 
-@keyframes player-console-swap-in {
-  from {
-    opacity: .72;
-    transform: translateY(3px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.player-console-title h2,
+.player-console-title p,
+.player-console-context span,
+.player-console-context small,
+.player-console-overall strong,
+.player-console-metric strong {
+  transition: color 120ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .career-player-profile.player-console-swap {
-    animation: none;
+  .player-console-title h2,
+  .player-console-title p,
+  .player-console-context span,
+  .player-console-context small,
+  .player-console-overall strong,
+  .player-console-metric strong {
+    transition: none !important;
   }
 }
