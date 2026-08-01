@@ -1,0 +1,528 @@
+/*
+ * Touchline Player Command Center
+ * A game HUD: clear identity, compact data, immediate club decisions.
+ */
+
+.career-squad-fotmob .career-squad-scroll {
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+.career-squad-fotmob .career-player-profile.player-command-center {
+  position: relative;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  display: grid !important;
+  grid-template-rows: 44px 126px 112px minmax(150px, auto) !important;
+  align-content: start !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, .09) !important;
+  border-radius: 16px !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, .018), transparent 38%),
+    #151716 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .035),
+    0 24px 54px rgba(11, 15, 11, .18) !important;
+  color: #f5f7f5 !important;
+  isolation: isolate;
+}
+
+.career-squad-fotmob .career-player-profile.player-command-center::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 4;
+  height: 2px;
+  background: linear-gradient(90deg, #22d47a 0 18%, rgba(34, 212, 122, .18) 42%, transparent 70%);
+  pointer-events: none;
+}
+
+.player-console-topbar {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .085);
+  background: rgba(255, 255, 255, .025);
+}
+
+.player-console-topbar > div:first-child,
+.player-console-context {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.player-console-topbar > div:first-child {
+  gap: 10px;
+}
+
+.player-console-topbar span {
+  color: #22d47a;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .12em;
+}
+
+.player-console-topbar small {
+  color: #7f8881;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: .06em;
+}
+
+.player-console-context {
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.player-console-context span {
+  min-width: 34px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0 8px;
+  border: 1px solid rgba(224, 102, 92, .52);
+  border-radius: 7px;
+  background: rgba(142, 53, 46, .22);
+  color: #ef938b;
+  font-size: 11px;
+  letter-spacing: .02em;
+}
+
+.player-console-context i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #59615c;
+}
+
+.player-console-identity {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 78px;
+  align-items: center;
+  gap: 24px;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, .085);
+  background:
+    linear-gradient(100deg, rgba(34, 212, 122, .055), transparent 48%),
+    rgba(255, 255, 255, .012);
+}
+
+.player-console-title {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 7px;
+}
+
+.player-console-squad-number {
+  width: max-content;
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid rgba(34, 212, 122, .24);
+  border-radius: 999px;
+  background: rgba(34, 212, 122, .08);
+  color: #8fdda9;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: .1em;
+}
+
+.player-console-title h2 {
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: #f7f9f7;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: clamp(30px, 2.35vw, 42px);
+  font-weight: 720;
+  line-height: .92;
+  letter-spacing: -.025em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-console-title p {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  overflow: hidden;
+  color: #a4aca6;
+  font-size: 11px;
+  font-weight: 540;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-console-title p i {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #22d47a;
+  box-shadow: 0 0 0 4px rgba(34, 212, 122, .08);
+}
+
+.player-console-overall {
+  width: 74px;
+  height: 82px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  place-items: center;
+  justify-self: end;
+  padding: 11px 8px 9px;
+  border: 1px solid rgba(34, 212, 122, .34);
+  border-radius: 14px;
+  background:
+    linear-gradient(150deg, rgba(34, 212, 122, .16), rgba(34, 212, 122, .055)),
+    #17251d;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .045),
+    0 14px 30px rgba(4, 15, 8, .16);
+}
+
+.player-console-overall span {
+  color: #8bdba7;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 8px;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: .1em;
+}
+
+.player-console-overall strong {
+  align-self: end;
+  color: #22d47a;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 42px;
+  font-weight: 780;
+  line-height: .78;
+  letter-spacing: -.035em;
+}
+
+.player-console-dashboard {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 56px);
+  border-bottom: 1px solid rgba(255, 255, 255, .085);
+  background: rgba(255, 255, 255, .008);
+}
+
+.player-console-metric {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-right: 1px solid rgba(255, 255, 255, .075);
+  border-bottom: 1px solid rgba(255, 255, 255, .075);
+}
+
+.player-console-metric:nth-child(3n) {
+  border-right: 0;
+}
+
+.player-console-metric:nth-child(n + 4) {
+  border-bottom: 0;
+}
+
+.player-console-metric span {
+  overflow: hidden;
+  color: #727b74;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: .09em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.player-console-metric strong {
+  overflow: hidden;
+  color: #edf1ed;
+  font-size: 12px;
+  font-weight: 680;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-console-metric.emphasis strong {
+  color: #9de1b4;
+}
+
+.player-console-actions {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: 48px auto;
+  align-content: start;
+  padding: 0 16px 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .012), transparent 56%);
+}
+
+.player-console-actions > header {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 2px;
+}
+
+.player-console-actions > header > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.player-console-actions > header span {
+  color: #22d47a;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .12em;
+}
+
+.player-console-actions > header strong {
+  overflow: hidden;
+  color: #e6eae6;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-console-actions > header small {
+  flex: 0 1 auto;
+  overflow: hidden;
+  color: #6f7871;
+  font-size: 9px;
+  line-height: 1;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-console-command-grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.player-console-command {
+  position: relative;
+  min-width: 0;
+  min-height: 82px;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 14px;
+  grid-template-rows: 22px 1fr;
+  align-items: center;
+  column-gap: 9px;
+  row-gap: 3px;
+  padding: 9px 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .095);
+  border-radius: 11px;
+  background: #202321;
+  color: #f0f3f0;
+  text-align: left;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .025);
+  transition:
+    transform 150ms cubic-bezier(.2,.75,.25,1),
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.player-console-command::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: rgba(255, 255, 255, .12);
+}
+
+.player-console-command:hover,
+.player-console-command:focus-visible {
+  z-index: 2;
+  transform: translateY(-2px);
+  border-color: rgba(34, 212, 122, .42);
+  background: #262a27;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .24);
+  outline: none;
+}
+
+.player-console-command.primary {
+  border-color: rgba(34, 212, 122, .34);
+  background:
+    linear-gradient(140deg, rgba(34, 212, 122, .11), transparent 70%),
+    #1b2b22;
+}
+
+.player-console-command.primary::before {
+  background: #22d47a;
+}
+
+.player-console-command.danger {
+  border-color: rgba(216, 100, 100, .2);
+  background: #271d1d;
+}
+
+.player-console-command.danger::before {
+  background: #c95e5e;
+}
+
+.player-console-command-index {
+  align-self: start;
+  color: #687069;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: .08em;
+}
+
+.player-console-command-icon {
+  grid-column: 1;
+  grid-row: 2;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(34, 212, 122, .1);
+  color: #22d47a;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.player-console-command.danger .player-console-command-icon {
+  background: rgba(216, 100, 100, .1);
+  color: #e18181;
+}
+
+.player-console-command-copy {
+  min-width: 0;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+}
+
+.player-console-command-copy strong,
+.player-console-command-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-console-command-copy strong {
+  color: #f1f4f1;
+  font-size: 11px;
+  font-weight: 680;
+  line-height: 1;
+}
+
+.player-console-command-copy small {
+  color: #8c958e;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.player-console-command-arrow {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  justify-self: end;
+  color: #788078;
+  font-size: 18px;
+  line-height: 1;
+}
+
+@media (max-width: 1240px) {
+  .player-console-command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .player-console-command {
+    min-height: 56px;
+    grid-template-columns: 28px 30px minmax(0, 1fr) 14px;
+    grid-template-rows: 1fr;
+  }
+
+  .player-console-command-index,
+  .player-console-command-icon,
+  .player-console-command-copy,
+  .player-console-command-arrow {
+    grid-row: 1;
+  }
+
+  .player-console-command-index { grid-column: 1; align-self: center; }
+  .player-console-command-icon { grid-column: 2; }
+  .player-console-command-copy { grid-column: 3; }
+  .player-console-command-arrow { grid-column: 4; }
+}
+
+@media (max-height: 760px) and (min-width: 1241px) {
+  .career-squad-fotmob .career-player-profile.player-command-center {
+    grid-template-rows: 40px 110px 96px minmax(138px, auto) !important;
+  }
+
+  .player-console-identity {
+    padding-block: 13px;
+  }
+
+  .player-console-dashboard {
+    grid-template-rows: repeat(2, 48px);
+  }
+
+  .player-console-metric {
+    padding-block: 7px;
+  }
+
+  .player-console-actions {
+    grid-template-rows: 42px auto;
+    padding-bottom: 12px;
+  }
+
+  .player-console-command {
+    min-height: 74px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-console-command {
+    transition: none;
+  }
+}
