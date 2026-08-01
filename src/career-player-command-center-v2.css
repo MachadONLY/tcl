@@ -64,18 +64,11 @@
   display: grid !important;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "badge"
     "name"
     "status";
   justify-items: start;
   align-content: center;
-  row-gap: 6px;
-}
-
-.player-console-squad-number {
-  grid-area: badge;
-  justify-self: start;
-  margin: 0 0 0 -2px !important;
+  row-gap: 7px;
 }
 
 .player-console-title h2 {
