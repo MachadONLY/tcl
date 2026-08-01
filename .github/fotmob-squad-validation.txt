@@ -1,0 +1,1 @@
+Validate face-only squad portraits, stable rerenders, contract actions and production build.
