@@ -39,7 +39,7 @@ function findPlayer(name) {
     null;
 }
 
-function portraitMarkup(player, name) {
+function portraitMarkup(name) {
   const source = fotmobPortraitUrl(name);
   const fallback = initials(name);
   return `<span class="fm-squad-avatar ${source ? "has-source" : "no-source"}" aria-hidden="true">
@@ -48,7 +48,20 @@ function portraitMarkup(player, name) {
   </span>`;
 }
 
+function markImageReady(image) {
+  image.closest(".fm-squad-avatar")?.classList.add("loaded");
+}
+
+function markImageFailed(image) {
+  const avatar = image.closest(".fm-squad-avatar");
+  image.remove();
+  avatar?.classList.remove("loaded", "has-source");
+  avatar?.classList.add("no-source");
+}
+
 function enhanceRow(row) {
+  if (row.dataset.fotmobSquadReady === "true") return;
+
   const name = row.dataset.playerName || row.querySelector(".classic-player-copy strong")?.textContent?.trim();
   if (!name) return;
 
@@ -62,7 +75,7 @@ function enhanceRow(row) {
   row.classList.add("fm-squad-row");
   row.dataset.fotmobSquadReady = "true";
   row.innerHTML = `
-    ${portraitMarkup(player, name)}
+    ${portraitMarkup(name)}
     <span class="fm-shirt-number">${Number.isFinite(number) && number > 0 ? number : "—"}</span>
     <span class="fm-player-copy">
       <strong>${escapeHtml(name)}</strong>
@@ -72,22 +85,23 @@ function enhanceRow(row) {
     <span class="fm-player-open" aria-hidden="true">→</span>`;
 
   const image = row.querySelector(".fm-squad-avatar img");
-  if (image) {
-    image.addEventListener("load", () => image.closest(".fm-squad-avatar")?.classList.add("loaded"), { once: true });
-    image.addEventListener("error", () => {
-      const avatar = image.closest(".fm-squad-avatar");
-      image.remove();
-      avatar?.classList.remove("loaded", "has-source");
-      avatar?.classList.add("no-source");
-    }, { once: true });
+  if (!image) return;
+
+  image.addEventListener("load", () => markImageReady(image), { once: true });
+  image.addEventListener("error", () => markImageFailed(image), { once: true });
+
+  if (image.complete) {
+    if (image.naturalWidth > 0) markImageReady(image);
+    else markImageFailed(image);
   }
 }
 
 function enhanceGroup(group) {
   const title = group.querySelector(":scope > header");
-  if (title) {
+  if (title && title.dataset.fotmobGroupReady !== "true") {
     const raw = title.childNodes[0]?.textContent?.trim() || title.textContent?.trim() || "Elenco";
     title.dataset.sectionTitle = raw.replace(/\d+$/, "").trim();
+    title.dataset.fotmobGroupReady = "true";
   }
   group.querySelectorAll(":scope > .career-squad-row").forEach(enhanceRow);
 }
