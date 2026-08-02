@@ -8,6 +8,7 @@
     "dev": "vite --host 0.0.0.0 --open",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --open",
+    "sync:onboarding-assets": "node scripts/sync-onboarding-assets.mjs",
     "sync:player-faces": "node scripts/sync-premier-league-faces.mjs",
     "test:mvp": "node tests/mvp-smoke.mjs",
     "test:live-rosters": "node tests/live-roster-smoke.mjs",
