@@ -6,9 +6,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --open",
+    "dev:offline": "npm run sync:onboarding-assets && vite --host 0.0.0.0 --open",
     "build": "vite build",
+    "build:offline": "npm run sync:onboarding-assets && vite build",
     "preview": "vite preview --host 0.0.0.0 --open",
-    "sync:onboarding-assets": "node scripts/sync-onboarding-assets.mjs",
+    "sync:onboarding-assets": "node scripts/sync-onboarding-assets-v2.mjs",
+    "sync:onboarding-assets:force": "node scripts/sync-onboarding-assets-v2.mjs --force",
     "sync:player-faces": "node scripts/sync-premier-league-faces.mjs",
     "test:mvp": "node tests/mvp-smoke.mjs",
     "test:live-rosters": "node tests/live-roster-smoke.mjs",
