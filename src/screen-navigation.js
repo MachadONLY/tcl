@@ -2,6 +2,7 @@ import "./screen-navigation.css";
 
 const NAV_ID = "touchline-screen-navigation";
 const FORWARD_KEY = "touchline:last-forward-destination";
+const CENTRAL_ENTRY_BYPASS_KEY = "touchline:central-entry-once";
 
 function baseUrl() {
   return `${window.location.origin}${window.location.pathname}${window.location.search}`;
@@ -18,9 +19,23 @@ function rememberCurrentAsForwardDestination() {
   }
 }
 
+function allowCentralOnce() {
+  if (typeof window.__touchlineAllowCentralOnce === "function") {
+    window.__touchlineAllowCentralOnce();
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(CENTRAL_ENTRY_BYPASS_KEY, "1");
+  } catch {
+    // Navigation still proceeds when session storage is unavailable.
+  }
+}
+
 function goHome() {
   if (!window.location.hash) return;
   rememberCurrentAsForwardDestination();
+  allowCentralOnce();
   window.location.assign(baseUrl());
 }
 
