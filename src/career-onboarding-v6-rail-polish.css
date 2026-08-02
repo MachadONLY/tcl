@@ -11,7 +11,7 @@
 .onboarding-fit-v4 .club-rail,
 .onboarding-fit-v4 .club-selection-grid,
 .onboarding-fit-v4 .club-selection-controls {
-  width: min(1714px, calc(100vw - (var(--onboarding-shell-gutter) * 2))) !important;
+  width: min(1714px, calc(100vw - var(--onboarding-shell-gutter) - var(--onboarding-shell-gutter))) !important;
 }
 
 .onboarding-fit-v4 .club-selection-header {
