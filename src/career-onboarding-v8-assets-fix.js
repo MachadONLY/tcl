@@ -27,6 +27,10 @@ function managerName(panel) {
   return panel?.querySelector(":scope > div:last-child strong, .club-manager-copy-v5 strong")?.textContent?.trim() || "Técnico";
 }
 
+function managerInitials(name) {
+  return String(name || "?").split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "?";
+}
+
 function sourceIsUsable(source) {
   if (!source) return Promise.resolve(false);
   if (testedSources.has(source)) return testedSources.get(source);
@@ -104,8 +108,10 @@ function ensureManagerImage(panel) {
   let image = panel.querySelector(":scope > img.club-manager-image-v8, :scope > img.club-manager-image, :scope > img");
   if (!image) {
     image = document.createElement("img");
+    const placeholder = panel.querySelector(":scope > .club-manager-placeholder");
     const copy = panel.querySelector(":scope > div:last-child, .club-manager-copy-v5");
-    panel.insertBefore(image, copy || panel.firstChild);
+    if (placeholder) placeholder.replaceWith(image);
+    else panel.insertBefore(image, copy || panel.firstChild);
   }
 
   image.classList.add("club-manager-image", "club-manager-image-v8");
@@ -117,10 +123,24 @@ function ensureManagerImage(panel) {
   return image;
 }
 
+function restoreManagerPlaceholder(panel, name) {
+  panel.querySelector(":scope > img.club-manager-image-v8")?.remove();
+  if (panel.querySelector(":scope > .club-manager-placeholder")) return;
+
+  const placeholder = document.createElement("div");
+  placeholder.className = "club-manager-placeholder";
+  const initials = document.createElement("span");
+  initials.textContent = managerInitials(name);
+  placeholder.append(initials);
+  const copy = panel.querySelector(":scope > div:last-child, .club-manager-copy-v5");
+  panel.insertBefore(placeholder, copy || panel.firstChild);
+}
+
 async function repairManager(details, entry, token) {
   const panel = details?.querySelector(".club-manager-panel");
   if (!panel) return;
 
+  const name = managerName(panel);
   const image = ensureManagerImage(panel);
   if (!image) return;
 
@@ -138,7 +158,7 @@ async function repairManager(details, entry, token) {
   if (token !== renderToken || !panel.isConnected || !image.isConnected) return;
 
   if (!source) {
-    image.remove();
+    restoreManagerPlaceholder(panel, name);
     panel.classList.remove("manager-photo-loading-v8", "manager-photo-ready-v8");
     panel.classList.add("manager-photo-failed-v8");
     return;
@@ -147,11 +167,11 @@ async function repairManager(details, entry, token) {
   image.dataset.v8PreviousSource = source;
   image.onload = () => {
     if (!image.isConnected) return;
-    panel.querySelector(".club-manager-placeholder")?.remove();
     panel.classList.remove("manager-photo-loading-v8", "manager-photo-failed-v8");
     panel.classList.add("manager-photo-ready-v8");
   };
   image.onerror = () => {
+    restoreManagerPlaceholder(panel, name);
     panel.classList.remove("manager-photo-loading-v8", "manager-photo-ready-v8");
     panel.classList.add("manager-photo-failed-v8");
   };
