@@ -1,0 +1,38 @@
+/* Local WebP media cache — final onboarding polish. */
+
+.club-details-v5 .club-badge-panel img {
+  width: min(218px, 72%) !important;
+  height: min(190px, 70%) !important;
+  max-width: 72% !important;
+  max-height: 70% !important;
+}
+
+.club-details-v5 .club-badge-panel h2 {
+  margin-top: 0 !important;
+}
+
+.club-details-v5 .club-stadium-panel,
+.club-details-v5 .club-location-panel {
+  transition: background-image 180ms ease, filter 180ms ease;
+}
+
+.club-details-v5[data-local-media-ready="true"] .club-stadium-panel,
+.club-details-v5[data-local-media-ready="true"] .club-location-panel {
+  filter: none;
+}
+
+.club-details-v5 .club-manager-image,
+.club-details-v5 .club-badge-panel img,
+.club-details-v5 .club-rival-panel img,
+.club-details-v5 .club-kit-slot img,
+.onboarding-fit-v4 .club-rail-item img {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+@media (max-height: 760px) {
+  .club-details-v5 .club-badge-panel img {
+    width: min(190px, 70%) !important;
+    height: min(162px, 66%) !important;
+  }
+}
