@@ -1,1 +1,0 @@
-Validate the Touchline welcome screen and 2026/27 Premier League club selection flow.
