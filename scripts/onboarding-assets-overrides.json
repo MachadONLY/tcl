@@ -1,0 +1,26 @@
+{
+  "season": "2026/27",
+  "notes": "Use only stable HTTPS sources you are allowed to redistribute. The sync script downloads and stores every accepted source locally; runtime never reads this file or the network.",
+  "clubs": {
+    "ARS": {},
+    "AVL": {},
+    "BOU": {},
+    "BRE": {},
+    "BHA": {},
+    "CHE": {},
+    "COV": {},
+    "CRY": {},
+    "EVE": {},
+    "FUL": {},
+    "HUL": {},
+    "IPS": {},
+    "LEE": {},
+    "LIV": {},
+    "MCI": {},
+    "MUN": {},
+    "NEW": {},
+    "NFO": {},
+    "SUN": {},
+    "TOT": {}
+  }
+}
