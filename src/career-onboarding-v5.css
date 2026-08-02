@@ -1,0 +1,483 @@
+/* Career onboarding v5 — premium fixed-grid audit. */
+
+.career-club-selection.onboarding-fit-v4 {
+  --fit-header: clamp(98px, 12.6dvh, 110px) !important;
+  --fit-rail: clamp(54px, 7dvh, 61px) !important;
+  --fit-controls: clamp(46px, 5.9dvh, 52px) !important;
+  background: #08111a;
+}
+
+.onboarding-fit-v4 .club-selection-header {
+  position: relative;
+  z-index: 4;
+  width: min(1714px, calc(100vw - 72px)) !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center !important;
+  gap: 28px;
+  padding: 12px 0 10px !important;
+  overflow: hidden !important;
+}
+
+.onboarding-fit-v4 .club-selection-header > div:first-child {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+}
+
+.onboarding-fit-v4 .club-selection-header > div:first-child > span {
+  font-size: 9px !important;
+  line-height: 1 !important;
+  letter-spacing: .17em !important;
+}
+
+.onboarding-fit-v4 .club-selection-header h1 {
+  max-width: 100%;
+  margin: 4px 0 0 !important;
+  overflow: visible !important;
+  font-size: clamp(34px, 2.65vw, 45px) !important;
+  line-height: .9 !important;
+  letter-spacing: -.025em !important;
+  white-space: nowrap;
+}
+
+.onboarding-fit-v4 .club-selection-header p {
+  max-width: 720px;
+  margin: 5px 0 0 !important;
+  overflow: hidden;
+  font-size: clamp(10px, .82vw, 13px) !important;
+  line-height: 1.1 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-fit-v4 .club-season-badge {
+  box-sizing: border-box;
+  min-width: 134px !important;
+  align-self: center;
+  padding: 8px 14px 8px 18px !important;
+  border-right-width: 3px !important;
+}
+
+.onboarding-fit-v4 .club-season-badge span {
+  font-size: 7px !important;
+  line-height: 1 !important;
+}
+
+.onboarding-fit-v4 .club-season-badge strong {
+  display: block;
+  margin-top: 4px;
+  font-size: clamp(22px, 1.75vw, 29px) !important;
+  line-height: .9 !important;
+  white-space: nowrap;
+}
+
+.onboarding-fit-v4 .club-rail {
+  position: relative;
+  z-index: 3;
+  width: min(1714px, calc(100vw - 72px)) !important;
+  margin: 0 auto !important;
+  border-top: 1px solid rgba(255,255,255,.08);
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  background: rgba(5,12,19,.94);
+}
+
+.onboarding-fit-v4 .club-rail-item {
+  width: clamp(61px, 4.35vw, 76px) !important;
+  min-width: clamp(61px, 4.35vw, 76px) !important;
+  padding: 5px 8px 4px !important;
+}
+
+.onboarding-fit-v4 .club-rail-item.selected {
+  width: clamp(78px, 5.2vw, 92px) !important;
+  min-width: clamp(78px, 5.2vw, 92px) !important;
+}
+
+.onboarding-fit-v4 .club-rail-item img {
+  width: clamp(33px, 2.5vw, 43px) !important;
+  height: clamp(33px, 2.5vw, 43px) !important;
+  object-fit: contain;
+}
+
+.onboarding-fit-v4 .club-selection-details {
+  padding: 6px 0 7px !important;
+}
+
+.onboarding-fit-v4 .club-selection-grid {
+  width: min(1714px, calc(100vw - 72px)) !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr) !important;
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 18px 50px rgba(0,0,0,.3);
+}
+
+.club-details-v5 .club-identity-card {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 42%) minmax(0, 35%) minmax(0, 23%) !important;
+  grid-template-rows: minmax(0, 42%) minmax(0, 35%) minmax(0, 23%) !important;
+  grid-template-areas:
+    "badge location location"
+    "founded manager titles"
+    "stadium stadium titles" !important;
+  background: #081018;
+}
+
+.club-details-v5 .club-badge-panel,
+.club-details-v5 .club-location-panel,
+.club-details-v5 .club-manager-panel,
+.club-details-v5 .club-founded-panel,
+.club-details-v5 .club-stadium-panel,
+.club-details-v5 .club-titles-panel {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  overflow: hidden !important;
+}
+
+.club-details-v5 .club-badge-panel {
+  grid-area: badge !important;
+  display: grid !important;
+  place-items: center;
+  align-content: center;
+  gap: clamp(9px, 1.5dvh, 15px) !important;
+  padding: clamp(14px, 2dvh, 22px) !important;
+  border-right: 1px solid rgba(255,255,255,.11);
+  border-bottom: 1px solid rgba(255,255,255,.11);
+}
+
+.club-details-v5 .club-badge-panel img {
+  width: min(174px, 58%) !important;
+  height: min(158px, 58%) !important;
+  max-width: 58% !important;
+  max-height: 58% !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 15px 19px rgba(0,0,0,.28));
+}
+
+.club-details-v5 .club-badge-panel h2 {
+  max-width: 94%;
+  font-size: clamp(28px, 2.25vw, 40px) !important;
+  line-height: .92 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.club-details-v5 .club-location-panel {
+  grid-area: location !important;
+  display: grid !important;
+  place-items: center;
+  align-content: center;
+  gap: 5px !important;
+  padding: 14px;
+  border-bottom: 1px solid rgba(255,255,255,.11);
+  background:
+    linear-gradient(180deg, rgba(5,11,17,.28), rgba(5,11,17,.76)),
+    var(--v5-location-image, var(--stadium-image)) center / cover no-repeat !important;
+}
+
+.club-details-v5 .club-location-panel::before {
+  font-size: clamp(22px, 1.8vw, 30px) !important;
+}
+
+.club-details-v5 .club-location-panel strong {
+  font-size: clamp(20px, 1.65vw, 28px) !important;
+  line-height: .95 !important;
+}
+
+.club-details-v5 .club-founded-panel {
+  grid-area: founded !important;
+  display: grid !important;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  padding: 12px !important;
+  border-right: 1px solid rgba(255,255,255,.11);
+  border-bottom: 1px solid rgba(255,255,255,.11);
+  background:
+    radial-gradient(circle at 50% 15%, rgba(255,255,255,.05), transparent 55%),
+    #070e15 !important;
+}
+
+.club-details-v5 .club-founded-panel strong {
+  font-size: clamp(29px, 2.55vw, 43px) !important;
+  line-height: .9 !important;
+}
+
+.club-details-v5 .club-manager-panel {
+  grid-area: manager !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) minmax(46px, auto) !important;
+  place-items: stretch !important;
+  border-right: 1px solid rgba(255,255,255,.11);
+  border-bottom: 1px solid rgba(255,255,255,.11);
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255,255,255,.08), transparent 42%),
+    linear-gradient(155deg, #202a34 0%, #101820 64%, #070c11 100%) !important;
+}
+
+.club-details-v5 .club-manager-panel::before,
+.club-details-v5 .club-manager-panel::after {
+  display: none !important;
+}
+
+.club-details-v5 .club-manager-media {
+  box-sizing: border-box;
+  position: relative !important;
+  inset: auto !important;
+  align-self: center;
+  justify-self: center;
+  width: min(142px, calc(100% - 18px)) !important;
+  height: min(142px, calc(100% - 10px)) !important;
+  max-width: calc(100% - 18px) !important;
+  max-height: calc(100% - 10px) !important;
+  aspect-ratio: 1 / 1;
+  margin: 5px auto;
+  overflow: hidden !important;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 5px;
+  background: #111922;
+  box-shadow: 0 9px 22px rgba(0,0,0,.3);
+}
+
+.club-details-v5 .club-manager-image {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  object-fit: cover !important;
+  object-position: center 17% !important;
+  transform: none !important;
+}
+
+.club-details-v5 .club-manager-image.is-cutout {
+  object-fit: contain !important;
+  object-position: center bottom !important;
+  padding: 3px 3px 0 !important;
+}
+
+.club-details-v5 .club-manager-copy-v5 {
+  box-sizing: border-box;
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2 !important;
+  min-height: 46px;
+  max-width: none !important;
+  display: grid !important;
+  align-content: center;
+  gap: 3px !important;
+  padding: 7px 10px 8px !important;
+  border-top: 1px solid rgba(255,255,255,.1);
+  background: rgba(4,9,14,.94);
+}
+
+.club-details-v5 .club-manager-copy-v5 strong {
+  display: block !important;
+  max-width: 100%;
+  overflow: visible !important;
+  font-size: clamp(13px, 1.05vw, 18px) !important;
+  line-height: 1.05 !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  -webkit-line-clamp: unset !important;
+}
+
+.club-details-v5 .club-stadium-panel {
+  grid-area: stadium !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.38fr) minmax(0, .62fr) !important;
+  align-items: end !important;
+  gap: 12px !important;
+  padding: clamp(11px, 1.55dvh, 16px) clamp(14px, 1.35vw, 21px) !important;
+  border-right: 1px solid rgba(255,255,255,.11);
+  background:
+    linear-gradient(180deg, rgba(5,11,17,.24), rgba(5,11,17,.88)),
+    var(--v5-stadium-image, var(--stadium-image)) center 62% / cover no-repeat !important;
+}
+
+.club-details-v5 .club-stadium-panel > div {
+  min-width: 0;
+}
+
+.club-details-v5 .club-stadium-panel strong {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: clamp(17px, 1.45vw, 24px) !important;
+  line-height: .95 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.club-details-v5 .club-titles-panel {
+  grid-area: titles !important;
+  display: grid !important;
+  place-items: center;
+  align-content: center;
+  gap: 6px !important;
+  padding: 12px 8px !important;
+  border: 0 !important;
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255,255,255,.08), transparent 46%),
+    linear-gradient(180deg, #111923 0%, #070d14 100%) !important;
+  text-align: center;
+}
+
+.club-details-v5 .club-trophy-icon {
+  display: none !important;
+}
+
+.club-trophy-media-v5 {
+  width: clamp(54px, 5.5vw, 88px);
+  height: clamp(68px, 7vw, 108px);
+  display: grid;
+  place-items: center;
+}
+
+.club-trophy-media-v5 img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 17px rgba(0,0,0,.38));
+}
+
+.club-details-v5 .club-titles-panel strong {
+  font-size: clamp(31px, 2.75vw, 47px) !important;
+  line-height: .85 !important;
+}
+
+.club-details-v5 .club-story-card {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 31%) !important;
+  grid-template-rows: minmax(0, 58%) minmax(0, 42%) !important;
+  overflow: hidden !important;
+}
+
+.club-details-v5 .club-story-copy {
+  grid-column: 1 / 3 !important;
+  grid-row: 1 !important;
+  padding: clamp(22px, 3dvh, 34px) clamp(42px, 4.2vw, 72px) !important;
+}
+
+.club-details-v5 .club-story-copy h3 {
+  font-size: clamp(29px, 2.45vw, 42px) !important;
+}
+
+.club-details-v5 .club-story-copy p {
+  max-width: 720px;
+  font-size: clamp(12px, 1vw, 16px) !important;
+  line-height: 1.28 !important;
+}
+
+.club-details-v5 .club-kits-panel {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  min-width: 0;
+  min-height: 0;
+}
+
+.club-details-v5 .club-rival-panel {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  min-width: 0;
+  min-height: 0;
+}
+
+.onboarding-fit-v4 .club-selection-controls {
+  width: min(1714px, calc(100vw - 72px)) !important;
+  padding: 0 !important;
+}
+
+@media (max-height: 820px) and (min-width: 981px) {
+  .career-club-selection.onboarding-fit-v4 {
+    --fit-header: 100px !important;
+    --fit-rail: 56px !important;
+    --fit-controls: 47px !important;
+  }
+
+  .onboarding-fit-v4 .club-selection-header h1 {
+    font-size: 38px !important;
+  }
+
+  .club-details-v5 .club-badge-panel img {
+    width: min(145px, 52%) !important;
+    height: min(132px, 52%) !important;
+  }
+
+  .club-details-v5 .club-manager-media {
+    width: min(118px, calc(100% - 16px)) !important;
+    height: min(118px, calc(100% - 8px)) !important;
+  }
+
+  .club-trophy-media-v5 {
+    width: 57px;
+    height: 72px;
+  }
+}
+
+@media (max-height: 710px) and (min-width: 981px) {
+  .career-club-selection.onboarding-fit-v4 {
+    --fit-header: 88px !important;
+    --fit-rail: 52px !important;
+    --fit-controls: 43px !important;
+  }
+
+  .onboarding-fit-v4 .club-selection-header h1 {
+    font-size: 33px !important;
+  }
+
+  .onboarding-fit-v4 .club-selection-header p {
+    display: none;
+  }
+
+  .club-details-v5 .club-badge-panel img {
+    width: min(118px, 47%) !important;
+    height: min(108px, 47%) !important;
+  }
+
+  .club-details-v5 .club-manager-media {
+    width: min(96px, calc(100% - 14px)) !important;
+    height: min(96px, calc(100% - 7px)) !important;
+  }
+
+  .club-details-v5 .club-manager-copy-v5 {
+    min-height: 40px;
+    padding: 5px 8px 6px !important;
+  }
+
+  .club-details-v5 .club-manager-copy-v5 strong {
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .club-details-v5 .club-identity-card {
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: 240px 210px 120px 120px !important;
+    grid-template-areas:
+      "badge location"
+      "founded manager"
+      "stadium stadium"
+      "titles titles" !important;
+  }
+
+  .club-details-v5 .club-titles-panel {
+    grid-template-columns: auto auto auto;
+    justify-content: center;
+    gap: 14px !important;
+  }
+
+  .club-trophy-media-v5 {
+    width: 42px;
+    height: 54px;
+  }
+}
