@@ -1,0 +1,207 @@
+/* Career onboarding v6 — club rail scale, rhythm and shell alignment. */
+
+.career-club-selection.onboarding-fit-v4 {
+  --onboarding-shell-gutter: clamp(24px, 1.65vw, 32px);
+  --fit-header: clamp(96px, 11.8dvh, 106px) !important;
+  --fit-rail: clamp(54px, 6.75dvh, 58px) !important;
+  --fit-controls: clamp(46px, 5.85dvh, 50px) !important;
+}
+
+.onboarding-fit-v4 .club-selection-header,
+.onboarding-fit-v4 .club-rail,
+.onboarding-fit-v4 .club-selection-grid,
+.onboarding-fit-v4 .club-selection-controls {
+  width: min(1714px, calc(100vw - (var(--onboarding-shell-gutter) * 2))) !important;
+}
+
+.onboarding-fit-v4 .club-selection-header {
+  gap: clamp(20px, 1.5vw, 28px) !important;
+  padding: 13px 0 11px !important;
+}
+
+.onboarding-fit-v4 .club-selection-header > div:first-child {
+  gap: 2px !important;
+}
+
+.onboarding-fit-v4 .club-selection-header h1 {
+  margin-top: 5px !important;
+}
+
+.onboarding-fit-v4 .club-selection-header p {
+  margin-top: 5px !important;
+}
+
+.onboarding-fit-v4 .club-season-badge {
+  min-width: 126px !important;
+  padding: 8px 13px 8px 17px !important;
+}
+
+.onboarding-fit-v4 .club-rail {
+  grid-template-columns: 38px minmax(0, 1fr) 38px !important;
+  min-height: var(--fit-rail);
+  overflow: hidden;
+  border-color: rgba(255, 255, 255, .09) !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .22) !important;
+}
+
+.onboarding-fit-v4 .club-rail-track {
+  display: grid !important;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  align-items: stretch;
+  min-width: 0;
+  overflow: hidden !important;
+  scroll-snap-type: none !important;
+}
+
+.onboarding-fit-v4 .club-rail-arrow {
+  width: 38px;
+  min-width: 38px;
+  padding: 0;
+  font-size: 23px !important;
+  line-height: 1;
+}
+
+.onboarding-fit-v4 .club-rail-item,
+.onboarding-fit-v4 .club-rail-item.selected {
+  box-sizing: border-box;
+  width: auto !important;
+  min-width: 0 !important;
+  height: 100%;
+  gap: 0 !important;
+  padding: 6px 4px !important;
+  border-right-color: rgba(255, 255, 255, .055) !important;
+  transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease !important;
+}
+
+.onboarding-fit-v4 .club-rail-item:last-child {
+  border-right: 0 !important;
+}
+
+.onboarding-fit-v4 .club-rail-item img,
+.onboarding-fit-v4 .club-rail-item.selected img {
+  display: block;
+  width: clamp(27px, 1.72vw, 31px) !important;
+  height: clamp(27px, 1.72vw, 31px) !important;
+  max-width: calc(100% - 8px);
+  max-height: calc(100% - 10px);
+  object-fit: contain !important;
+  object-position: center;
+  transform: none !important;
+  transform-origin: center;
+  filter: grayscale(.18) saturate(.9) opacity(.82) drop-shadow(0 2px 3px rgba(0, 0, 0, .24)) !important;
+}
+
+.onboarding-fit-v4 .club-rail-item:hover img,
+.onboarding-fit-v4 .club-rail-item:focus-visible img {
+  transform: scale(1.045) !important;
+  filter: saturate(1) opacity(1) drop-shadow(0 3px 5px rgba(0, 0, 0, .28)) !important;
+}
+
+.onboarding-fit-v4 .club-rail-item.selected {
+  box-shadow: inset 0 -3px #111820;
+}
+
+.onboarding-fit-v4 .club-rail-item.selected img {
+  width: clamp(29px, 1.84vw, 33px) !important;
+  height: clamp(29px, 1.84vw, 33px) !important;
+  filter: saturate(1) opacity(1) drop-shadow(0 3px 5px rgba(0, 0, 0, .22)) !important;
+}
+
+.onboarding-fit-v4 .club-rail-item span {
+  display: none !important;
+}
+
+.onboarding-fit-v4 .club-selection-details {
+  padding: 8px 0 !important;
+}
+
+.onboarding-fit-v4 .club-selection-grid {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.onboarding-fit-v4 .club-selection-controls {
+  gap: 28px;
+  min-width: 0;
+}
+
+.onboarding-fit-v4 .club-selection-controls > div,
+.onboarding-fit-v4 .club-selection-controls > span {
+  gap: 8px;
+}
+
+@media (max-width: 1420px) and (min-width: 981px) {
+  .career-club-selection.onboarding-fit-v4 {
+    --onboarding-shell-gutter: clamp(20px, 1.45vw, 26px);
+  }
+
+  .onboarding-fit-v4 .club-rail {
+    grid-template-columns: 35px minmax(0, 1fr) 35px !important;
+  }
+
+  .onboarding-fit-v4 .club-rail-arrow {
+    width: 35px;
+    min-width: 35px;
+  }
+
+  .onboarding-fit-v4 .club-rail-item,
+  .onboarding-fit-v4 .club-rail-item.selected {
+    padding-inline: 3px !important;
+  }
+
+  .onboarding-fit-v4 .club-rail-item img,
+  .onboarding-fit-v4 .club-rail-item.selected img {
+    width: clamp(25px, 2.05vw, 29px) !important;
+    height: clamp(25px, 2.05vw, 29px) !important;
+  }
+}
+
+@media (max-height: 710px) and (min-width: 981px) {
+  .career-club-selection.onboarding-fit-v4 {
+    --fit-rail: 50px !important;
+  }
+
+  .onboarding-fit-v4 .club-rail-item img,
+  .onboarding-fit-v4 .club-rail-item.selected img {
+    width: 25px !important;
+    height: 25px !important;
+  }
+
+  .onboarding-fit-v4 .club-selection-details {
+    padding: 6px 0 !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .career-club-selection.onboarding-fit-v4 {
+    --onboarding-shell-gutter: 17px;
+  }
+
+  .onboarding-fit-v4 .club-rail {
+    grid-template-columns: 36px minmax(0, 1fr) 36px !important;
+  }
+
+  .onboarding-fit-v4 .club-rail-track {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x proximity !important;
+  }
+
+  .onboarding-fit-v4 .club-rail-item,
+  .onboarding-fit-v4 .club-rail-item.selected {
+    width: 52px !important;
+    min-width: 52px !important;
+    padding: 5px !important;
+  }
+
+  .onboarding-fit-v4 .club-rail-item.selected {
+    width: 58px !important;
+    min-width: 58px !important;
+  }
+
+  .onboarding-fit-v4 .club-rail-item img,
+  .onboarding-fit-v4 .club-rail-item.selected img {
+    width: 28px !important;
+    height: 28px !important;
+  }
+}
