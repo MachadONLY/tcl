@@ -1,5 +1,7 @@
 const SPORTS_DB_KEY = "123";
 const SEASON = "2026/27";
+const KIT_CACHE_KEY = "touchline:onboarding-kits:v1";
+const KIT_CACHE_TTL = 14 * 24 * 60 * 60 * 1000;
 
 const CLUBS = Object.freeze({
   ARS: "Arsenal",
@@ -24,6 +26,8 @@ const CLUBS = Object.freeze({
   TOT: "Tottenham Hotspur"
 });
 
+const CLUB_ORDER = Object.keys(CLUBS);
+
 // Imagens oficiais de produto, sem modelo ou pessoa usando a camisa.
 const VERIFIED_CUTOUTS = Object.freeze({
   MUN: {
@@ -32,9 +36,54 @@ const VERIFIED_CUTOUTS = Object.freeze({
 });
 
 const cache = new Map();
+const preloadCache = window.__touchlineImagePreloads || new Map();
+window.__touchlineImagePreloads = preloadCache;
+
+let persistedKits = null;
+let persistTimer = 0;
 let activeRequest = 0;
 let refreshTimer = 0;
 let applying = false;
+
+function loadPersistedKits() {
+  if (persistedKits) return persistedKits;
+  try {
+    const parsed = JSON.parse(localStorage.getItem(KIT_CACHE_KEY) || "{}");
+    persistedKits = parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    persistedKits = {};
+  }
+  return persistedKits;
+}
+
+function schedulePersist() {
+  window.clearTimeout(persistTimer);
+  persistTimer = window.setTimeout(() => {
+    try { localStorage.setItem(KIT_CACHE_KEY, JSON.stringify(loadPersistedKits())); }
+    catch { /* memory cache remains active */ }
+  }, 140);
+}
+
+function readPersisted(code) {
+  const entry = loadPersistedKits()[code];
+  if (!entry || Date.now() - Number(entry.savedAt || 0) > KIT_CACHE_TTL) {
+    if (entry) {
+      delete loadPersistedKits()[code];
+      schedulePersist();
+    }
+    return null;
+  }
+  return { home: entry.home || null, away: entry.away || null };
+}
+
+function writePersisted(code, kits) {
+  loadPersistedKits()[code] = {
+    home: kits.home || null,
+    away: kits.away || null,
+    savedAt: Date.now()
+  };
+  schedulePersist();
+}
 
 function normalize(value) {
   return String(value || "")
@@ -85,7 +134,7 @@ function equipmentSource(item) {
   return item?.strEquipment || item?.strEquipmentThumb || item?.strThumb || null;
 }
 
-async function fetchJson(url, timeout = 8500) {
+async function fetchJson(url, timeout = 6500) {
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), timeout);
   try {
@@ -134,6 +183,12 @@ async function loadCutouts(code) {
   const teamName = CLUBS[code];
   if (!teamName) return { home: null, away: null };
 
+  const stored = readPersisted(code);
+  if (stored) {
+    cache.set(code, stored);
+    return stored;
+  }
+
   const pending = (async () => {
     const verified = VERIFIED_CUTOUTS[code] || {};
     let database = { home: null, away: null };
@@ -149,10 +204,12 @@ async function loadCutouts(code) {
       // O estado neutro permanece visível; jamais usamos uma foto com pessoa como fallback.
     }
 
-    return {
+    const result = {
       home: verified.home || database.home || null,
       away: verified.away || database.away || null
     };
+    writePersisted(code, result);
+    return result;
   })();
 
   cache.set(code, pending);
@@ -161,21 +218,31 @@ async function loadCutouts(code) {
   return result;
 }
 
-function preload(source) {
+function preload(source, priority = "low") {
   if (!source || isForbiddenPhoto(source)) return Promise.resolve(false);
-  return new Promise(resolve => {
+  if (preloadCache.has(source)) return preloadCache.get(source);
+
+  const pending = new Promise(resolve => {
     const image = new Image();
-    image.onload = () => resolve(image.naturalWidth > 0 && image.naturalHeight > 0);
-    image.onerror = () => resolve(false);
+    image.decoding = "async";
+    image.fetchPriority = priority;
     image.referrerPolicy = "no-referrer";
+    image.onload = async () => {
+      try { await image.decode?.(); } catch { /* loaded image is still displayable */ }
+      resolve(image.naturalWidth > 0 && image.naturalHeight > 0);
+    };
+    image.onerror = () => resolve(false);
     image.src = source;
     if (image.complete) resolve(image.naturalWidth > 0 && image.naturalHeight > 0);
   });
+
+  preloadCache.set(source, pending);
+  return pending;
 }
 
 function cutoutMarkup(source, label) {
   return `<figure class="club-kit-official-v3 club-kit-cutout-only">
-    <div><img src="${escapeHtml(source)}" alt="Camisa oficial ${label.toLowerCase()} ${SEASON}, sem modelo" referrerpolicy="no-referrer" /></div>
+    <div><img src="${escapeHtml(source)}" alt="Camisa oficial ${label.toLowerCase()} ${SEASON}, sem modelo" referrerpolicy="no-referrer" loading="eager" decoding="async" fetchpriority="high" /></div>
     <figcaption><strong>${label}</strong><span>OFICIAL 26/27</span></figcaption>
   </figure>`;
 }
@@ -196,19 +263,41 @@ function scrubPeoplePhotos(details) {
   });
 }
 
+function neighborCodes(code) {
+  const index = CLUB_ORDER.indexOf(code);
+  if (index < 0) return [];
+  return [
+    CLUB_ORDER[(index - 1 + CLUB_ORDER.length) % CLUB_ORDER.length],
+    CLUB_ORDER[(index + 1) % CLUB_ORDER.length]
+  ];
+}
+
+function prewarmNeighbors(code) {
+  const run = async () => {
+    for (const neighbor of neighborCodes(code)) {
+      const kits = await loadCutouts(neighbor);
+      preload(kits.home, "low");
+      preload(kits.away, "low");
+    }
+  };
+  if ("requestIdleCallback" in window) window.requestIdleCallback(run, { timeout: 1400 });
+  else window.setTimeout(run, 220);
+}
+
 async function applyCutouts() {
   if (applying) return;
   const code = selectedCode();
   const details = detailsPanel();
   if (!code || !CLUBS[code] || !details) return;
 
+  const slots = [...details.querySelectorAll(".club-kit-slot")];
+  if (slots.length < 2) return;
+  if (slots.every(slot => slot.dataset.cutoutOnly === code)) return;
+
   applying = true;
   const request = ++activeRequest;
   try {
     scrubPeoplePhotos(details);
-    const slots = [...details.querySelectorAll(".club-kit-slot")];
-    if (slots.length < 2) return;
-
     const kits = await loadCutouts(code);
     if (request !== activeRequest || selectedCode() !== code || detailsPanel() !== details) return;
 
@@ -218,11 +307,12 @@ async function applyCutouts() {
     ];
 
     await Promise.all(entries.map(async entry => {
-      const ready = entry.source ? await preload(entry.source) : false;
+      const ready = entry.source ? await preload(entry.source, "high") : false;
       if (request !== activeRequest || selectedCode() !== code || detailsPanel() !== details) return;
       entry.slot.innerHTML = ready ? cutoutMarkup(entry.source, entry.label) : pendingMarkup(entry.label);
       entry.slot.dataset.cutoutOnly = code;
     }));
+    prewarmNeighbors(code);
   } finally {
     applying = false;
   }
@@ -245,7 +335,7 @@ const observer = new MutationObserver(mutations => {
       || node.querySelector?.("[data-club-details], .club-kit-slot, .club-kit-official-v3")
     ));
   });
-  if (relevant) scheduleRefresh(40);
+  if (relevant) scheduleRefresh(16);
 });
 
 observer.observe(document.documentElement, {
@@ -257,10 +347,9 @@ observer.observe(document.documentElement, {
 
 document.addEventListener("click", event => {
   if (!event.target.closest("[data-club-index], [data-club-step]")) return;
-  scheduleRefresh(40);
-  window.setTimeout(() => scheduleRefresh(0), 450);
+  scheduleRefresh(16);
 }, true);
 
-window.addEventListener("hashchange", () => scheduleRefresh(80));
-document.addEventListener("DOMContentLoaded", () => scheduleRefresh(80), { once: true });
-scheduleRefresh(80);
+window.addEventListener("hashchange", () => scheduleRefresh(40));
+document.addEventListener("DOMContentLoaded", () => scheduleRefresh(40), { once: true });
+scheduleRefresh(40);
