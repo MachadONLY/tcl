@@ -1,0 +1,66 @@
+/* Career onboarding v8 — deterministic crest and manager media repair. */
+
+.onboarding-premier-v7 .club-badge-panel > img.club-badge-image-v8 {
+  position: relative !important;
+  z-index: 2 !important;
+  display: block !important;
+  align-self: center !important;
+  justify-self: center !important;
+  width: min(190px, 62%) !important;
+  height: min(176px, 66%) !important;
+  max-width: 62% !important;
+  max-height: 66% !important;
+  margin: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  filter: drop-shadow(0 17px 22px rgba(0, 0, 0, .27)) !important;
+}
+
+.onboarding-premier-v7 .club-badge-panel.club-badge-ready-v8 > h2 {
+  position: relative;
+  z-index: 2;
+}
+
+.onboarding-premier-v7 .club-manager-panel > img.club-manager-image-v8 {
+  position: relative !important;
+  z-index: 1 !important;
+  display: block !important;
+  grid-row: 1 !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  object-fit: cover !important;
+  object-position: center 14% !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-photo-loading-v8 > img.club-manager-image-v8 {
+  opacity: 0 !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-photo-ready-v8 > img.club-manager-image-v8 {
+  opacity: 1 !important;
+  transition: opacity 160ms ease;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-photo-ready-v8 > .club-manager-placeholder {
+  display: none !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-photo-failed-v8 > .club-manager-placeholder {
+  display: grid !important;
+}
