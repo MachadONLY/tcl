@@ -1,0 +1,256 @@
+/* Career onboarding v2 — stable manager framing and official 2026/27 kits. */
+
+.club-manager-panel {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, .1), transparent 38%),
+    linear-gradient(155deg, #26313a 0%, #101820 62%, #070c11 100%) !important;
+}
+
+.club-manager-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, .035), transparent 35%, rgba(0, 0, 0, .08)),
+    linear-gradient(180deg, transparent 58%, rgba(4, 8, 13, .9) 91%);
+  pointer-events: none;
+}
+
+.club-manager-panel::after {
+  display: none !important;
+}
+
+.club-manager-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  place-items: end center;
+  overflow: hidden;
+}
+
+.club-manager-image {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: block;
+  padding: 7px 7px 42px;
+  object-fit: contain !important;
+  object-position: var(--manager-focus, 50% 100%) !important;
+  filter: saturate(.82) contrast(1.04) brightness(.94) !important;
+  transform: none !important;
+  transform-origin: center bottom;
+}
+
+.club-manager-image.is-cutout {
+  padding: 3px 2px 36px;
+  filter: saturate(.88) contrast(1.03) drop-shadow(0 12px 18px rgba(0, 0, 0, .3)) !important;
+}
+
+.club-manager-image.is-photo {
+  padding: 9px 8px 44px;
+}
+
+.club-manager-v2-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding-bottom: 36px;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255, 255, 255, .12), transparent 28%),
+    linear-gradient(155deg, rgba(255, 255, 255, .035), transparent 60%);
+}
+
+.club-manager-v2-placeholder span {
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 50%;
+  background: rgba(3, 8, 13, .28);
+  color: rgba(255, 255, 255, .78);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .22);
+}
+
+.club-manager-panel > div:last-child {
+  inset: auto 11px 10px !important;
+  z-index: 3 !important;
+  max-width: calc(100% - 22px);
+}
+
+.club-manager-panel > div:last-child strong {
+  display: -webkit-box;
+  overflow: hidden;
+  max-width: 100%;
+  font-size: clamp(13px, 1.3vw, 20px) !important;
+  line-height: 1.02 !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.club-kits-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .012), transparent),
+    rgba(5, 10, 16, .12);
+}
+
+.club-kit-slot {
+  position: relative;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  align-content: stretch !important;
+  gap: 2px !important;
+  padding: 2px 8px 7px;
+}
+
+.club-kit-fallback,
+.club-kit-slot > small {
+  display: none !important;
+}
+
+.club-kit-official {
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.club-kit-official::before {
+  content: "";
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, .08), transparent 68%);
+  pointer-events: none;
+}
+
+.club-kit-official .club-kit-image {
+  position: relative;
+  z-index: 1;
+  width: min(114px, 82%) !important;
+  max-width: 82% !important;
+  height: min(114px, 100%) !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 11px 15px rgba(0, 0, 0, .42)) !important;
+}
+
+.club-kit-official > span {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  z-index: 2;
+  padding: 3px 5px;
+  border: 1px solid rgba(118, 221, 159, .22);
+  border-radius: 3px;
+  background: rgba(14, 36, 24, .72);
+  color: #8fdda9;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 6px;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: .08em;
+}
+
+.club-kit-slot > em {
+  color: rgba(255, 255, 255, .66);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: .09em;
+}
+
+.club-kit-pending {
+  width: min(112px, 92%);
+  min-height: 72px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  padding: 8px;
+  border: 1px dashed rgba(255, 255, 255, .16);
+  border-radius: 7px;
+  background: rgba(3, 8, 13, .22);
+  text-align: center;
+}
+
+.club-kit-pending > span {
+  color: rgba(255, 255, 255, .38);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.club-kit-pending strong,
+.club-kit-pending small {
+  font-family: "Barlow Condensed", sans-serif;
+  line-height: 1;
+}
+
+.club-kit-pending strong {
+  color: rgba(255, 255, 255, .66);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .09em;
+}
+
+.club-kit-pending small {
+  color: rgba(255, 255, 255, .34);
+  font-size: 6px;
+  font-weight: 600;
+  letter-spacing: .07em;
+}
+
+@media (max-height: 800px) and (min-width: 981px) {
+  .club-manager-image {
+    padding-top: 4px;
+    padding-bottom: 35px;
+  }
+
+  .club-manager-image.is-cutout {
+    padding-bottom: 31px;
+  }
+
+  .club-kit-official .club-kit-image {
+    width: min(96px, 78%) !important;
+    height: min(96px, 100%) !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .club-manager-panel {
+    position: relative !important;
+    inset: auto !important;
+    width: auto !important;
+    min-height: 210px;
+  }
+
+  .club-manager-image {
+    padding-bottom: 43px;
+  }
+
+  .club-kit-official .club-kit-image {
+    width: min(126px, 84%) !important;
+    height: min(126px, 100%) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-manager-image,
+  .club-kit-image {
+    transition: none !important;
+  }
+}
