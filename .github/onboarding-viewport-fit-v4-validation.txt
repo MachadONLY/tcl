@@ -1,0 +1,1 @@
+Validate strict viewport fitting for the club onboarding screen at desktop browser heights.
