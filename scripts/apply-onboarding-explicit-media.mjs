@@ -59,6 +59,7 @@ const EXPLICIT = Object.freeze({
     manager: "https://upload.wikimedia.org/wikipedia/commons/8/8c/Andoni_Iraola_2023.jpg"
   },
   MCI: {
+    stadium: commonsFile("Manchester city etihad stadium.jpg", 1280),
     manager: "https://upload.wikimedia.org/wikipedia/commons/3/3c/Enzo_maresca.jpg"
   },
   MUN: {
