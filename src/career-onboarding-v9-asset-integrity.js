@@ -87,9 +87,12 @@ function isRenderable(source) {
 
 function setImageSource(image, source, fallback = "") {
   if (!(image instanceof HTMLImageElement) || !source) return;
-  const absolute = new URL(source, location.href).href;
-  if (image.src !== absolute) image.src = source;
 
+  let absolute;
+  try { absolute = new URL(source, location.href).href; }
+  catch { return; }
+
+  if (image.src !== absolute) image.src = source;
   image.decoding = "async";
   image.loading = "eager";
   image.removeAttribute("referrerpolicy");
@@ -103,10 +106,19 @@ function setImageSource(image, source, fallback = "") {
     image.addEventListener("error", () => {
       const next = image.dataset.v9Fallback;
       if (!next) return;
-      const nextAbsolute = new URL(next, location.href).href;
+      let nextAbsolute;
+      try { nextAbsolute = new URL(next, location.href).href; }
+      catch { return; }
       if (image.src !== nextAbsolute) image.src = next;
     });
   }
+}
+
+async function bestCrestSource(code, entry) {
+  const fallback = canonicalCrest(code);
+  const local = entry?.crest;
+  if (local && await isRenderable(local)) return { source: local, fallback };
+  return { source: fallback, fallback: "" };
 }
 
 async function repairRail(root, clubs, version) {
@@ -115,20 +127,19 @@ async function repairRail(root, clubs, version) {
   await Promise.all(items.map(async item => {
     const code = item.querySelector("span")?.textContent?.trim().toUpperCase();
     const image = item.querySelector("img");
-    const fallback = canonicalCrest(code);
-    if (!code || !(image instanceof HTMLImageElement) || !fallback) return;
+    if (!code || !(image instanceof HTMLImageElement)) return;
 
     image.dataset.clubCode = code;
-    setImageSource(image, fallback);
-
-    const local = clubs?.[code]?.crest;
-    if (!local || version !== repairVersion) return;
-    if (await isRenderable(local) && version === repairVersion && image.isConnected) {
-      setImageSource(image, local, fallback);
-    }
+    const { source, fallback } = await bestCrestSource(code, clubs?.[code]);
+    if (!source || version !== repairVersion || !image.isConnected) return;
+    setImageSource(image, source, fallback);
   }));
 
-  root.dataset.railCrestsV9 = String(items.filter(item => item.querySelector("img")?.naturalWidth > 0).length);
+  window.setTimeout(() => {
+    if (!root.isConnected) return;
+    const loaded = items.filter(item => item.querySelector("img")?.naturalWidth > 0).length;
+    root.dataset.railCrestsV9 = String(loaded);
+  }, 80);
 }
 
 function ensureMainBadge(details, code) {
@@ -153,14 +164,12 @@ async function repairMainBadge(root, details, code, entry, version) {
   const image = ensureMainBadge(details, code);
   if (!image) return;
 
-  const fallback = canonicalCrest(code);
-  const selectedRail = root.querySelector(".club-rail-item.selected img");
-  setImageSource(image, selectedRail?.currentSrc || selectedRail?.src || fallback, fallback);
+  const { source, fallback } = await bestCrestSource(code, entry);
+  if (version !== repairVersion || !image.isConnected) return;
 
-  const local = entry?.crest;
-  if (local && await isRenderable(local) && version === repairVersion && image.isConnected) {
-    setImageSource(image, local, fallback);
-  }
+  const selectedRail = root.querySelector(".club-rail-item.selected img");
+  const railSource = selectedRail?.naturalWidth > 0 ? (selectedRail.currentSrc || selectedRail.src) : "";
+  setImageSource(image, source || railSource || canonicalCrest(code), fallback || canonicalCrest(code));
 }
 
 function managerPanel(details) {
@@ -301,7 +310,7 @@ function scheduleRepair() {
 const observer = new MutationObserver(mutations => {
   const relevant = mutations.some(mutation => {
     if (mutation.type === "attributes") {
-      return mutation.target instanceof Element && mutation.target.matches(".club-rail-item, .club-rail-item img, [data-club-details]");
+      return mutation.target instanceof Element && mutation.target.matches(".club-rail-item, [data-club-details]");
     }
     return [...mutation.addedNodes].some(node => node instanceof Element && (
       node.matches?.(".career-club-selection, [data-club-details], .club-rail-item, .club-manager-panel")
@@ -315,7 +324,7 @@ observer.observe(document.documentElement, {
   childList: true,
   subtree: true,
   attributes: true,
-  attributeFilter: ["class", "src", "data-local-pack"]
+  attributeFilter: ["class", "data-local-pack"]
 });
 
 document.addEventListener("click", event => {
