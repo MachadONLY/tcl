@@ -1,0 +1,159 @@
+/* Touchline onboarding v11 — final deterministic media layout. */
+
+.onboarding-premier-v7 .club-identity-card,
+.onboarding-premier-v7 .club-details-v5 .club-identity-card {
+  grid-template-rows: minmax(0, 45%) minmax(0, 30%) minmax(0, 25%) !important;
+}
+
+.onboarding-premier-v7 .club-location-panel {
+  padding: 12px 15px !important;
+  background-position: center 48% !important;
+}
+
+.onboarding-premier-v7 .club-location-panel strong {
+  font-size: clamp(18px, 1.35vw, 24px) !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel {
+  grid-template-rows: minmax(0, 1fr) 45px !important;
+  min-height: 0 !important;
+  background:
+    radial-gradient(circle at 50% 24%, rgba(255, 255, 255, .1), transparent 46%),
+    linear-gradient(155deg, #26313c, #111a24 68%, #081018) !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel > img {
+  display: none !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel > img[data-media-ready="true"] {
+  display: block !important;
+  grid-row: 1 !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 5px 7px 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .28));
+  animation: v11-media-fade 160ms ease both;
+}
+
+.onboarding-premier-v7 .club-manager-panel > .club-manager-placeholder {
+  grid-row: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel > div:last-child,
+.onboarding-premier-v7 .club-manager-copy-v5 {
+  min-height: 45px !important;
+  gap: 3px !important;
+  padding: 6px 10px 7px !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel strong {
+  font-size: clamp(12px, .9vw, 15px) !important;
+  line-height: 1.05 !important;
+}
+
+.onboarding-premier-v7 .club-titles-panel {
+  gap: 6px !important;
+  padding: 12px 9px 11px !important;
+}
+
+.onboarding-premier-v7 .club-titles-panel .club-trophy-icon,
+.onboarding-premier-v7 .club-trophy-media-v5 {
+  margin: 0 0 2px !important;
+}
+
+.onboarding-premier-v7 .club-titles-panel .club-data-label {
+  line-height: 1.12 !important;
+  text-align: center;
+}
+
+.onboarding-premier-v7 .club-titles-panel strong {
+  margin-top: 1px !important;
+  font-size: clamp(27px, 2.25vw, 38px) !important;
+  line-height: .88 !important;
+}
+
+.onboarding-premier-v7 .club-stadium-panel {
+  background-position: center 42% !important;
+}
+
+.onboarding-premier-v7 .club-rival-panel {
+  gap: 9px !important;
+  padding: 13px 14px 14px !important;
+}
+
+.onboarding-premier-v7 .club-rival-panel img {
+  display: none !important;
+}
+
+.onboarding-premier-v7 .club-rival-panel img[data-media-ready="true"] {
+  display: block !important;
+  width: clamp(46px, 4vw, 66px) !important;
+  height: clamp(46px, 4vw, 66px) !important;
+  max-width: 66px !important;
+  max-height: 66px !important;
+  margin: 2px auto 0 !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  filter: drop-shadow(0 7px 12px rgba(0, 0, 0, .32));
+  animation: v11-media-fade 160ms ease both;
+}
+
+.onboarding-premier-v7 .club-rival-panel:has(img[data-media-ready="true"]) .club-rival-symbol {
+  display: none !important;
+}
+
+.onboarding-premier-v7 .club-rival-panel strong {
+  max-width: 100%;
+  padding-inline: 4px;
+  text-align: center;
+  line-height: 1.05 !important;
+}
+
+.onboarding-premier-v7 .club-rail-item img[data-media-ready="true"],
+.onboarding-premier-v7 .club-badge-panel img[data-media-ready="true"] {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+@keyframes v11-media-fade {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 1280px), (max-height: 760px) {
+  .onboarding-premier-v7 .club-identity-card,
+  .onboarding-premier-v7 .club-details-v5 .club-identity-card {
+    grid-template-rows: minmax(0, 43%) minmax(0, 32%) minmax(0, 25%) !important;
+  }
+
+  .onboarding-premier-v7 .club-manager-panel {
+    grid-template-rows: minmax(0, 1fr) 41px !important;
+  }
+
+  .onboarding-premier-v7 .club-manager-panel > div:last-child,
+  .onboarding-premier-v7 .club-manager-copy-v5 {
+    min-height: 41px !important;
+    padding: 5px 8px 6px !important;
+  }
+}
