@@ -10,9 +10,25 @@ const manifestPath = path.join(OUTPUT_ROOT, shard ? `manifest-${shard}.json` : "
 const reportPath = path.join(OUTPUT_ROOT, shard ? `validation-report-${shard}.json` : "validation-report.json");
 const USER_AGENT = "TouchlineCareer/1.0 explicit-media-repair";
 
-const LONDON_CITY = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/London_Skyline.jpg/1280px-London_Skyline.jpg";
+const commonsFile = (filename, width = 1280) =>
+  `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(filename)}?width=${width}`;
+
+const LONDON_CITY = commonsFile("London Skyline.jpg", 1280);
 
 const EXPLICIT = Object.freeze({
+  ARS: {
+    stadium: commonsFile("Emirates Stadium aerial 2020-07.jpg", 1280),
+    manager: commonsFile("Mikel Arteta.jpg", 900)
+  },
+  BOU: {
+    city: commonsFile("Bournemouth Town Centre from West Cliff.jpg", 1280),
+    stadium: commonsFile("Bournemouth , Boscombe - Dean Court Football Stadium - geograph.org.uk - 2197013.jpg", 1280),
+    manager: commonsFile("MarcoRose.jpg", 800)
+  },
+  BRE: {
+    stadium: commonsFile("Brentford Gtech Community Stadium.jpg", 1280),
+    manager: commonsFile("Keith Andrews, Brentford F.C. head coach, August 2025.jpg", 900)
+  },
   CHE: {
     stadium: "https://upload.wikimedia.org/wikipedia/commons/8/87/Stamford_Bridge_stadium.jpg",
     manager: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Xabi_alonso.jpg"
@@ -25,9 +41,21 @@ const EXPLICIT = Object.freeze({
     city: LONDON_CITY,
     manager: "https://upload.wikimedia.org/wikipedia/commons/f/f2/Pierre_Sage_lors_d%E2%80%99un_entra%C3%AEnement.jpg"
   },
+  HUL: {
+    city: commonsFile("Skyline of Kingston upon Hull from across the Humber.jpg", 1280),
+    stadium: commonsFile("Mkm stadium.png", 1280),
+    manager: commonsFile("Sergej Jakirović 2024 (cropped).png", 800)
+  },
   LIV: {
     stadium: "https://upload.wikimedia.org/wikipedia/commons/3/33/Anfield_Stadium.jpg",
     manager: "https://upload.wikimedia.org/wikipedia/commons/8/8c/Andoni_Iraola_2023.jpg"
+  },
+  MCI: {
+    manager: "https://upload.wikimedia.org/wikipedia/commons/3/3c/Enzo_maresca.jpg"
+  },
+  MUN: {
+    stadium: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Oldtraffordstadpano.jpg/1280px-Oldtraffordstadpano.jpg",
+    manager: "https://upload.wikimedia.org/wikipedia/commons/3/30/Michael_Carrick.jpg"
   },
   NFO: {
     manager: "https://upload.wikimedia.org/wikipedia/commons/5/5a/Oliver_Glasner30.JPG"
@@ -127,11 +155,17 @@ for (const code of selected) {
 
   entry.sources ||= {};
   for (const [kind, source] of Object.entries(overrides)) {
-    const currentlyValid = await validLocal(entry[kind]);
-    if (currentlyValid) continue;
-    process.stdout.write(`→ ${code} explicit ${kind}\n`);
-    entry[kind] = await install(code, kind, source);
-    entry.sources[kind] = source;
+    const previous = entry[kind];
+    process.stdout.write(`→ ${code} authoritative ${kind}\n`);
+    try {
+      await wait(450);
+      entry[kind] = await install(code, kind, source);
+      entry.sources[kind] = source;
+    } catch (error) {
+      if (!await validLocal(previous)) throw error;
+      process.stdout.write(`  ! kept existing ${kind}: ${error.message}\n`);
+      entry[kind] = previous;
+    }
   }
 }
 
