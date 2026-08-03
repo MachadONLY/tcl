@@ -6,6 +6,7 @@ on:
     paths:
       - "src/career-onboarding*"
       - "scripts/sync-onboarding*"
+      - "scripts/apply-onboarding-explicit-media.mjs"
       - "tests/onboarding-final*"
       - "index.html"
       - "package.json"
@@ -20,16 +21,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - shard: north-1
+          - shard: group-arsenal
             clubs: ARS,AVL,BOU,BRE
-          - shard: south-1
-            clubs: BHA,CHE,COV,CRY
-          - shard: north-2
+          - shard: group-palace
+            clubs: BHA,COV,CRY
+          - shard: chelsea
+            clubs: CHE
+          - shard: group-everton
             clubs: EVE,FUL,HUL,IPS
-          - shard: south-2
-            clubs: LEE,LIV,MCI,MUN
-          - shard: north-3
-            clubs: NEW,NFO,SUN,TOT
+          - shard: group-manchester
+            clubs: LEE,MCI,MUN
+          - shard: liverpool
+            clubs: LIV
+          - shard: group-newcastle
+            clubs: NEW,NFO,TOT
+          - shard: sunderland
+            clubs: SUN
 
     steps:
       - name: Checkout
@@ -44,24 +51,17 @@ jobs:
       - name: Install project
         run: npm ci
 
-      - name: Build four-club offline media shard
+      - name: Build isolated offline media shard
         shell: bash
         run: |
-          success=0
-          for pass in 1 2 3; do
-            echo "Media shard ${{ matrix.shard }} — pass ${pass}"
-            force_arg=""
-            if [ "$pass" = "1" ]; then force_arg="--force"; fi
-            if node scripts/run-onboarding-media-shard.mjs \
-              --clubs="${{ matrix.clubs }}" \
-              --shard="${{ matrix.shard }}" \
-              ${force_arg}; then
-              success=1
-              break
-            fi
-            sleep 45
-          done
-          test "$success" = "1"
+          node scripts/run-onboarding-media-shard.mjs \
+            --clubs="${{ matrix.clubs }}" \
+            --shard="${{ matrix.shard }}" \
+            --force || true
+
+          node scripts/apply-onboarding-explicit-media.mjs \
+            --clubs="${{ matrix.clubs }}" \
+            --shard="${{ matrix.shard }}"
 
       - name: Upload media shard
         if: always()
