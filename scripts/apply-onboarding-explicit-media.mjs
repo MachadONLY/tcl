@@ -15,9 +15,15 @@ const EXPLICIT = Object.freeze({
     stadium: "https://upload.wikimedia.org/wikipedia/commons/8/87/Stamford_Bridge_stadium.jpg",
     manager: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Xabi_alonso.jpg"
   },
+  COV: {
+    stadium: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Coventry_Building_Society_Arena_%28geograph_7345889%29.jpg/960px-Coventry_Building_Society_Arena_%28geograph_7345889%29.jpg"
+  },
   LIV: {
     stadium: "https://upload.wikimedia.org/wikipedia/commons/3/33/Anfield_Stadium.jpg",
     manager: "https://upload.wikimedia.org/wikipedia/commons/8/8c/Andoni_Iraola_2023.jpg"
+  },
+  NFO: {
+    manager: "https://upload.wikimedia.org/wikipedia/commons/5/5a/Oliver_Glasner30.JPG"
   },
   SUN: {
     city: "https://upload.wikimedia.org/wikipedia/commons/9/93/SunderlandSkyline.jpg",
