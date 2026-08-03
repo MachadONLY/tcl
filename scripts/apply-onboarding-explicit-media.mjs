@@ -20,6 +20,9 @@ const EXPLICIT = Object.freeze({
     stadium: commonsFile("Emirates Stadium aerial 2020-07.jpg", 1280),
     manager: commonsFile("Mikel Arteta.jpg", 900)
   },
+  AVL: {
+    stadium: commonsFile("Birmingham aston villa park stadium.jpg", 1280)
+  },
   BOU: {
     city: commonsFile("Bournemouth Town Centre from West Cliff.jpg", 1280),
     stadium: commonsFile("Bournemouth , Boscombe - Dean Court Football Stadium - geograph.org.uk - 2197013.jpg", 1280),
