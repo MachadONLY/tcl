@@ -41,10 +41,18 @@ const EXPLICIT = Object.freeze({
     city: LONDON_CITY,
     manager: "https://upload.wikimedia.org/wikipedia/commons/f/f2/Pierre_Sage_lors_d%E2%80%99un_entra%C3%AEnement.jpg"
   },
+  FUL: {
+    stadium: commonsFile("Craven Cottage stadium view.jpg", 1280)
+  },
   HUL: {
     city: commonsFile("Skyline of Kingston upon Hull from across the Humber.jpg", 1280),
     stadium: commonsFile("Mkm stadium.png", 1280),
     manager: commonsFile("Sergej Jakirović 2024 (cropped).png", 800)
+  },
+  IPS: {
+    city: commonsFile("Cmglee Ipswich aerial.jpg", 1024),
+    stadium: commonsFile("Portman Road aerial.jpg", 1280),
+    manager: commonsFile("GaryO'NeilWHU.jpg", 900)
   },
   LIV: {
     stadium: "https://upload.wikimedia.org/wikipedia/commons/3/33/Anfield_Stadium.jpg",
