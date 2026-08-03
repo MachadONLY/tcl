@@ -24,7 +24,10 @@ const MANAGERS = Object.freeze({
   LEE: { name: "Daniel Farke", page: "Daniel_Farke" },
   LIV: { name: "Andoni Iraola", page: "Andoni_Iraola" },
   MCI: { name: "Enzo Maresca", page: "Enzo_Maresca" },
-  MUN: { name: "Michael Carrick", page: "Michael_Carrick" }
+  MUN: { name: "Michael Carrick", page: "Michael_Carrick" },
+  NFO: { name: "Oliver Glasner", page: "Oliver_Glasner" },
+  SUN: { name: "Régis Le Bris", page: "Régis_Le_Bris" },
+  TOT: { name: "Roberto De Zerbi", page: "Roberto_De_Zerbi" }
 });
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -96,10 +99,10 @@ async function searchPortrait(name) {
     url.searchParams.set("action", "query");
     url.searchParams.set("generator", "search");
     url.searchParams.set("gsrsearch", `${name} football manager`);
-    url.searchParams.set("gsrlimit", "8");
+    url.searchParams.set("gsrlimit", "10");
     url.searchParams.set("prop", "pageimages");
     url.searchParams.set("piprop", "original|thumbnail");
-    url.searchParams.set("pithumbsize", "1400");
+    url.searchParams.set("pithumbsize", "1600");
     url.searchParams.set("format", "json");
     url.searchParams.set("origin", "*");
     const payload = await fetchJson(url.toString());
@@ -118,11 +121,11 @@ function optimizedUrl(source) {
   const url = new URL("https://images.weserv.nl/");
   url.searchParams.set("url", source.replace(/^https?:\/\//i, ""));
   url.searchParams.set("output", "webp");
-  url.searchParams.set("q", "84");
-  url.searchParams.set("w", "560");
-  url.searchParams.set("h", "680");
-  url.searchParams.set("fit", "cover");
-  url.searchParams.set("a", "attention");
+  url.searchParams.set("q", "86");
+  url.searchParams.set("w", "620");
+  url.searchParams.set("h", "760");
+  url.searchParams.set("fit", "contain");
+  url.searchParams.set("bg", "transparent");
   return url.toString();
 }
 
