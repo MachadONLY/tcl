@@ -12,9 +12,24 @@ on:
       - ".github/workflows/onboarding-final-validation.yml"
 
 jobs:
-  validate-onboarding:
+  media-shards:
+    name: Media ${{ matrix.shard }}
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: north-1
+            clubs: ARS,AVL,BOU,BRE
+          - shard: south-1
+            clubs: BHA,CHE,COV,CRY
+          - shard: north-2
+            clubs: EVE,FUL,HUL,IPS
+          - shard: south-2
+            clubs: LEE,LIV,MCI,MUN
+          - shard: north-3
+            clubs: NEW,NFO,SUN,TOT
 
     steps:
       - name: Checkout
@@ -29,8 +44,63 @@ jobs:
       - name: Install project
         run: npm ci
 
-      - name: Build and verify the complete offline media pack
-        run: npm run sync:onboarding-assets:force
+      - name: Build four-club offline media shard
+        shell: bash
+        run: |
+          success=0
+          for pass in 1 2 3; do
+            echo "Media shard ${{ matrix.shard }} — pass ${pass}"
+            force_arg=""
+            if [ "$pass" = "1" ]; then force_arg="--force"; fi
+            if node scripts/run-onboarding-media-shard.mjs \
+              --clubs="${{ matrix.clubs }}" \
+              --shard="${{ matrix.shard }}" \
+              ${force_arg}; then
+              success=1
+              break
+            fi
+            sleep 45
+          done
+          test "$success" = "1"
+
+      - name: Upload media shard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: onboarding-media-${{ matrix.shard }}
+          path: public/assets/clubs/2026-27
+          if-no-files-found: error
+          retention-days: 7
+
+  validate-onboarding:
+    needs: media-shards
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install project
+        run: npm ci
+
+      - name: Download all verified club media shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: onboarding-media-*
+          path: public/assets/clubs/2026-27
+          merge-multiple: true
+
+      - name: Merge and statically verify twenty clubs
+        run: |
+          node scripts/merge-onboarding-media-shards.mjs
+          node tests/onboarding-final-media-integrity.mjs
 
       - name: Production build
         run: npm run build
@@ -64,11 +134,11 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-      - name: Upload generated validation report
+      - name: Upload complete offline club pack
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: onboarding-final-media-report
-          path: public/assets/clubs/2026-27/validation-report.json
-          if-no-files-found: warn
+          name: onboarding-complete-offline-pack
+          path: public/assets/clubs/2026-27
+          if-no-files-found: error
           retention-days: 7
