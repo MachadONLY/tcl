@@ -9,12 +9,23 @@ const RIVALS = Object.freeze({
   HUL: "LEE", IPS: null, LEE: "MUN", LIV: "EVE", MCI: "MUN",
   MUN: "LIV", NEW: "SUN", NFO: null, SUN: "NEW", TOT: "ARS"
 });
+const CREST_IDS = Object.freeze({
+  ARS: 57, AVL: 58, BOU: 1044, BRE: 402, BHA: 397,
+  CHE: 61, COV: 1076, CRY: 354, EVE: 62, FUL: 63,
+  HUL: 322, IPS: 349, LEE: 341, LIV: 64, MCI: 65,
+  MUN: 66, NEW: 67, NFO: 351, SUN: 746, TOT: 73
+});
 
 let manifestPromise = null;
 let frame = 0;
 let idleWarmStarted = false;
 let missingManifestRetries = 0;
 const decoded = new Map();
+
+function canonicalCrest(code) {
+  const id = CREST_IDS[code];
+  return id ? `https://crests.football-data.org/${id}.png` : "";
+}
 
 function loadManifest(refresh = false) {
   if (refresh) manifestPromise = null;
@@ -36,7 +47,8 @@ function railItemForCode(root, code) {
 
 function railCrestSource(root, code) {
   const image = railItemForCode(root, code)?.querySelector("img");
-  return image?.currentSrc || image?.src || "";
+  if (image?.naturalWidth > 0) return image.currentSrc || image.src || "";
+  return canonicalCrest(code);
 }
 
 function isLocalAsset(source) {
@@ -66,7 +78,6 @@ function decodeLocalImage(source, priority = "auto") {
 
 function useImage(image, source, { priority = "high", fallback = "" } = {}) {
   if (!(image instanceof HTMLImageElement) || !source) return false;
-  if (image.dataset.localPackSource === source && image.src) return true;
 
   const current = image.currentSrc || image.src;
   image.dataset.localPackSource = source;
@@ -89,13 +100,32 @@ function useImage(image, source, { priority = "high", fallback = "" } = {}) {
 
   image.addEventListener("error", () => {
     const next = image.dataset.localPackFallback;
-    if (!next || image.dataset.localPackFailed === "true" || image.src === next) return;
+    if (!next || image.dataset.localPackFailed === "true") return;
+    let nextAbsolute;
+    try { nextAbsolute = new URL(next, location.href).href; }
+    catch { return; }
+    if (image.src === nextAbsolute) return;
     image.dataset.localPackFailed = "true";
     image.src = next;
   }, { once: true });
 
-  image.src = source;
+  let sourceAbsolute;
+  try { sourceAbsolute = new URL(source, location.href).href; }
+  catch { return false; }
+  if (image.src !== sourceAbsolute) image.src = source;
   if (isLocalAsset(source)) decodeLocalImage(source, priority);
+  return true;
+}
+
+function useVerifiedLocalImage(image, localSource, fallback, priority = "auto") {
+  if (!(image instanceof HTMLImageElement)) return false;
+  if (fallback) useImage(image, fallback, { priority });
+  if (!localSource) return Boolean(fallback);
+
+  decodeLocalImage(localSource, priority).then(valid => {
+    if (!valid || !image.isConnected) return;
+    useImage(image, localSource, { priority, fallback });
+  });
   return true;
 }
 
@@ -116,10 +146,8 @@ function ensureMainCrest(root, details, code, localSource = "") {
     panel.prepend(image);
   }
 
-  const railSource = railCrestSource(root, code);
-  const source = localSource || railSource || image.currentSrc || image.src;
-  if (!source) return false;
-  useImage(image, source, { priority: "high", fallback: railSource });
+  const fallback = railCrestSource(root, code) || canonicalCrest(code);
+  useVerifiedLocalImage(image, localSource, fallback, "high");
   panel.classList.add("club-badge-ready");
   return true;
 }
@@ -148,10 +176,18 @@ function installKit(slot, source, label) {
 function applyRailPack(root, clubs) {
   root.querySelectorAll(".club-rail-item").forEach(item => {
     const code = item.querySelector("span")?.textContent?.trim().toUpperCase();
-    if (!code) return;
+    const image = item.querySelector("img");
+    if (!code || !(image instanceof HTMLImageElement)) return;
+
     item.dataset.clubCode = code;
     const entry = clubs?.[code];
-    if (entry?.crest) useImage(item.querySelector("img"), entry.crest, { priority: item.classList.contains("selected") ? "high" : "auto" });
+    const fallback = canonicalCrest(code);
+    useVerifiedLocalImage(
+      image,
+      entry?.crest || "",
+      fallback,
+      item.classList.contains("selected") ? "high" : "auto"
+    );
   });
 }
 
@@ -188,7 +224,7 @@ function applyDetailPack(root, clubs, code) {
   if (entry.crest && ensureMainCrest(root, details, code, entry.crest)) applied += 1;
   if (entry.manager) {
     const manager = details.querySelector(".club-manager-panel > img, .club-manager-image");
-    if (useImage(manager, entry.manager, { priority: "high" })) applied += 1;
+    if (manager && useVerifiedLocalImage(manager, entry.manager, entry.sources?.manager || "", "high")) applied += 1;
   }
 
   const slots = details.querySelectorAll(".club-kit-slot");
@@ -196,9 +232,11 @@ function applyDetailPack(root, clubs, code) {
   if (slots[1] && entry.awayKit && installKit(slots[1], entry.awayKit, "FORA")) applied += 1;
 
   const rivalCode = RIVALS[code];
-  const rivalCrest = rivalCode ? clubs?.[rivalCode]?.crest : null;
   const rivalImage = details.querySelector(".club-rival-panel img");
-  if (rivalCrest && rivalImage && useImage(rivalImage, rivalCrest, { priority: "auto" })) applied += 1;
+  if (rivalCode && rivalImage) {
+    const rivalLocal = clubs?.[rivalCode]?.crest || "";
+    if (useVerifiedLocalImage(rivalImage, rivalLocal, canonicalCrest(rivalCode), "auto")) applied += 1;
+  }
 
   details.dataset.localPackReady = applied >= 8 ? "true" : "partial";
   details.dataset.localPackCode = code;
