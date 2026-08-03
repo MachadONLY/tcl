@@ -10,13 +10,20 @@ const manifestPath = path.join(OUTPUT_ROOT, shard ? `manifest-${shard}.json` : "
 const reportPath = path.join(OUTPUT_ROOT, shard ? `validation-report-${shard}.json` : "validation-report.json");
 const USER_AGENT = "TouchlineCareer/1.0 explicit-media-repair";
 
+const LONDON_CITY = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/London_Skyline.jpg/1280px-London_Skyline.jpg";
+
 const EXPLICIT = Object.freeze({
   CHE: {
     stadium: "https://upload.wikimedia.org/wikipedia/commons/8/87/Stamford_Bridge_stadium.jpg",
     manager: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Xabi_alonso.jpg"
   },
   COV: {
-    stadium: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Coventry_Building_Society_Arena_%28geograph_7345889%29.jpg/960px-Coventry_Building_Society_Arena_%28geograph_7345889%29.jpg"
+    stadium: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Coventry_Building_Society_Arena_%28geograph_7345889%29.jpg/960px-Coventry_Building_Society_Arena_%28geograph_7345889%29.jpg",
+    manager: "https://upload.wikimedia.org/wikipedia/commons/0/05/Frank_lampard.jpg"
+  },
+  CRY: {
+    city: LONDON_CITY,
+    manager: "https://upload.wikimedia.org/wikipedia/commons/f/f2/Pierre_Sage_lors_d%E2%80%99un_entra%C3%AEnement.jpg"
   },
   LIV: {
     stadium: "https://upload.wikimedia.org/wikipedia/commons/3/33/Anfield_Stadium.jpg",
@@ -29,6 +36,11 @@ const EXPLICIT = Object.freeze({
     city: "https://upload.wikimedia.org/wikipedia/commons/9/93/SunderlandSkyline.jpg",
     stadium: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Sunderland_stadium_of_light.jpg/1280px-Sunderland_stadium_of_light.jpg",
     manager: "https://resources.premierleague.pulselive.com/photo-resources/2026/07/28/918475f4-a10f-4e88-9e0e-11fca7705a91/Regis-Le-Bris-bio-pic.jpg?width=1440"
+  },
+  TOT: {
+    city: LONDON_CITY,
+    stadium: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Tottenham_Hotspur_Stadium.jpg/1280px-Tottenham_Hotspur_Stadium.jpg",
+    manager: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Roberto_De_Zerbi%2C_2019_%28cropped%29.png"
   }
 });
 
