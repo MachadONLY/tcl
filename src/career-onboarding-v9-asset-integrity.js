@@ -1,4 +1,6 @@
-const MANIFEST_URL = "/assets/clubs/2026-27/manifest.json?asset-integrity=9";
+import "./career-onboarding-v10-layout.css";
+
+const MANIFEST_URL = "/assets/clubs/2026-27/manifest.json?asset-integrity=10";
 
 const CREST_IDS = Object.freeze({
   ARS: 57,
@@ -19,7 +21,7 @@ const CREST_IDS = Object.freeze({
   MUN: 66,
   NEW: 67,
   NFO: 351,
-  SUN: 746,
+  SUN: 71,
   TOT: 73
 });
 
@@ -39,12 +41,14 @@ const MANAGER_PAGES = Object.freeze({
   LEE: "Daniel_Farke",
   LIV: "Andoni_Iraola",
   MCI: "Enzo_Maresca",
-  MUN: "Michael_Carrick"
+  MUN: "Michael_Carrick",
+  NFO: "Oliver_Glasner",
+  SUN: "Régis_Le_Bris",
+  TOT: "Roberto_De_Zerbi"
 });
 
 let manifestPromise = null;
 let scheduledFrame = 0;
-let repairVersion = 0;
 const sourceChecks = new Map();
 const managerSources = new Map();
 
@@ -57,7 +61,8 @@ function selectedCode(root) {
   return root?.querySelector(".club-rail-item.selected span")?.textContent?.trim().toUpperCase() || "";
 }
 
-function loadManifest() {
+function loadManifest(refresh = false) {
+  if (refresh) manifestPromise = null;
   if (manifestPromise) return manifestPromise;
   manifestPromise = fetch(MANIFEST_URL, { cache: "no-store" })
     .then(response => response.ok ? response.json() : null)
@@ -73,7 +78,7 @@ function isRenderable(source) {
     const probe = new Image();
     probe.decoding = "async";
     probe.onload = async () => {
-      try { await probe.decode?.(); } catch { /* load already succeeded */ }
+      try { await probe.decode?.(); } catch { /* onload already confirms decodability */ }
       resolve(probe.naturalWidth > 0 && probe.naturalHeight > 0);
     };
     probe.onerror = () => resolve(false);
@@ -92,7 +97,6 @@ function setImageSource(image, source, fallback = "") {
   try { absolute = new URL(source, location.href).href; }
   catch { return; }
 
-  if (image.src !== absolute) image.src = source;
   image.decoding = "async";
   image.loading = "eager";
   image.removeAttribute("referrerpolicy");
@@ -100,11 +104,11 @@ function setImageSource(image, source, fallback = "") {
   image.style.removeProperty("visibility");
   image.style.removeProperty("opacity");
 
-  if (fallback) image.dataset.v9Fallback = fallback;
-  if (!image.dataset.v9ErrorBound) {
-    image.dataset.v9ErrorBound = "true";
+  if (fallback) image.dataset.assetFallback = fallback;
+  if (!image.dataset.assetErrorBound) {
+    image.dataset.assetErrorBound = "true";
     image.addEventListener("error", () => {
-      const next = image.dataset.v9Fallback;
+      const next = image.dataset.assetFallback;
       if (!next) return;
       let nextAbsolute;
       try { nextAbsolute = new URL(next, location.href).href; }
@@ -112,6 +116,8 @@ function setImageSource(image, source, fallback = "") {
       if (image.src !== nextAbsolute) image.src = next;
     });
   }
+
+  if (image.src !== absolute) image.src = source;
 }
 
 async function bestCrestSource(code, entry) {
@@ -121,7 +127,7 @@ async function bestCrestSource(code, entry) {
   return { source: fallback, fallback: "" };
 }
 
-async function repairRail(root, clubs, version) {
+async function repairRail(root, clubs) {
   const items = [...root.querySelectorAll(".club-rail-item")];
 
   await Promise.all(items.map(async item => {
@@ -129,17 +135,16 @@ async function repairRail(root, clubs, version) {
     const image = item.querySelector("img");
     if (!code || !(image instanceof HTMLImageElement)) return;
 
-    image.dataset.clubCode = code;
     const { source, fallback } = await bestCrestSource(code, clubs?.[code]);
-    if (!source || version !== repairVersion || !image.isConnected) return;
+    if (!source || !image.isConnected) return;
+    image.dataset.clubCode = code;
     setImageSource(image, source, fallback);
   }));
 
   window.setTimeout(() => {
     if (!root.isConnected) return;
-    const loaded = items.filter(item => item.querySelector("img")?.naturalWidth > 0).length;
-    root.dataset.railCrestsV9 = String(loaded);
-  }, 80);
+    root.dataset.railCrestsReady = String(items.filter(item => item.querySelector("img")?.naturalWidth > 0).length);
+  }, 100);
 }
 
 function ensureMainBadge(details, code) {
@@ -160,12 +165,12 @@ function ensureMainBadge(details, code) {
   return image;
 }
 
-async function repairMainBadge(root, details, code, entry, version) {
+async function repairMainBadge(root, details, code, entry) {
   const image = ensureMainBadge(details, code);
   if (!image) return;
 
   const { source, fallback } = await bestCrestSource(code, entry);
-  if (version !== repairVersion || !image.isConnected) return;
+  if (!image.isConnected || selectedCode(root) !== code) return;
 
   const selectedRail = root.querySelector(".club-rail-item.selected img");
   const railSource = selectedRail?.naturalWidth > 0 ? (selectedRail.currentSrc || selectedRail.src) : "";
@@ -180,9 +185,13 @@ function managerName(panel) {
   return panel?.querySelector(":scope > div:last-child strong, .club-manager-copy-v5 strong")?.textContent?.trim() || "Técnico";
 }
 
+function managerIsAssigned(name) {
+  return Boolean(name) && !/anunciar|a definir|sem técnico/i.test(name);
+}
+
 function ensureManagerImage(panel) {
   if (!panel) return null;
-  let image = panel.querySelector(":scope > img.club-manager-image-v9, :scope > img.club-manager-image-v8, :scope > img.club-manager-image, :scope > img");
+  let image = panel.querySelector(":scope > img.club-manager-image-v9, :scope > img.club-manager-image, :scope > img");
 
   if (!image) {
     image = document.createElement("img");
@@ -192,7 +201,7 @@ function ensureManagerImage(panel) {
     else panel.insertBefore(image, copy || panel.firstChild);
   }
 
-  image.classList.add("club-manager-image", "club-manager-image-v8", "club-manager-image-v9");
+  image.classList.add("club-manager-image", "club-manager-image-v9");
   image.alt = managerName(panel);
   image.fetchPriority = "high";
   return image;
@@ -206,48 +215,94 @@ function restoreManagerPlaceholder(panel) {
   const placeholder = document.createElement("div");
   placeholder.className = "club-manager-placeholder";
   const initials = document.createElement("span");
-  initials.textContent = name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "?";
+  initials.textContent = managerIsAssigned(name)
+    ? name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase()
+    : "?";
   placeholder.append(initials);
   const copy = panel.querySelector(":scope > div:last-child, .club-manager-copy-v5");
   panel.insertBefore(placeholder, copy || panel.firstChild);
 }
 
-async function wikipediaManagerSource(code) {
-  if (managerSources.has(code)) return managerSources.get(code);
-  const page = MANAGER_PAGES[code];
+async function wikipediaSummarySource(page) {
   if (!page) return "";
+  try {
+    const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(page)}`, {
+      cache: "force-cache",
+      headers: { Accept: "application/json" }
+    });
+    if (!response.ok) return "";
+    const payload = await response.json();
+    return payload?.originalimage?.source || payload?.thumbnail?.source || "";
+  } catch {
+    return "";
+  }
+}
 
-  const pending = fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(page)}`, {
-    cache: "force-cache",
-    headers: { Accept: "application/json" }
-  })
-    .then(response => response.ok ? response.json() : null)
-    .then(payload => payload?.originalimage?.source || payload?.thumbnail?.source || "")
-    .catch(() => "");
+async function wikipediaSearchSource(name) {
+  if (!name) return "";
+  try {
+    const url = new URL("https://en.wikipedia.org/w/api.php");
+    url.searchParams.set("action", "query");
+    url.searchParams.set("generator", "search");
+    url.searchParams.set("gsrsearch", `${name} football manager`);
+    url.searchParams.set("gsrlimit", "8");
+    url.searchParams.set("prop", "pageimages");
+    url.searchParams.set("piprop", "original|thumbnail");
+    url.searchParams.set("pithumbsize", "1400");
+    url.searchParams.set("format", "json");
+    url.searchParams.set("origin", "*");
+    const response = await fetch(url.toString(), { cache: "force-cache" });
+    if (!response.ok) return "";
+    const payload = await response.json();
+    const pages = Object.values(payload?.query?.pages || {}).sort((a, b) => Number(a.index || 99) - Number(b.index || 99));
+    for (const page of pages) {
+      const source = page?.original?.source || page?.thumbnail?.source || "";
+      if (source && await isRenderable(source)) return source;
+    }
+  } catch {
+    // local asset remains the preferred path
+  }
+  return "";
+}
 
-  managerSources.set(code, pending);
+async function wikipediaManagerSource(code, name) {
+  const key = `${code}:${name}`;
+  if (managerSources.has(key)) return managerSources.get(key);
+
+  const pending = (async () => {
+    const summary = await wikipediaSummarySource(MANAGER_PAGES[code]);
+    if (summary && await isRenderable(summary)) return summary;
+    return wikipediaSearchSource(name);
+  })();
+
+  managerSources.set(key, pending);
   return pending;
 }
 
-async function resolveManagerSource(code, entry) {
+async function resolveManagerSource(code, name, entry) {
   const candidates = [entry?.manager, entry?.sources?.manager].filter(Boolean);
   for (const candidate of candidates) {
     if (await isRenderable(candidate)) return candidate;
   }
 
-  const wikipedia = await wikipediaManagerSource(code);
-  return wikipedia && await isRenderable(wikipedia) ? wikipedia : "";
+  return wikipediaManagerSource(code, name);
 }
 
-async function repairManager(details, code, entry, version) {
+async function repairManager(root, details, code, entry) {
   const panel = managerPanel(details);
   if (!panel) return;
+
+  const name = managerName(panel);
+  if (!managerIsAssigned(name)) {
+    restoreManagerPlaceholder(panel);
+    return;
+  }
 
   panel.classList.add("manager-photo-loading-v8");
   panel.classList.remove("manager-photo-ready-v8", "manager-photo-failed-v8");
 
-  const source = await resolveManagerSource(code, entry);
-  if (version !== repairVersion || !panel.isConnected) return;
+  const source = await resolveManagerSource(code, name, entry);
+  if (!panel.isConnected || selectedCode(root) !== code) return;
 
   if (!source) {
     restoreManagerPlaceholder(panel);
@@ -274,37 +329,36 @@ async function repairManager(details, code, entry, version) {
   if (image.complete && image.naturalWidth > 0) image.onload();
 }
 
-async function runIntegrityRepair() {
+async function runIntegrityRepair({ refreshManifest = false } = {}) {
   const root = document.querySelector(".career-club-selection");
   const details = root?.querySelector("[data-club-details]");
   const code = selectedCode(root);
   if (!root || !details || !code) return;
 
-  const version = ++repairVersion;
-  const manifest = await loadManifest();
-  if (version !== repairVersion || !root.isConnected) return;
+  const manifest = await loadManifest(refreshManifest);
+  if (!root.isConnected || selectedCode(root) !== code) return;
 
   const clubs = manifest?.clubs || {};
   const entry = clubs[code] || null;
 
   await Promise.all([
-    repairRail(root, clubs, version),
-    repairMainBadge(root, details, code, entry, version),
-    repairManager(details, code, entry, version)
+    repairRail(root, clubs),
+    repairMainBadge(root, details, code, entry),
+    repairManager(root, details, code, entry)
   ]);
 
-  if (version === repairVersion && root.isConnected) {
-    root.dataset.assetIntegrityV9 = "ready";
+  if (root.isConnected && selectedCode(root) === code) {
+    root.dataset.assetIntegrity = "ready";
   }
 }
 
 function scheduleRepair() {
   cancelAnimationFrame(scheduledFrame);
-  scheduledFrame = requestAnimationFrame(() => requestAnimationFrame(runIntegrityRepair));
+  scheduledFrame = requestAnimationFrame(() => requestAnimationFrame(() => runIntegrityRepair()));
   window.clearTimeout(scheduleRepair.retryOne);
   window.clearTimeout(scheduleRepair.retryTwo);
-  scheduleRepair.retryOne = window.setTimeout(runIntegrityRepair, 180);
-  scheduleRepair.retryTwo = window.setTimeout(runIntegrityRepair, 700);
+  scheduleRepair.retryOne = window.setTimeout(() => runIntegrityRepair(), 260);
+  scheduleRepair.retryTwo = window.setTimeout(() => runIntegrityRepair({ refreshManifest: true }), 950);
 }
 
 const observer = new MutationObserver(mutations => {
