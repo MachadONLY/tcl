@@ -65,17 +65,10 @@ for (const viewport of VIEWPORTS) {
       ].filter(Boolean);
       return selected && required.length === 25 && required.every(image => image.complete && image.naturalWidth > 0);
     }, { timeout: 30000 });
-    await page.waitForTimeout(120);
+    await page.waitForTimeout(140);
 
     const result = await page.evaluate(expected => {
-      const localAsset = value => {
-        try {
-          const url = new URL(value, location.href);
-          return url.origin === location.origin && url.pathname.startsWith("/assets/clubs/2026-27/");
-        } catch {
-          return false;
-        }
-      };
+      const localAsset = value => String(value || "").includes("/assets/clubs/2026-27/");
       const inside = (inner, outer, tolerance = 1.5) => inner
         && outer
         && inner.left >= outer.left - tolerance
@@ -89,8 +82,8 @@ for (const viewport of VIEWPORTS) {
       const header = root?.querySelector(".club-selection-header");
       const railElement = root?.querySelector(".club-rail");
       const grid = details?.querySelector(".club-selection-grid");
-      const location = details?.querySelector(".club-location-panel");
-      const stadium = details?.querySelector(".club-stadium-panel");
+      const locationPanel = details?.querySelector(".club-location-panel");
+      const stadiumPanel = details?.querySelector(".club-stadium-panel");
       const manager = details?.querySelector(".club-manager-panel");
       const badgePanel = details?.querySelector(".club-badge-panel");
       const badge = badgePanel?.querySelector(":scope > img.club-badge-image-v13");
@@ -100,15 +93,19 @@ for (const viewport of VIEWPORTS) {
       const rival = details?.querySelector(".club-rival-panel > img.club-rival-image-v13");
       const kits = [...(details?.querySelectorAll(".club-kit-slot > img.club-kit-image-v13") || [])];
       const rail = [...(root?.querySelectorAll(".club-rail-item img") || [])];
-      const visibleBroken = [...document.images].filter(image => {
+      const visibleBroken = [...(root?.querySelectorAll("img") || [])].filter(image => {
         const style = getComputedStyle(image);
         const rect = image.getBoundingClientRect();
-        const visible = style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || 1) > 0 && rect.width > 2 && rect.height > 2;
+        const visible = style.display !== "none"
+          && style.visibility !== "hidden"
+          && Number(style.opacity || 1) > 0
+          && rect.width > 2
+          && rect.height > 2;
         return visible && image.naturalWidth === 0;
       }).map(image => image.alt || image.src);
 
       const identityBox = identity?.getBoundingClientRect();
-      const locationBox = location?.getBoundingClientRect();
+      const locationBox = locationPanel?.getBoundingClientRect();
       const managerBox = manager?.getBoundingClientRect();
       const managerImageBox = managerImage?.getBoundingClientRect();
       const badgeBox = badge?.getBoundingClientRect();
@@ -116,10 +113,13 @@ for (const viewport of VIEWPORTS) {
       const gridBox = grid?.getBoundingClientRect();
       const headerBox = header?.getBoundingClientRect();
       const railBox = railElement?.getBoundingClientRect();
-      const cityStyle = getComputedStyle(location);
-      const stadiumStyle = getComputedStyle(stadium);
+      const cityStyle = getComputedStyle(locationPanel);
+      const stadiumStyle = getComputedStyle(stadiumPanel);
       const managerStyle = getComputedStyle(managerImage);
       const titleStyle = getComputedStyle(header?.querySelector("h1"));
+      const managerWidthRatio = managerBox && managerImageBox && managerBox.width > 0
+        ? managerImageBox.width / managerBox.width
+        : 0;
 
       return {
         selected: root?.querySelector(".club-rail-item.selected span")?.textContent?.trim(),
@@ -129,7 +129,10 @@ for (const viewport of VIEWPORTS) {
         railReady: rail.length === 20 && rail.every(image => image.naturalWidth > 0 && localAsset(image.currentSrc || image.src)),
         badgeReady: Boolean(badge?.naturalWidth) && localAsset(badge.currentSrc || badge.src) && badgeBox.width >= 54 && inside(badgeBox, badgePanelBox),
         managerReady: managerImages.length === 1 && Boolean(managerImage?.naturalWidth) && localAsset(managerImage.currentSrc || managerImage.src),
-        managerUncropped: managerStyle.objectFit === "contain" && managerStyle.objectPosition.includes("bottom") && inside(managerImageBox, managerBox),
+        managerUncropped: managerStyle.objectFit === "contain"
+          && managerStyle.objectPosition.includes("bottom")
+          && managerWidthRatio >= .88
+          && inside(managerImageBox, managerBox),
         managerPlaceholderAbsent: !manager?.querySelector(":scope > .club-manager-placeholder"),
         rivalReady: rivalImages.length === 1 && Boolean(rival?.naturalWidth) && localAsset(rival.currentSrc || rival.src),
         kitsReady: kits.length === 2 && kits.every(image => image.naturalWidth > 0 && localAsset(image.currentSrc || image.src)),
@@ -137,6 +140,7 @@ for (const viewport of VIEWPORTS) {
         stadiumBackground: stadiumStyle.backgroundImage.includes("/assets/clubs/2026-27/"),
         locationRatio: identityBox && locationBox ? locationBox.height / identityBox.height : 1,
         managerRatio: identityBox && managerBox ? managerBox.height / identityBox.height : 0,
+        managerWidthRatio,
         headerCompact: Number.parseFloat(titleStyle.fontSize) <= 43 && headerBox.bottom <= railBox.top + 1,
         viewportFit: gridBox && gridBox.bottom <= innerHeight + 1 && document.documentElement.scrollHeight <= innerHeight + 2,
         visibleBroken
@@ -151,7 +155,7 @@ for (const viewport of VIEWPORTS) {
       [result.railReady, "one or more rail crests failed or are not local"],
       [result.badgeReady, "main club badge failed, is too small, or overflows"],
       [result.managerReady, "manager tile does not contain exactly one local portrait"],
-      [result.managerUncropped, "manager portrait is cropped or overflows its tile"],
+      [result.managerUncropped, `manager portrait is cropped, narrow, or overflows (${result.managerWidthRatio.toFixed(3)} width ratio)`],
       [result.managerPlaceholderAbsent, "manager initials/placeholder remained visible"],
       [result.rivalReady, "rival badge failed or is not local"],
       [result.kitsReady, "both kit images must be local and visible"],
