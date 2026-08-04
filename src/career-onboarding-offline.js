@@ -7,6 +7,7 @@ import { commitClub, renderWelcome, selectorMarkup, setOnboardingMode, updateRai
 const CAREER_STORAGE_KEY = "touchline.career.mode.v1";
 let stage = "welcome";
 let selectedIndex = 0;
+let committedIndex = 0;
 let selectionVersion = 0;
 let activeSelection = Promise.resolve();
 let wheelLockedUntil = 0;
@@ -19,29 +20,35 @@ function readSave() {
 async function selectClub(index) {
   const root = document.querySelector(".tl-club-select");
   if (!root) return;
-
   const manifest = await loadManifest();
-  selectedIndex = (index + CLUBS.length) % CLUBS.length;
-  const club = CLUBS[selectedIndex];
+  const requestedIndex = (index + CLUBS.length) % CLUBS.length;
+  const club = CLUBS[requestedIndex];
   const entry = manifest.clubs[club.code];
   const version = ++selectionVersion;
 
-  updateRail(root, selectedIndex);
+  selectedIndex = requestedIndex;
+  updateRail(root, requestedIndex);
   root.dataset.switching = "true";
+  root.dataset.requestedClubCode = club.code;
+  delete root.dataset.switchError;
 
   const task = stageClubMedia(root, club, entry)
     .then(staged => {
-      if (version !== selectionVersion || !root.isConnected) return;
-      requestAnimationFrame(() => {
-        if (version !== selectionVersion || !root.isConnected) return;
-        commitClub(root, club, staged);
-        prewarm(manifest, selectedIndex);
-      });
+      if (version !== selectionVersion || !root.isConnected) return false;
+      commitClub(root, club, staged);
+      committedIndex = requestedIndex;
+      selectedIndex = requestedIndex;
+      prewarm(manifest, requestedIndex);
+      return true;
     })
     .catch(error => {
-      if (version !== selectionVersion) return;
+      if (version !== selectionVersion || !root.isConnected) return false;
+      selectedIndex = committedIndex;
+      updateRail(root, committedIndex);
       root.dataset.switching = "error";
       root.dataset.switchError = error.message;
+      root.dataset.requestedClubCode = CLUBS[committedIndex].code;
+      return false;
     });
 
   activeSelection = task;
@@ -57,6 +64,7 @@ async function renderSelector() {
 
   const saved = CLUB_BY_CODE.get(readSave().selectedClubCode)?.index;
   selectedIndex = Number.isInteger(saved) ? saved : selectedIndex;
+  committedIndex = selectedIndex;
   const manifest = await loadManifest();
   const club = CLUBS[selectedIndex];
   const entry = manifest.clubs[club.code];
@@ -65,6 +73,7 @@ async function renderSelector() {
   const root = app.querySelector(".tl-club-select");
   const staged = await stageClubMedia(root, club, entry);
   commitClub(root, club, staged);
+  committedIndex = selectedIndex;
   updateRail(root, selectedIndex);
   prewarm(manifest, selectedIndex);
 }
@@ -82,7 +91,7 @@ async function beginCareer() {
 
 async function confirmClub() {
   await activeSelection;
-  const club = CLUBS[selectedIndex];
+  const club = CLUBS[committedIndex];
   const current = readSave();
   const next = {
     ...current,
@@ -103,6 +112,7 @@ async function confirmClub() {
 }
 
 function backToWelcome() {
+  selectionVersion += 1;
   history.replaceState(null, "", "#welcome");
   stage = "welcome";
   renderWelcome();
@@ -157,7 +167,7 @@ function shouldOpenOnboarding() {
 async function registerOfflineWorker() {
   if (!("serviceWorker" in navigator) || !import.meta.env.PROD) return;
   try { await navigator.serviceWorker.register("/touchline-sw.js", { scope: "/" }); }
-  catch { /* committed local assets still work without the worker */ }
+  catch {}
 }
 
 function mount() {
@@ -171,6 +181,7 @@ document.addEventListener("click", handleClick);
 document.addEventListener("keydown", handleKeydown);
 document.addEventListener("wheel", handleWheel, { passive: false });
 window.addEventListener("hashchange", () => {
+  selectionVersion += 1;
   if (location.hash === "#club-select") void renderSelector();
   else if (location.hash === "#welcome") { stage = "welcome"; renderWelcome(); }
 });
