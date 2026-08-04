@@ -8,6 +8,7 @@ const decodeCache = new Map();
 const prewarmedClubs = new Set();
 let manifestPromise;
 let prewarmGeneration = 0;
+let stageSequence = 0;
 
 function normalize(value) {
   return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -88,11 +89,60 @@ export function mediaStack(role, className = "") {
   </span>`;
 }
 
+function awaitElementDecode(image, source) {
+  const absolute = new URL(source, location.href).href;
+  if (image.src !== absolute) image.src = source;
+  if (image.complete && image.naturalWidth > 0 && image.naturalHeight > 0) {
+    return image.decode?.().catch(() => undefined) || Promise.resolve();
+  }
+  return new Promise((resolve, reject) => {
+    const loaded = async () => {
+      cleanup();
+      try { await image.decode?.(); } catch { /* load already confirms renderability */ }
+      image.naturalWidth > 0 ? resolve() : reject(new Error(`imagem vazia: ${source}`));
+    };
+    const failed = () => {
+      cleanup();
+      reject(new Error(`imagem inválida: ${source}`));
+    };
+    const cleanup = () => {
+      image.removeEventListener("load", loaded);
+      image.removeEventListener("error", failed);
+    };
+    image.addEventListener("load", loaded, { once: true });
+    image.addEventListener("error", failed, { once: true });
+  });
+}
+
+async function prepareStack(root, job, token) {
+  const stack = root.querySelector(`[data-media="${job.role}"]`);
+  if (!stack) throw new Error(`pilha de mídia ausente: ${job.role}`);
+
+  const images = stack.querySelectorAll(":scope > img");
+  const activeIndex = Number(stack.dataset.active || 0);
+  const nextIndex = activeIndex ^ 1;
+  const current = images[activeIndex];
+  const next = images[nextIndex];
+  const [width, height] = dimensions(job.role);
+
+  next.dataset.stageToken = token;
+  next.alt = job.alt || "";
+  next.width = width;
+  next.height = height;
+  next.fetchPriority = job.role === "crest" || job.role === "manager" ? "high" : "auto";
+  await awaitElementDecode(next, job.source);
+
+  const absolute = new URL(job.source, location.href).href;
+  if (next.dataset.stageToken !== token || next.src !== absolute) {
+    throw new DOMException("staging superseded", "AbortError");
+  }
+  return { stack, current, next, nextIndex, token };
+}
+
 /*
- * Decode everything in detached Image instances first. The visible DOM is only
- * touched by activateMedia after the controller confirms this is still the
- * latest selection. This prevents stale async requests from replacing a newer
- * club's active portrait, crest or stadium.
+ * Each selection first decodes detached images, then prepares only the hidden
+ * half of every fixed-size media stack. A newer selection can supersede that
+ * hidden buffer safely; only a fully decoded, still-current set is activated.
  */
 export async function stageClubMedia(root, club, entry) {
   const jobs = [
@@ -107,27 +157,18 @@ export async function stageClubMedia(root, club, entry) {
   ].map(([role, source, alt]) => ({ role, source: localAsset(source), alt }));
 
   await Promise.all(jobs.map(job => decodeImage(job.source)));
-  return { root, jobs };
+  const token = `${club.code}-${++stageSequence}`;
+  const prepared = await Promise.all(jobs.map(job => prepareStack(root, job, token)));
+  return { root, prepared, token };
 }
 
 export function activateMedia(staged) {
-  const { root, jobs } = staged;
-  for (const { role, source, alt } of jobs) {
-    const stack = root.querySelector(`[data-media="${role}"]`);
-    if (!stack) throw new Error(`pilha de mídia ausente: ${role}`);
-
-    const images = stack.querySelectorAll(":scope > img");
-    const activeIndex = Number(stack.dataset.active || 0);
-    const nextIndex = activeIndex ^ 1;
-    const current = images[activeIndex];
-    const next = images[nextIndex];
-    const [width, height] = dimensions(role);
-
-    next.alt = alt || "";
-    next.width = width;
-    next.height = height;
-    next.fetchPriority = role === "crest" || role === "manager" ? "high" : "auto";
-    next.src = source;
+  for (const { stack, current, next, nextIndex, token } of staged.prepared) {
+    if (next.dataset.stageToken !== token || !next.complete || next.naturalWidth <= 0) {
+      throw new DOMException("staging superseded", "AbortError");
+    }
+  }
+  for (const { stack, current, next, nextIndex } of staged.prepared) {
     next.classList.add("is-active");
     current?.classList.remove("is-active");
     stack.dataset.active = String(nextIndex);
