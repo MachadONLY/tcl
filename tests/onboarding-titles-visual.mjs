@@ -14,15 +14,31 @@ const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
 const failures = [];
 
 await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
-await page.waitForSelector(".tl-club-select__rail-item", { timeout: 30000 });
+await page.waitForSelector(".tl-club-select[data-offline-ready='true'] .tl-club-select__rail-item", { timeout: 30000 });
 
 for (let index = 0; index < CLUBS.length; index += 1) {
   const code = CLUBS[index];
-  await page.locator(".tl-club-select__rail-item").nth(index).click();
-  await page.waitForFunction(expected => {
-    const root = document.querySelector(".tl-club-select");
-    return root?.dataset.clubCode === expected && root?.dataset.offlineReady === "true";
-  }, code, { timeout: 30000 });
+  process.stdout.write(`→ titles ${code}\n`);
+  await page.locator(".tl-club-select__rail-item").nth(index).click({ force: true });
+  try {
+    await page.waitForFunction(expected => {
+      const root = document.querySelector(".tl-club-select");
+      return root?.dataset.clubCode === expected
+        && root?.dataset.offlineReady === "true"
+        && root?.dataset.switching === "false";
+    }, code, { timeout: 15000 });
+  } catch {
+    const state = await page.evaluate(() => {
+      const root = document.querySelector(".tl-club-select");
+      return {
+        code: root?.dataset.clubCode,
+        switching: root?.dataset.switching,
+        error: root?.dataset.switchError,
+        selected: root?.querySelector(".tl-club-select__rail-item.selected .tl-club-select__rail-code")?.textContent
+      };
+    });
+    throw new Error(`${code}: selector timeout ${JSON.stringify(state)}`);
+  }
 
   const result = await page.evaluate(() => {
     const panel = document.querySelector(".tl-club-card__titles");
