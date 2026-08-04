@@ -9,6 +9,17 @@ function logoMark() {
   </svg>`;
 }
 
+function trophyMark() {
+  return `<span class="tl-club-card__trophy" aria-hidden="true">
+    <svg viewBox="0 0 72 72" fill="none">
+      <path d="M23 13h26v8c0 13-5 22-13 26-8-4-13-13-13-26v-8Z" fill="currentColor"/>
+      <path d="M22 18H12v6c0 9 6 15 14 15M50 18h10v6c0 9-6 15-14 15" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <path d="M36 46v10M25 61h22" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+      <path d="m20 8 4 5M36 6v7M52 8l-4 5" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+  </span>`;
+}
+
 export function setOnboardingMode(active) {
   document.documentElement.classList.toggle("touchline-onboarding-mode", active);
   document.body.classList.toggle("touchline-onboarding-mode", active);
@@ -35,46 +46,104 @@ export function renderWelcome() {
 }
 
 function railMarkup(manifest, selectedIndex) {
-  return CLUBS.map((club, index) => `<button class="club-rail-item${index === selectedIndex ? " selected" : ""}"
+  return CLUBS.map((club, index) => `<button class="tl-club-select__rail-item${index === selectedIndex ? " selected" : ""}"
     type="button" data-club-index="${index}" aria-label="Selecionar ${club.name}">
     <img src="${localAsset(manifest.clubs[club.code].crest)}" alt="" width="64" height="64" decoding="async" draggable="false" />
-    <span>${club.code}</span>
+    <span class="tl-club-select__rail-code">${club.code}</span>
   </button>`).join("");
 }
 
 export function selectorMarkup(manifest, selectedIndex) {
-  return `<main class="career-start career-club-selection onboarding-premier-v7 onboarding-offline-v16" data-offline-ready="false">
-    <header class="club-selection-header">
-      <div><span>PREMIER LEAGUE · CARREIRA</span><h1>ESCOLHA SEU CLUBE</h1><p>Assuma o comando e defina onde começa a sua história.</p></div>
-      <div class="club-season-badge"><span>TEMPORADA</span><strong>${SEASON}</strong></div>
+  return `<main class="career-club-selection tl-club-select" data-offline-ready="false">
+    <div class="tl-club-select__background">${mediaStack("backdrop", "tl-club-select__background-media")}</div>
+
+    <header class="tl-club-select__header">
+      <div>
+        <span class="tl-club-select__eyebrow">PREMIER LEAGUE · CARREIRA</span>
+        <h1>ESCOLHA SEU CLUBE</h1>
+        <p>Assuma o comando e conheça o clube onde começa a sua história.</p>
+      </div>
+      <div class="tl-club-select__season"><span>TEMPORADA</span><strong>${SEASON}</strong></div>
     </header>
-    <nav class="club-rail" aria-label="Clubes da Premier League ${SEASON}">
-      <button class="club-rail-arrow" type="button" data-club-step="-1" aria-label="Clube anterior">‹</button>
-      <div class="club-rail-track">${railMarkup(manifest, selectedIndex)}</div>
-      <button class="club-rail-arrow" type="button" data-club-step="1" aria-label="Próximo clube">›</button>
+
+    <nav class="tl-club-select__rail" aria-label="Clubes da Premier League ${SEASON}">
+      <button class="tl-club-select__rail-arrow" type="button" data-club-step="-1" aria-label="Clube anterior">‹</button>
+      <div class="tl-club-select__rail-track">${railMarkup(manifest, selectedIndex)}</div>
+      <button class="tl-club-select__rail-arrow" type="button" data-club-step="1" aria-label="Próximo clube">›</button>
     </nav>
-    <div class="club-selection-details" data-club-details>
-      ${mediaStack("backdrop", "club-selection-background")}
-      <section class="club-selection-grid">
-        <article class="club-identity-card">
-          <div class="club-badge-panel">${mediaStack("crest", "club-badge-media")}<h2 data-copy="club-name"></h2></div>
-          <div class="club-location-panel">${mediaStack("city", "club-panel-photo")}<span class="club-data-label">LOCALIZAÇÃO</span><strong data-copy="city"></strong></div>
-          <div class="club-manager-panel">${mediaStack("manager", "club-panel-photo club-manager-photo")}<div class="club-manager-copy"><span class="club-data-label">TÉCNICO</span><strong data-copy="manager"></strong></div></div>
-          <div class="club-titles-panel"><span class="offline-trophy" aria-hidden="true">♛</span><span class="club-data-label">TÍTULOS NACIONAIS</span><strong data-copy="titles"></strong></div>
-          <div class="club-stadium-panel">${mediaStack("stadium", "club-panel-photo")}<div><span class="club-data-label">ESTÁDIO</span><strong data-copy="stadium"></strong></div><div><span class="club-data-label">CAPACIDADE</span><strong data-copy="capacity"></strong></div></div>
-          <div class="club-founded-panel"><span class="club-data-label">FUNDAÇÃO</span><strong data-copy="founded"></strong></div>
-        </article>
-        <article class="club-story-card">
-          <div class="club-story-copy"><span class="club-data-label">APELIDO</span><h3 data-copy="nickname"></h3><p data-copy="story"></p></div>
-          <div class="club-season-stamp"><span>PREMIER LEAGUE</span><strong>26/27</strong></div>
-          <div class="club-kits-panel"><span class="club-panel-heading">UNIFORMES 2026/27</span>
-            <div class="club-kit-slot">${mediaStack("homeKit", "club-kit-media")}<small>CASA</small></div>
-            <div class="club-kit-slot">${mediaStack("awayKit", "club-kit-media")}<small>FORA</small></div>
+
+    <div class="tl-club-select__stage" data-club-details>
+      <section class="tl-club-card" aria-live="polite">
+        <article class="tl-club-card__identity">
+          <div class="tl-club-tile tl-club-card__crest">
+            ${mediaStack("crest", "tl-club-card__crest-media")}
+            <h2 data-copy="club-name"></h2>
           </div>
-          <div class="club-rival-panel"><span class="club-panel-heading">PRINCIPAL RIVAL</span>${mediaStack("rivalCrest", "club-rival-media")}<strong data-copy="rival"></strong></div>
+
+          <div class="tl-club-tile tl-club-card__city">
+            ${mediaStack("city", "tl-club-card__city-media")}
+            <div class="tl-club-card__overlay tl-club-card__overlay--center">
+              <span aria-hidden="true">⌖</span>
+              <span class="tl-club-label">LOCALIZAÇÃO</span>
+              <strong data-copy="city"></strong>
+            </div>
+          </div>
+
+          <div class="tl-club-tile tl-club-card__manager">
+            ${mediaStack("manager", "tl-club-card__manager-media")}
+            <div class="tl-club-card__overlay tl-club-card__overlay--bottom">
+              <span class="tl-club-label">TÉCNICO</span>
+              <strong data-copy="manager"></strong>
+            </div>
+          </div>
+
+          <div class="tl-club-tile tl-club-card__titles">
+            ${trophyMark()}
+            <span class="tl-club-label">TÍTULOS PREMIER LEAGUE</span>
+            <strong data-copy="titles"></strong>
+          </div>
+
+          <div class="tl-club-tile tl-club-card__stadium">
+            ${mediaStack("stadium", "tl-club-card__stadium-media")}
+            <div class="tl-club-card__stadium-copy">
+              <div><span class="tl-club-label">ESTÁDIO</span><strong data-copy="stadium"></strong></div>
+              <div><span class="tl-club-label">CAPACIDADE</span><strong data-copy="capacity"></strong></div>
+            </div>
+          </div>
+
+          <div class="tl-club-tile tl-club-card__founded">
+            <span class="tl-club-label">FUNDAÇÃO</span>
+            <strong data-copy="founded"></strong>
+          </div>
+        </article>
+
+        <article class="tl-club-card__story">
+          <div class="tl-club-story__copy">
+            <span class="tl-club-label">APELIDO</span>
+            <h3 data-copy="nickname"></h3>
+            <p data-copy="story"></p>
+          </div>
+          <div class="tl-club-story__stamp"><span>PREMIER LEAGUE</span><strong>26/27</strong></div>
+
+          <div class="tl-club-story__kits">
+            <span class="tl-club-section-heading">UNIFORMES 2026/27</span>
+            <div class="tl-club-story__kit">${mediaStack("homeKit", "tl-club-story__kit-media")}<small>CASA</small></div>
+            <div class="tl-club-story__kit">${mediaStack("awayKit", "tl-club-story__kit-media")}<small>FORA</small></div>
+          </div>
+
+          <div class="tl-club-story__rival">
+            <span class="tl-club-section-heading">PRINCIPAL RIVAL</span>
+            ${mediaStack("rivalCrest", "tl-club-story__rival-media")}
+            <strong data-copy="rival"></strong>
+          </div>
         </article>
       </section>
     </div>
+
+    <footer class="tl-club-select__controls">
+      <span><b class="tl-club-select__control-key">A</b>SELECIONAR</span>
+      <span><b class="tl-club-select__control-key">B</b>VOLTAR</span>
+    </footer>
   </main>`;
 }
 
