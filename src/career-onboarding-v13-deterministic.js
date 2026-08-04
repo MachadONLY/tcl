@@ -101,11 +101,25 @@ function paintBadge(details, entry) {
 function paintManager(details, entry) {
   const panel = details.querySelector(".club-manager-panel");
   if (!panel) return;
-  panel.querySelectorAll(":scope > .club-manager-placeholder").forEach(node => node.remove());
+
+  panel.querySelectorAll(":scope > .club-manager-placeholder, :scope > img").forEach(node => node.remove());
   const copy = panel.querySelector(":scope > div:last-child, .club-manager-copy-v5");
-  const image = ensureDirectImage(panel, "club-manager-image-v13", copy);
-  if (!image) return;
-  image.classList.add("club-manager-image");
+
+  let media = panel.querySelector(":scope > .club-manager-photo-v13");
+  if (!media) {
+    media = document.createElement("div");
+    media.className = "club-manager-photo-v13";
+    panel.insertBefore(media, copy || panel.firstChild);
+  }
+
+  let image = media.querySelector(":scope > img.club-manager-image-v13");
+  if (!image) {
+    media.replaceChildren();
+    image = document.createElement("img");
+    image.className = "club-manager-image-v13 club-manager-image";
+    media.append(image);
+  }
+
   prepareImage(image, entry.manager, entry.managerName || "Técnico", "high");
 }
 
