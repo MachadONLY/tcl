@@ -1,0 +1,57 @@
+name: Materialize Verified Onboarding Pack
+
+on:
+  push:
+    branches:
+      - fix/onboarding-club-media-v13
+    paths:
+      - ".github/workflows/materialize-onboarding-pack.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/onboarding-club-media-v13
+          fetch-depth: 0
+
+      - name: Download verified twenty-club artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail --location \
+            --retry 4 \
+            --retry-all-errors \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/8844139636/zip" \
+            --output /tmp/onboarding-pack.zip
+
+      - name: Replace empty pack with verified local media
+        run: |
+          rm -rf public/assets/clubs/2026-27
+          mkdir -p public/assets/clubs/2026-27
+          unzip -q /tmp/onboarding-pack.zip -d public/assets/clubs/2026-27
+          node scripts/ensure-onboarding-pack.mjs
+          node tests/onboarding-final-media-integrity.mjs
+
+      - name: Commit complete offline pack
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/assets/clubs/2026-27
+          if git diff --cached --quiet; then
+            echo "Verified pack already materialized."
+            exit 0
+          fi
+          git commit -m "assets: materialize verified offline media for 20 clubs"
+          git push origin HEAD:fix/onboarding-club-media-v13
