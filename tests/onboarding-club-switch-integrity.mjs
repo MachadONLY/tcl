@@ -30,7 +30,7 @@ const expectedFor = code => {
       rival: club.rival
     },
     media: {
-      backdrop: entry.backdrop || entry.stadium,
+      backdrop: entry.stadium,
       crest: entry.crest,
       city: entry.city,
       manager: entry.manager,
@@ -114,6 +114,7 @@ await page.evaluate(indexes => {
 }, [sunIndex, arsenalIndex, CLUBS.findIndex(club => club.code === "NEW"), arsenalIndex]);
 await waitForExactClub("ARS", "seleção rápida SUN→ARS→NEW→ARS");
 
+await page.waitForTimeout(160);
 const stackHealth = await page.evaluate(() => {
   const root = document.querySelector(".tl-club-select");
   return [...root.querySelectorAll("[data-media]")].map(stack => ({
