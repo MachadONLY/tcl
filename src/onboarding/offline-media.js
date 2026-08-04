@@ -1,4 +1,5 @@
 import { CLUBS } from "./offline-data.js";
+import { hullStadiumObjectUrl } from "../career-core/hull-stadium-object-url.js";
 
 const MANIFEST_URL = "/assets/clubs/2026-27/manifest.json";
 const REQUIRED_ROLES = Object.freeze([
@@ -21,6 +22,12 @@ function normalize(value) {
 export function localAsset(value) {
   const source = String(value || "").trim();
   return source.startsWith("/assets/clubs/2026-27/") ? source : "";
+}
+
+function browserAsset(value) {
+  const source = String(value || "").trim();
+  if (source.startsWith("blob:")) return source;
+  return localAsset(source);
 }
 
 function applyLocalOverrides(manifest) {
@@ -64,7 +71,7 @@ export function loadManifest() {
 }
 
 export function decodeImage(value) {
-  const source = localAsset(value);
+  const source = browserAsset(value);
   if (!source) return Promise.reject(new Error(`asset remoto bloqueado: ${value}`));
   if (decodeCache.has(source)) return decodeCache.get(source);
 
@@ -89,8 +96,12 @@ export function decodeImage(value) {
 }
 
 export async function decodeClub(entry) {
-  await Promise.all(REQUIRED_ROLES.map(role => decodeImage(entry[role])));
-  if (entry.backdrop) await decodeImage(entry.backdrop);
+  const hullStadium = entry.code === "HUL" ? await hullStadiumObjectUrl() : null;
+  await Promise.all(REQUIRED_ROLES.map(role => {
+    if (hullStadium && role === "stadium") return decodeImage(hullStadium);
+    return decodeImage(entry[role]);
+  }));
+  if (entry.backdrop) await decodeImage(hullStadium || entry.backdrop);
   return entry;
 }
 
@@ -151,16 +162,17 @@ async function prepareDetachedImage(job, token) {
  * fully decoded batch is committed to the visible stacks.
  */
 export async function stageClubMedia(root, club, entry) {
+  const hullStadium = club.code === "HUL" ? await hullStadiumObjectUrl() : null;
   const jobs = [
-    ["backdrop", entry.stadium, ""],
+    ["backdrop", hullStadium || entry.stadium, ""],
     ["crest", entry.crest, `Escudo do ${club.name}`],
     ["city", entry.city, club.city],
     ["manager", entry.manager, club.manager],
-    ["stadium", entry.stadium, club.stadium],
+    ["stadium", hullStadium || entry.stadium, club.stadium],
     ["homeKit", entry.homeKit, `Uniforme principal do ${club.name}`],
     ["awayKit", entry.awayKit, `Uniforme reserva do ${club.name}`],
     ["rivalCrest", entry.rivalCrest, `Escudo do ${club.rival}`]
-  ].map(([role, source, alt]) => ({ role, source: localAsset(source), alt }));
+  ].map(([role, source, alt]) => ({ role, source: browserAsset(source), alt }));
 
   for (const job of jobs) {
     if (!job.source) throw new Error(`${club.code}.${job.role} não local`);
