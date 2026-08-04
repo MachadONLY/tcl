@@ -37,10 +37,10 @@ if (onboardingScripts.length !== 1 || onboardingScripts[0] !== "/src/career-onbo
 if (/preconnect|dns-prefetch|fonts\.googleapis|fonts\.gstatic|https?:\/\//i.test(index)) fail("index possui dependência remota");
 if (/https?:\/\//i.test(controller + media + view)) fail("runtime possui URL remota");
 if (!media.includes("decode()") || !media.includes("stageClubMedia") || !media.includes("activateMedia")) fail("troca atômica não implementada");
-if (!media.includes("activeIndex ^ 1") || !view.includes("offline-media-stack")) fail("double buffer de imagens ausente");
+if (!media.includes("activeIndex ^ 1") || !media.includes("offline-media-stack")) fail("double buffer de imagens ausente");
 if (/details\.innerHTML|club-selection-details[^\n]*innerHTML/.test(controller + view)) fail("painel é recriado durante a troca");
 if (!shell.includes("contain: layout paint") || !layout.includes("contain: strict")) fail("contenção de layout ausente");
-if (/club-manager-copy[^}]*background:\s*(?!none)/s.test(layout)) fail("nome do técnico recebeu faixa de fundo");
+if (!/\.club-manager-copy\s*\{[^}]*background:\s*none\s*;/s.test(layout)) fail("nome do técnico recebeu faixa de fundo");
 if (!mediaCss.includes("transition: opacity 90ms") || !mediaCss.includes("object-position: 50% 16%")) fail("transição ou enquadramento do técnico ausente");
 if (!worker.includes("MEDIA_CACHE") || !worker.includes("manifest.json") || !worker.includes("clients.claim")) fail("service worker incompleto");
 if (!cssMain.includes("offline-shell.css") || !cssMain.includes("offline-media.css")) fail("composição de CSS incompleta");
