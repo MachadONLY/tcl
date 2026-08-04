@@ -45,7 +45,8 @@ const EXPLICIT = Object.freeze({
     manager: "https://upload.wikimedia.org/wikipedia/commons/f/f2/Pierre_Sage_lors_d%E2%80%99un_entra%C3%AEnement.jpg"
   },
   FUL: {
-    stadium: commonsFile("Craven Cottage stadium view.jpg", 1280)
+    stadium: commonsFile("Craven Cottage stadium view.jpg", 1280),
+    manager: commonsFile("Álvaro Arbeloa.jpg", 900)
   },
   HUL: {
     city: commonsFile("Skyline of Kingston upon Hull from across the Humber.jpg", 1280),
