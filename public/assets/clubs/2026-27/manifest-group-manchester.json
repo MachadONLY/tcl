@@ -1,0 +1,87 @@
+{
+  "pipelineVersion": 14,
+  "season": "2026/27",
+  "generatedAt": "2026-08-03T03:41:25.218Z",
+  "runtimeNetworkRequired": false,
+  "source": "Wikidata P18/P154 media with Wikimedia Commons and TheSportsDB fallbacks",
+  "clubCount": 3,
+  "completeClubCount": 3,
+  "clubs": {
+    "LEE": {
+      "code": "LEE",
+      "name": "Leeds United",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/lee/crest.png",
+      "city": "/assets/clubs/2026-27/lee/city.jpg",
+      "stadium": "/assets/clubs/2026-27/lee/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/lee/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/lee/manager.jpg",
+      "managerName": "Daniel Farke",
+      "homeKit": "/assets/clubs/2026-27/lee/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/lee/away-kit.svg",
+      "rivalName": "Manchester United",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/jcgrml1756649030.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Leeds%20Montage.jpg?width=1600",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Elland%20Road%20Stadium%20panoramic%20view%20from%20its%20southeastearn%20corner.jpg?width=1800",
+        "manager": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Daniel%20Farke.jpg?width=1000",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "league:MUN"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/mun/crest.png",
+      "complete": true
+    },
+    "MCI": {
+      "code": "MCI",
+      "name": "Manchester City",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/mci/crest.png",
+      "city": "/assets/clubs/2026-27/mci/city.jpg",
+      "stadium": "/assets/clubs/2026-27/mci/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/mci/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/mci/manager.jpg",
+      "managerName": "Enzo Maresca",
+      "homeKit": "/assets/clubs/2026-27/mci/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/mci/away-kit.svg",
+      "rivalName": "Manchester United",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/vwpvry1467462651.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Manchester%20from%20the%20Sky%2C%202008.jpg?width=1600",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Manchester%20city%20etihad%20stadium.jpg?width=1280",
+        "manager": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Enzo_maresca.jpg",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "league:MUN"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/mun/crest.png",
+      "complete": true
+    },
+    "MUN": {
+      "code": "MUN",
+      "name": "Manchester United",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/mun/crest.png",
+      "city": "/assets/clubs/2026-27/mun/city.jpg",
+      "stadium": "/assets/clubs/2026-27/mun/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/mun/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/mun/manager.jpg",
+      "managerName": "Michael Carrick",
+      "homeKit": "/assets/clubs/2026-27/mun/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/mun/away-kit.svg",
+      "rivalName": "Liverpool",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/xzqdr11517660252.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Manchester%20from%20the%20Sky%2C%202008.jpg?width=1600",
+        "stadium": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Oldtraffordstadpano.jpg/1280px-Oldtraffordstadpano.jpg",
+        "manager": "https://upload.wikimedia.org/wikipedia/commons/3/30/Michael_Carrick.jpg",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/kfaher1737969724.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/mun/rival-crest.png",
+      "complete": true
+    }
+  },
+  "explicitMediaRepairedAt": "2026-08-03T03:41:33.058Z"
+}

@@ -1,0 +1,37 @@
+{
+  "pipelineVersion": 14,
+  "season": "2026/27",
+  "generatedAt": "2026-08-03T03:40:55.638Z",
+  "runtimeNetworkRequired": false,
+  "source": "Wikidata P18/P154 media with Wikimedia Commons and TheSportsDB fallbacks",
+  "clubCount": 1,
+  "completeClubCount": 1,
+  "clubs": {
+    "CHE": {
+      "code": "CHE",
+      "name": "Chelsea",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/che/crest.png",
+      "city": "/assets/clubs/2026-27/che/city.jpg",
+      "stadium": "/assets/clubs/2026-27/che/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/che/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/che/manager.jpg",
+      "managerName": "Xabi Alonso",
+      "homeKit": "/assets/clubs/2026-27/che/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/che/away-kit.svg",
+      "rivalName": "Fulham",
+      "sources": {
+        "crest": "https://www.thesportsdb.com/images/media/team/badge/pbf4ul1782638263.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/London%20Skyline%20(125508655).jpeg?width=1600",
+        "stadium": "https://upload.wikimedia.org/wikipedia/commons/8/87/Stamford_Bridge_stadium.jpg",
+        "manager": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Xabi_alonso.jpg",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/xwwvyt1448811086.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/che/rival-crest.png",
+      "complete": true
+    }
+  },
+  "explicitMediaRepairedAt": "2026-08-03T03:40:56.977Z"
+}

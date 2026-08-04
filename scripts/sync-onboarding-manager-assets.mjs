@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -6,7 +5,6 @@ import path from "node:path";
 const ROOT = process.cwd();
 const OUTPUT_ROOT = path.join(ROOT, "public", "assets", "clubs", "2026-27");
 const MANIFEST_PATH = path.join(OUTPUT_ROOT, "manifest.json");
-const MANAGER_ASSET_VERSION = "3";
 const FORCE = process.argv.includes("--force");
 const CLUB_FILTER = process.argv.find(value => value.startsWith("--club="))?.split("=")[1]?.toUpperCase() || null;
 
@@ -16,17 +14,9 @@ const MANAGERS = Object.freeze({
   BOU: { name: "Marco Rose", page: "Marco_Rose" },
   BRE: { name: "Keith Andrews", page: "Keith_Andrews_(footballer)" },
   BHA: { name: "Fabian Hürzeler", page: "Fabian_Hürzeler" },
-  CHE: {
-    name: "Xabi Alonso",
-    page: "Xabi_Alonso",
-    source: "https://upload.wikimedia.org/wikipedia/commons/b/b6/Los_Caminos_del_f%C3%BAtbol._Xabi_Alonso_%2839666778464%29_%28cropped%29.jpg"
-  },
+  CHE: { name: "Xabi Alonso", page: "Xabi_Alonso" },
   COV: { name: "Frank Lampard", page: "Frank_Lampard" },
-  CRY: {
-    name: "Pierre Sage",
-    page: "Pierre_Sage",
-    source: "https://upload.wikimedia.org/wikipedia/commons/d/db/Pierre_Sage_en_2024.jpg"
-  },
+  CRY: { name: "Pierre Sage", page: "Pierre_Sage" },
   EVE: { name: "David Moyes", page: "David_Moyes" },
   FUL: { name: "Álvaro Arbeloa", page: "Álvaro_Arbeloa" },
   HUL: { name: "Sergej Jakirović", page: "Sergej_Jakirović" },
@@ -35,7 +25,6 @@ const MANAGERS = Object.freeze({
   LIV: { name: "Andoni Iraola", page: "Andoni_Iraola" },
   MCI: { name: "Enzo Maresca", page: "Enzo_Maresca" },
   MUN: { name: "Michael Carrick", page: "Michael_Carrick" },
-  NEW: { name: "Eddie Howe", page: "Eddie_Howe" },
   NFO: { name: "Oliver Glasner", page: "Oliver_Glasner" },
   SUN: { name: "Régis Le Bris", page: "Régis_Le_Bris" },
   TOT: { name: "Roberto De Zerbi", page: "Roberto_De_Zerbi" }
@@ -43,8 +32,6 @@ const MANAGERS = Object.freeze({
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 const log = value => process.stdout.write(`${value}\n`);
-const usedSources = new Map();
-const usedHashes = new Map();
 
 async function readJson(filePath, fallback) {
   try { return JSON.parse(await readFile(filePath, "utf8")); }
@@ -53,7 +40,7 @@ async function readJson(filePath, fallback) {
 
 async function existingFile(filePath) {
   if (!existsSync(filePath)) return false;
-  try { return (await stat(filePath)).size > 2048; }
+  try { return (await stat(filePath)).size > 512; }
   catch { return false; }
 }
 
@@ -106,24 +93,23 @@ async function summaryPortrait(page) {
   }
 }
 
-async function searchPortrait(name, rejected = new Set()) {
+async function searchPortrait(name) {
   try {
     const url = new URL("https://en.wikipedia.org/w/api.php");
     url.searchParams.set("action", "query");
     url.searchParams.set("generator", "search");
-    url.searchParams.set("gsrsearch", `\"${name}\" football manager`);
-    url.searchParams.set("gsrlimit", "12");
+    url.searchParams.set("gsrsearch", `${name} football manager`);
+    url.searchParams.set("gsrlimit", "10");
     url.searchParams.set("prop", "pageimages");
     url.searchParams.set("piprop", "original|thumbnail");
-    url.searchParams.set("pithumbsize", "1800");
+    url.searchParams.set("pithumbsize", "1600");
     url.searchParams.set("format", "json");
     url.searchParams.set("origin", "*");
     const payload = await fetchJson(url.toString());
-    const pages = Object.values(payload?.query?.pages || {})
-      .sort((a, b) => Number(a.index || 99) - Number(b.index || 99));
+    const pages = Object.values(payload?.query?.pages || {}).sort((a, b) => Number(a.index || 99) - Number(b.index || 99));
     for (const page of pages) {
       const source = safeUrl(page?.original?.source || page?.thumbnail?.source);
-      if (likelyPortrait(source) && !rejected.has(source)) return source;
+      if (likelyPortrait(source)) return source;
     }
   } catch {
     // no portrait found
@@ -135,91 +121,47 @@ function optimizedUrl(source) {
   const url = new URL("https://images.weserv.nl/");
   url.searchParams.set("url", source.replace(/^https?:\/\//i, ""));
   url.searchParams.set("output", "webp");
-  url.searchParams.set("q", "90");
-  url.searchParams.set("w", "900");
-  url.searchParams.set("h", "1100");
-  url.searchParams.set("fit", "cover");
-  url.searchParams.set("position", "top");
+  url.searchParams.set("q", "86");
+  url.searchParams.set("w", "620");
+  url.searchParams.set("h", "760");
+  url.searchParams.set("fit", "contain");
+  url.searchParams.set("bg", "transparent");
   return url.toString();
 }
 
-async function downloadPortrait(source) {
+async function savePortrait(source, destination) {
   const response = await fetchWithRetry(optimizedUrl(source), {
     headers: { Accept: "image/webp,image/*" }
   }, 3, 42000);
   const type = response.headers.get("content-type") || "";
   if (!type.startsWith("image/")) throw new Error(`unexpected content type ${type}`);
   const buffer = Buffer.from(await response.arrayBuffer());
-  if (buffer.byteLength < 2048) throw new Error("portrait payload is empty");
-  return buffer;
-}
-
-function managerStamp(code, manager) {
-  return `${MANAGER_ASSET_VERSION}:${code}:${manager.name}:${manager.page}:${manager.source || "auto"}`;
+  if (buffer.byteLength < 512) throw new Error("portrait payload is empty");
+  await writeFile(destination, buffer);
 }
 
 async function syncManager(code, manager, manifest) {
   const entry = manifest.clubs?.[code];
-  if (!entry) throw new Error(`${code}: club entry missing from manifest`);
+  if (!entry) return;
 
   const directory = path.join(OUTPUT_ROOT, code.toLowerCase());
   const destination = path.join(directory, "manager.webp");
-  const metadataPath = path.join(directory, "manager.meta.json");
-  const stamp = managerStamp(code, manager);
   await mkdir(directory, { recursive: true });
 
-  const metadata = await readJson(metadataPath, null);
-  const canReuse = !FORCE
-    && metadata?.stamp === stamp
-    && metadata?.name === manager.name
-    && metadata?.code === code
-    && await existingFile(destination);
-
-  if (canReuse) {
-    const buffer = await readFile(destination);
-    const hash = createHash("sha256").update(buffer).digest("hex");
-    if (usedHashes.has(hash)) {
-      throw new Error(`${code}: duplicate portrait bytes also used by ${usedHashes.get(hash)}`);
-    }
-    usedHashes.set(hash, code);
-    if (metadata.source) usedSources.set(metadata.source, code);
-    entry.manager = `/assets/clubs/2026-27/${code.toLowerCase()}/manager.webp?portrait=${MANAGER_ASSET_VERSION}&club=${code}`;
+  if (!FORCE && entry.manager && await existingFile(destination)) {
     entry.managerName = manager.name;
-    entry.managerCode = code;
-    entry.managerPortraitHash = hash;
     return;
   }
 
-  const rejected = new Set(usedSources.keys());
-  let source = safeUrl(manager.source) || await summaryPortrait(manager.page);
-  if (!source || rejected.has(source)) source = await searchPortrait(manager.name, rejected);
-  if (!source) throw new Error(`${code}: unique portrait not found for ${manager.name}`);
-  if (usedSources.has(source)) throw new Error(`${code}: source duplicates ${usedSources.get(source)}`);
-
-  const buffer = await downloadPortrait(source);
-  const hash = createHash("sha256").update(buffer).digest("hex");
-  if (usedHashes.has(hash)) {
-    throw new Error(`${code}: portrait bytes duplicate ${usedHashes.get(hash)}`);
+  const source = await summaryPortrait(manager.page) || await searchPortrait(manager.name);
+  if (!source) {
+    log(`  ! ${code}: manager portrait not found`);
+    return;
   }
 
-  await writeFile(destination, buffer);
-  await writeFile(metadataPath, `${JSON.stringify({
-    version: MANAGER_ASSET_VERSION,
-    code,
-    name: manager.name,
-    page: manager.page,
-    source,
-    stamp,
-    sha256: hash,
-    generatedAt: new Date().toISOString()
-  }, null, 2)}\n`, "utf8");
-
-  usedSources.set(source, code);
-  usedHashes.set(hash, code);
-  entry.manager = `/assets/clubs/2026-27/${code.toLowerCase()}/manager.webp?portrait=${MANAGER_ASSET_VERSION}&club=${code}`;
+  await savePortrait(source, destination);
+  entry.manager = `/assets/clubs/2026-27/${code.toLowerCase()}/manager.webp`;
   entry.managerName = manager.name;
-  entry.managerCode = code;
-  entry.managerPortraitHash = hash;
   entry.sources ||= {};
   entry.sources.manager = source;
   log(`  ✓ ${code}: ${manager.name}`);
@@ -229,20 +171,15 @@ async function main() {
   const manifest = await readJson(MANIFEST_PATH, null);
   if (!manifest?.clubs) throw new Error("onboarding manifest is missing; run the main asset sync first");
 
-  const names = Object.entries(MANAGERS).map(([code, manager]) => `${code}:${manager.name}`);
-  if (new Set(Object.values(MANAGERS).map(manager => manager.name)).size !== names.length) {
-    throw new Error("every club must have a different manager name");
-  }
-
   const selected = Object.entries(MANAGERS).filter(([code]) => !CLUB_FILTER || code === CLUB_FILTER);
   if (!selected.length) throw new Error(`Unknown or unsupported club code: ${CLUB_FILTER}`);
 
-  log(`Ensuring ${selected.length} unique local manager portrait${selected.length === 1 ? "" : "s"}`);
+  log(`Ensuring ${selected.length} local manager portrait${selected.length === 1 ? "" : "s"}`);
   for (const [code, manager] of selected) {
-    await syncManager(code, manager, manifest);
+    try { await syncManager(code, manager, manifest); }
+    catch (error) { log(`  ! ${code}: ${error.message}`); }
   }
 
-  manifest.managerPortraitVersion = MANAGER_ASSET_VERSION;
   manifest.managerPortraitsGeneratedAt = new Date().toISOString();
   await writeFile(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 }

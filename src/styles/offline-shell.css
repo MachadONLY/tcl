@@ -1,0 +1,182 @@
+/* Touchline career onboarding v16 — deterministic, offline and layout-stable. */
+
+:root.touchline-onboarding-mode,
+body.touchline-onboarding-mode {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #090f15;
+}
+
+.offline-welcome-v16 {
+  --start-bg: linear-gradient(135deg, #111820 0%, #17212b 44%, #080e14 100%);
+  background: var(--start-bg) !important;
+}
+
+.career-club-selection.onboarding-offline-v16 {
+  box-sizing: border-box;
+  display: grid !important;
+  grid-template-rows: clamp(92px, 11.2dvh, 116px) clamp(58px, 6.9dvh, 68px) minmax(0, 1fr) !important;
+  gap: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 620px !important;
+  padding: 0 clamp(24px, 2.45vw, 48px) clamp(10px, 1.2dvh, 14px) !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255,255,255,.055), transparent 32%),
+    linear-gradient(135deg, #171e24 0%, #10171d 55%, #090f14 100%) !important;
+  color: #fff;
+  font-family: "Arial Narrow", "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
+  contain: layout paint;
+}
+
+.onboarding-offline-v16 *,
+.onboarding-offline-v16 *::before,
+.onboarding-offline-v16 *::after {
+  box-sizing: border-box;
+}
+
+.onboarding-offline-v16 .club-selection-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-width: 0;
+  height: 100%;
+  padding: clamp(14px, 1.8dvh, 19px) 2px clamp(10px, 1.2dvh, 13px) !important;
+  border: 0 !important;
+}
+
+.onboarding-offline-v16 .club-selection-header > div:first-child {
+  min-width: 0;
+}
+
+.onboarding-offline-v16 .club-selection-header > div:first-child > span {
+  display: block;
+  margin: 0 0 6px;
+  color: rgba(255,255,255,.54);
+  font-size: clamp(8px, .52vw, 10px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .14em;
+}
+
+.onboarding-offline-v16 .club-selection-header h1 {
+  margin: 0;
+  color: #ffe21f;
+  font-size: clamp(34px, 2.55vw, 49px);
+  font-weight: 900;
+  line-height: .88;
+  letter-spacing: -.035em;
+  text-transform: uppercase;
+}
+
+.onboarding-offline-v16 .club-selection-header p {
+  margin: 9px 0 0;
+  color: rgba(255,255,255,.58);
+  font-family: Arial, sans-serif;
+  font-size: clamp(10px, .72vw, 14px);
+  font-weight: 600;
+  line-height: 1.05;
+}
+
+.onboarding-offline-v16 .club-season-badge {
+  position: relative;
+  display: grid !important;
+  justify-items: end;
+  align-content: center;
+  gap: 4px;
+  min-width: 150px;
+  height: clamp(58px, 7.3dvh, 74px);
+  padding: 8px 20px 8px 14px !important;
+  border-right: 3px solid #ffe21f !important;
+  background: transparent !important;
+}
+
+.onboarding-offline-v16 .club-season-badge span {
+  color: rgba(255,255,255,.42);
+  font-size: clamp(7px, .45vw, 9px);
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.onboarding-offline-v16 .club-season-badge strong {
+  font-size: clamp(27px, 1.85vw, 36px);
+  line-height: .9;
+}
+
+.onboarding-offline-v16 .club-rail {
+  display: grid !important;
+  grid-template-columns: 40px minmax(0, 1fr) 40px !important;
+  align-items: stretch;
+  min-width: 0;
+  height: 100%;
+  margin: 0 0 8px !important;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  background: #071018 !important;
+  contain: layout paint size;
+}
+
+.onboarding-offline-v16 .club-rail-track {
+  display: grid !important;
+  grid-template-columns: repeat(20, minmax(0, 1fr)) !important;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden !important;
+  scroll-behavior: auto !important;
+}
+
+.onboarding-offline-v16 .club-rail-arrow,
+.onboarding-offline-v16 .club-rail-item {
+  appearance: none;
+  border: 0 !important;
+  border-right: 1px solid rgba(255,255,255,.07) !important;
+  border-radius: 0 !important;
+  background: #071018 !important;
+  color: rgba(255,255,255,.55);
+  cursor: pointer;
+}
+
+.onboarding-offline-v16 .club-rail-item {
+  position: relative;
+  display: grid !important;
+  place-items: center;
+  min-width: 0;
+  height: 100%;
+  padding: 7px !important;
+  overflow: hidden;
+  transition: background-color 90ms linear;
+}
+
+.onboarding-offline-v16 .club-rail-item.selected {
+  background: #ffe21f !important;
+}
+
+.onboarding-offline-v16 .club-rail-item.selected::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: rgba(255,255,255,.75);
+}
+
+.onboarding-offline-v16 .club-rail-item img {
+  display: block;
+  width: clamp(22px, 1.55vw, 30px) !important;
+  height: clamp(22px, 1.55vw, 30px) !important;
+  max-width: 72%;
+  max-height: 72%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.28));
+}
+
+.onboarding-offline-v16 .club-rail-item span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

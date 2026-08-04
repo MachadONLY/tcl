@@ -1,0 +1,128 @@
+.onboarding-offline-v16 .club-story-copy {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(28px, 4dvh, 50px) clamp(38px, 4vw, 76px);
+  text-align: center;
+}
+
+.onboarding-offline-v16 .club-story-copy h3 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(36px, 3vw, 58px);
+  font-weight: 900;
+  line-height: .92;
+  letter-spacing: -.025em;
+}
+
+.onboarding-offline-v16 .club-story-copy p {
+  max-width: 740px;
+  margin: 0;
+  color: rgba(255,255,255,.68);
+  font-family: Arial, sans-serif;
+  font-size: clamp(12px, .82vw, 16px);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.onboarding-offline-v16 .club-season-stamp {
+  position: absolute;
+  top: 15px;
+  right: 16px;
+  z-index: 3;
+  display: grid;
+  justify-items: end;
+  color: rgba(255,255,255,.31);
+}
+
+.onboarding-offline-v16 .club-season-stamp span {
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.onboarding-offline-v16 .club-season-stamp strong {
+  font-size: clamp(20px, 1.55vw, 30px);
+  line-height: 1;
+}
+
+.onboarding-offline-v16 .club-kits-panel {
+  grid-column: 1 / span 2;
+  grid-row: 2;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-width: 0;
+  min-height: 0;
+  border-top: 1px solid rgba(255,255,255,.12);
+}
+
+.onboarding-offline-v16 .club-panel-heading {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  z-index: 4;
+  width: 100%;
+  color: rgba(255,255,255,.48);
+  font-size: clamp(7px, .45vw, 9px);
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-align: center;
+}
+
+.onboarding-offline-v16 .club-kit-slot {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  place-items: center;
+  gap: 5px;
+  padding: 28px 12px 10px;
+  background: rgba(5,13,21,.38);
+}
+
+.onboarding-offline-v16 .club-kit-slot small {
+  color: rgba(255,255,255,.76);
+  font-size: clamp(8px, .5vw, 10px);
+  font-weight: 800;
+}
+
+.onboarding-offline-v16 .club-rival-panel {
+  grid-column: 3;
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  place-items: center;
+  gap: 8px;
+  padding: 28px 14px 12px;
+  border-top: 1px solid rgba(255,255,255,.12);
+  background: rgba(5,13,21,.46);
+}
+
+.onboarding-offline-v16 .club-rival-panel .club-panel-heading {
+  position: static;
+  align-self: start;
+}
+
+.onboarding-offline-v16 .club-rival-panel strong {
+  max-width: 100%;
+  overflow: hidden;
+  color: #fff;
+  font-size: clamp(11px, .78vw, 15px);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-offline-v16 .club-data-label {
+  display: block;
+  color: rgba(255,255,255,.64);
+  font-size: clamp(7px, .45vw, 9px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}

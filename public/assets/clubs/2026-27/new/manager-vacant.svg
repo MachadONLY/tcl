@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Técnico a anunciar">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#263542"/>
+      <stop offset="1" stop-color="#0b141d"/>
+    </linearGradient>
+    <radialGradient id="light" cx="50%" cy="28%" r="58%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".13"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="640" fill="url(#bg)"/>
+  <rect width="640" height="640" fill="url(#light)"/>
+  <circle cx="320" cy="205" r="112" fill="#647482"/>
+  <path d="M92 640c12-180 100-282 228-282s216 102 228 282H92Z" fill="#536370"/>
+</svg>

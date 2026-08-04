@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-08-03T03:42:59.044Z",
+  "clubs": [
+    {
+      "code": "ARS",
+      "complete": true
+    },
+    {
+      "code": "AVL",
+      "complete": true
+    },
+    {
+      "code": "BOU",
+      "complete": true
+    },
+    {
+      "code": "BRE",
+      "complete": true
+    },
+    {
+      "code": "BHA",
+      "complete": true
+    },
+    {
+      "code": "CHE",
+      "complete": true
+    },
+    {
+      "code": "COV",
+      "complete": true
+    },
+    {
+      "code": "CRY",
+      "complete": true
+    },
+    {
+      "code": "EVE",
+      "complete": true
+    },
+    {
+      "code": "FUL",
+      "complete": true
+    },
+    {
+      "code": "HUL",
+      "complete": true
+    },
+    {
+      "code": "IPS",
+      "complete": true
+    },
+    {
+      "code": "LEE",
+      "complete": true
+    },
+    {
+      "code": "LIV",
+      "complete": true
+    },
+    {
+      "code": "MCI",
+      "complete": true
+    },
+    {
+      "code": "MUN",
+      "complete": true
+    },
+    {
+      "code": "NEW",
+      "complete": true
+    },
+    {
+      "code": "NFO",
+      "complete": true
+    },
+    {
+      "code": "SUN",
+      "complete": true
+    },
+    {
+      "code": "TOT",
+      "complete": true
+    }
+  ]
+}

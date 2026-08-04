@@ -231,7 +231,7 @@ function escapeHtml(value) {
 }
 
 function crestUrl(club) {
-  return `https://crests.football-data.org/${club.crestId}.png`;
+  return `/assets/clubs/2026-27/${String(club.code || "").toLowerCase()}/crest.png`;
 }
 
 function logoMark() {
@@ -402,7 +402,6 @@ function renderClubSelector() {
     </main>`;
   railElement = app.querySelector(".club-rail-track");
   focusSelectedRailItem(false);
-  enrichSelectedClub();
 }
 
 function focusSelectedRailItem(smooth = true) {
@@ -421,7 +420,6 @@ function updateSelectedClub(nextIndex, smooth = true) {
   const details = document.querySelector("[data-club-details]");
   if (details) details.innerHTML = detailMarkup(club, assetCache.get(club.code));
   focusSelectedRailItem(smooth);
-  enrichSelectedClub();
 }
 
 async function fetchJson(url, timeout = 6500) {

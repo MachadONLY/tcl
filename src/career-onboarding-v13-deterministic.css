@@ -1,0 +1,327 @@
+/* Touchline onboarding v13 — one deterministic, offline media layer. */
+
+.career-club-selection.onboarding-premier-v7.onboarding-deterministic-v13 {
+  grid-template-rows:
+    clamp(82px, 10.2dvh, 96px)
+    clamp(54px, 6.4dvh, 60px)
+    minmax(0, 1fr) !important;
+  row-gap: 0 !important;
+}
+
+.onboarding-deterministic-v13 .club-selection-header {
+  align-items: center !important;
+  padding: clamp(12px, 1.7dvh, 17px) 2px clamp(9px, 1.2dvh, 12px) !important;
+}
+
+.onboarding-deterministic-v13 .club-selection-header > div:first-child > span {
+  margin-bottom: 5px !important;
+  font-size: clamp(7px, .48vw, 9px) !important;
+  line-height: 1 !important;
+}
+
+.onboarding-deterministic-v13 .club-selection-header h1 {
+  font-size: clamp(31px, 2.35vw, 42px) !important;
+  line-height: .88 !important;
+}
+
+.onboarding-deterministic-v13 .club-selection-header p {
+  margin-top: 7px !important;
+  font-size: clamp(9px, .68vw, 12px) !important;
+  line-height: 1.05 !important;
+}
+
+.onboarding-deterministic-v13 .club-season-badge {
+  min-width: 116px !important;
+  gap: 3px !important;
+  padding: 7px 13px 7px 20px !important;
+}
+
+.onboarding-deterministic-v13 .club-season-badge strong {
+  font-size: clamp(21px, 1.55vw, 28px) !important;
+}
+
+.onboarding-deterministic-v13 .club-selection-details {
+  padding: 8px 0 8px !important;
+}
+
+.onboarding-deterministic-v13 .club-selection-controls {
+  display: none !important;
+}
+
+.onboarding-deterministic-v13 .club-selection-grid {
+  height: 100% !important;
+}
+
+.onboarding-deterministic-v13 .club-identity-card,
+.onboarding-deterministic-v13 .club-details-v5 .club-identity-card {
+  grid-template-rows: minmax(0, 43%) minmax(0, 32%) minmax(0, 25%) !important;
+}
+
+/* Main identity badge */
+.onboarding-deterministic-v13 .club-badge-panel {
+  gap: 10px !important;
+  padding: clamp(14px, 1.8dvh, 20px) clamp(16px, 1.5vw, 24px) clamp(13px, 1.6dvh, 18px) !important;
+}
+
+.onboarding-deterministic-v13 .club-badge-panel > img.club-badge-image-v13 {
+  display: block !important;
+  align-self: center !important;
+  justify-self: center !important;
+  width: min(210px, 66%) !important;
+  height: min(196px, 70%) !important;
+  max-width: 66% !important;
+  max-height: 70% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  filter: drop-shadow(0 16px 22px rgba(0, 0, 0, .3)) !important;
+}
+
+.onboarding-deterministic-v13 .club-badge-panel h2 {
+  font-size: clamp(24px, 1.95vw, 34px) !important;
+}
+
+/* City */
+.onboarding-deterministic-v13 .club-location-panel {
+  gap: 4px !important;
+  padding: 10px 14px !important;
+  background-position: center 50% !important;
+}
+
+.onboarding-deterministic-v13 .club-location-panel strong {
+  font-size: clamp(17px, 1.22vw, 22px) !important;
+}
+
+/* Manager — exactly one full-width photo, no initials and no crop. */
+.onboarding-deterministic-v13 .club-manager-panel {
+  position: relative !important;
+  inset: auto !important;
+  left: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: auto !important;
+  height: auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) 43px !important;
+  place-items: stretch !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  background:
+    radial-gradient(circle at 50% 25%, rgba(255, 255, 255, .11), transparent 52%),
+    linear-gradient(150deg, #26323e, #121c26 68%, #081018) !important;
+}
+
+.onboarding-deterministic-v13 .club-manager-panel::after {
+  display: none !important;
+}
+
+.onboarding-deterministic-v13 .club-manager-panel > .club-manager-placeholder,
+.onboarding-deterministic-v13 .club-manager-panel > img {
+  display: none !important;
+}
+
+.onboarding-deterministic-v13 .club-manager-photo-v13 {
+  box-sizing: border-box !important;
+  position: relative !important;
+  inset: auto !important;
+  grid-column: 1 / -1 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.onboarding-deterministic-v13 .club-manager-photo-v13 > img.club-manager-image-v13 {
+  box-sizing: border-box !important;
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 5px 8px 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .28));
+}
+
+.onboarding-deterministic-v13 .club-manager-panel > div:last-child,
+.onboarding-deterministic-v13 .club-manager-copy-v5 {
+  box-sizing: border-box !important;
+  position: relative !important;
+  inset: auto !important;
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 43px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 2px !important;
+  margin: 0 !important;
+  padding: 6px 9px 7px !important;
+  border-top: 1px solid rgba(255, 255, 255, .1) !important;
+  background: rgba(3, 9, 15, .88) !important;
+}
+
+.onboarding-deterministic-v13 .club-manager-panel strong {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: clamp(11px, .78vw, 14px) !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Titles */
+.onboarding-deterministic-v13 .club-titles-panel {
+  align-content: center !important;
+  justify-items: center !important;
+  gap: 5px !important;
+  padding: 10px 9px 9px !important;
+}
+
+.onboarding-deterministic-v13 .club-trophy-icon {
+  display: none !important;
+}
+
+.onboarding-deterministic-v13 .club-trophy-v13 {
+  width: clamp(36px, 3vw, 49px);
+  height: clamp(36px, 3vw, 49px);
+  margin: 0 auto 1px;
+}
+
+.onboarding-deterministic-v13 .club-trophy-v13 svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .3));
+}
+
+.onboarding-deterministic-v13 .club-titles-panel .club-data-label {
+  text-align: center !important;
+  line-height: 1.08 !important;
+}
+
+.onboarding-deterministic-v13 .club-titles-panel strong {
+  margin-top: 0 !important;
+  font-size: clamp(27px, 2.1vw, 36px) !important;
+  line-height: .9 !important;
+}
+
+/* Stadium */
+.onboarding-deterministic-v13 .club-stadium-panel {
+  background-position: center 48% !important;
+}
+
+.onboarding-deterministic-v13 .club-stadium-panel > div {
+  padding: 0 1px !important;
+}
+
+/* Kits */
+.onboarding-deterministic-v13 .club-kit-slot {
+  padding: 9px 11px 8px !important;
+}
+
+.onboarding-deterministic-v13 .club-kit-slot > img.club-kit-image-v13 {
+  display: block !important;
+  width: min(118px, 72%) !important;
+  height: min(118px, 72%) !important;
+  max-width: 72% !important;
+  max-height: 72% !important;
+  margin: auto !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+/* Rival */
+.onboarding-deterministic-v13 .club-rival-panel {
+  gap: 8px !important;
+  padding: 12px 13px 13px !important;
+}
+
+.onboarding-deterministic-v13 .club-rival-panel .club-rival-symbol {
+  display: none !important;
+}
+
+.onboarding-deterministic-v13 .club-rival-panel > img.club-rival-image-v13 {
+  display: block !important;
+  width: clamp(48px, 4vw, 68px) !important;
+  height: clamp(48px, 4vw, 68px) !important;
+  max-width: 68px !important;
+  max-height: 68px !important;
+  margin: 2px auto 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  filter: drop-shadow(0 7px 11px rgba(0, 0, 0, .3));
+}
+
+.onboarding-deterministic-v13 .club-rival-panel strong {
+  max-width: 100%;
+  padding-inline: 3px;
+  text-align: center;
+  line-height: 1.05 !important;
+}
+
+.onboarding-deterministic-v13 img[data-media-ready="false"] {
+  opacity: 0 !important;
+}
+
+.onboarding-deterministic-v13 img[data-media-ready="true"] {
+  opacity: 1 !important;
+  transition: opacity 150ms ease;
+}
+
+@media (max-width: 1366px), (max-height: 780px) {
+  .career-club-selection.onboarding-premier-v7.onboarding-deterministic-v13 {
+    grid-template-rows: 80px 52px minmax(0, 1fr) !important;
+  }
+
+  .onboarding-deterministic-v13 .club-selection-header h1 {
+    font-size: clamp(28px, 2.25vw, 37px) !important;
+  }
+
+  .onboarding-deterministic-v13 .club-selection-header p {
+    margin-top: 5px !important;
+  }
+
+  .onboarding-deterministic-v13 .club-identity-card,
+  .onboarding-deterministic-v13 .club-details-v5 .club-identity-card {
+    grid-template-rows: minmax(0, 42%) minmax(0, 33%) minmax(0, 25%) !important;
+  }
+
+  .onboarding-deterministic-v13 .club-manager-panel {
+    grid-template-rows: minmax(0, 1fr) 39px !important;
+  }
+
+  .onboarding-deterministic-v13 .club-manager-panel > div:last-child,
+  .onboarding-deterministic-v13 .club-manager-copy-v5 {
+    min-height: 39px !important;
+    padding: 5px 8px 6px !important;
+  }
+}
