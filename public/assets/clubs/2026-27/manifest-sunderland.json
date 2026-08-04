@@ -1,0 +1,37 @@
+{
+  "pipelineVersion": 14,
+  "season": "2026/27",
+  "generatedAt": "2026-08-03T03:40:56.156Z",
+  "runtimeNetworkRequired": false,
+  "source": "Wikidata P18/P154 media with Wikimedia Commons and TheSportsDB fallbacks",
+  "clubCount": 1,
+  "completeClubCount": 1,
+  "clubs": {
+    "SUN": {
+      "code": "SUN",
+      "name": "Sunderland",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/sun/crest.png",
+      "city": "/assets/clubs/2026-27/sun/city.jpg",
+      "stadium": "/assets/clubs/2026-27/sun/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/sun/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/sun/manager.webp",
+      "managerName": "Régis Le Bris",
+      "homeKit": "/assets/clubs/2026-27/sun/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/sun/away-kit.svg",
+      "rivalName": "Newcastle United",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/tprtus1448813498.png",
+        "city": "https://upload.wikimedia.org/wikipedia/commons/9/93/SunderlandSkyline.jpg",
+        "stadium": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Sunderland_stadium_of_light.jpg/1280px-Sunderland_stadium_of_light.jpg",
+        "manager": "https://resources.premierleague.pulselive.com/photo-resources/2026/07/28/918475f4-a10f-4e88-9e0e-11fca7705a91/Regis-Le-Bris-bio-pic.jpg?width=1440",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/lhwuiz1621593302.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/sun/rival-crest.png",
+      "complete": true
+    }
+  },
+  "explicitMediaRepairedAt": "2026-08-03T03:41:03.148Z"
+}

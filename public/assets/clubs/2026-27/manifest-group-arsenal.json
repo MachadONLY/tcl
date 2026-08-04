@@ -1,0 +1,112 @@
+{
+  "pipelineVersion": 14,
+  "season": "2026/27",
+  "generatedAt": "2026-08-03T03:42:18.233Z",
+  "runtimeNetworkRequired": false,
+  "source": "Wikidata P18/P154 media with Wikimedia Commons and TheSportsDB fallbacks",
+  "clubCount": 4,
+  "completeClubCount": 4,
+  "clubs": {
+    "ARS": {
+      "code": "ARS",
+      "name": "Arsenal",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/ars/crest.png",
+      "city": "/assets/clubs/2026-27/ars/city.jpg",
+      "stadium": "/assets/clubs/2026-27/ars/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/ars/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/ars/manager.jpg",
+      "managerName": "Mikel Arteta",
+      "homeKit": "/assets/clubs/2026-27/ars/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/ars/away-kit.svg",
+      "rivalName": "Tottenham Hotspur",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/uyhbfe1612467038.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/London%20Skyline%20(125508655).jpeg?width=1600",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Emirates%20Stadium%20aerial%202020-07.jpg?width=1280",
+        "manager": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Mikel%20Arteta.jpg?width=900",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/dfyfhl1604094109.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/ars/rival-crest.png",
+      "complete": true
+    },
+    "AVL": {
+      "code": "AVL",
+      "name": "Aston Villa",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/avl/crest.png",
+      "city": "/assets/clubs/2026-27/avl/city.jpg",
+      "stadium": "/assets/clubs/2026-27/avl/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/avl/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/avl/manager.jpg",
+      "managerName": "Unai Emery",
+      "homeKit": "/assets/clubs/2026-27/avl/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/avl/away-kit.svg",
+      "rivalName": "Birmingham City",
+      "sources": {
+        "crest": "https://www.thesportsdb.com/images/media/team/badge/97mehy1784645865.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Birmingham-Skyline-from-Edgbaston-crop.jpg?width=1600",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Birmingham%20aston%20villa%20park%20stadium.jpg?width=1280",
+        "manager": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Unai%20Emery%20-%20Sevilla%20(cropped).jpg?width=1000",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/wufs551672950865.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/avl/rival-crest.png",
+      "complete": true
+    },
+    "BOU": {
+      "code": "BOU",
+      "name": "AFC Bournemouth",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/bou/crest.png",
+      "city": "/assets/clubs/2026-27/bou/city.jpg",
+      "stadium": "/assets/clubs/2026-27/bou/stadium.jpg",
+      "backdrop": null,
+      "manager": "/assets/clubs/2026-27/bou/manager.jpg",
+      "managerName": "Marco Rose",
+      "homeKit": "/assets/clubs/2026-27/bou/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/bou/away-kit.svg",
+      "rivalName": "Southampton",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/gh5hc31761433174.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Bournemouth%20Town%20Centre%20from%20West%20Cliff.jpg?width=1280",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Bournemouth%20%2C%20Boscombe%20-%20Dean%20Court%20Football%20Stadium%20-%20geograph.org.uk%20-%202197013.jpg?width=1280",
+        "manager": "https://commons.wikimedia.org/wiki/Special:Redirect/file/MarcoRose.jpg?width=800",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/ggqtd01621593274.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/bou/rival-crest.png",
+      "complete": true
+    },
+    "BRE": {
+      "code": "BRE",
+      "name": "Brentford",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/bre/crest.png",
+      "city": "/assets/clubs/2026-27/bre/city.jpg",
+      "stadium": "/assets/clubs/2026-27/bre/stadium.jpg",
+      "backdrop": null,
+      "manager": "/assets/clubs/2026-27/bre/manager.jpg",
+      "managerName": "Keith Andrews",
+      "homeKit": "/assets/clubs/2026-27/bre/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/bre/away-kit.svg",
+      "rivalName": "Fulham",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/grv1aw1546453779.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/London%20Skyline%20(125508655).jpeg?width=1600",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Brentford%20Gtech%20Community%20Stadium.jpg?width=1280",
+        "manager": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Keith%20Andrews%2C%20Brentford%20F.C.%20head%20coach%2C%20August%202025.jpg?width=900",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/xwwvyt1448811086.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/bre/rival-crest.png",
+      "complete": true
+    }
+  },
+  "explicitMediaRepairedAt": "2026-08-03T03:42:33.669Z"
+}

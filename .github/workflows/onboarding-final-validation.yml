@@ -1,0 +1,81 @@
+name: Onboarding Final Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "public/assets/clubs/2026-27/**"
+      - "src/career-onboarding*"
+      - "scripts/ensure-onboarding-pack.mjs"
+      - "tests/onboarding-*"
+      - "index.html"
+      - "package.json"
+      - ".github/workflows/onboarding-final-validation.yml"
+
+jobs:
+  validate-onboarding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install project
+        run: npm ci
+
+      - name: Verify committed offline media for twenty clubs
+        run: |
+          node scripts/ensure-onboarding-pack.mjs
+          node tests/onboarding-final-media-integrity.mjs
+          git diff --exit-code -- public/assets/clubs/2026-27
+
+      - name: Production build
+        run: npm run build
+
+      - name: Install Chromium validation runtime
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local game server
+        run: |
+          npx vite --host 127.0.0.1 > /tmp/touchline-vite.log 2>&1 &
+          for attempt in {1..60}; do
+            if curl -fsS http://127.0.0.1:5173/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/touchline-vite.log
+          exit 1
+
+      - name: Validate titles tile for all twenty clubs
+        run: node tests/onboarding-titles-visual.mjs
+
+      - name: Review all twenty clubs at two desktop sizes
+        run: node tests/onboarding-final-visual.mjs
+
+      - name: Upload forty-screen visual review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: onboarding-final-club-screenshots
+          path: artifacts/onboarding-final
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload verified offline pack
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: onboarding-complete-offline-pack
+          path: public/assets/clubs/2026-27
+          if-no-files-found: error
+          retention-days: 7
