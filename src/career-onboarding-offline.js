@@ -1,8 +1,7 @@
 import "./career-onboarding.css";
-import "./career-onboarding-v7-premier.css";
-import "./career-onboarding-offline.css";
+import "./career-club-selector.css";
 import { CLUBS, CLUB_BY_CODE, SEASON } from "./onboarding/offline-data.js";
-import { decodeClub, loadManifest, prewarm, stageClubMedia } from "./onboarding/offline-media.js";
+import { loadManifest, prewarm, stageClubMedia } from "./onboarding/offline-media.js";
 import { commitClub, renderWelcome, selectorMarkup, setOnboardingMode, updateRail } from "./onboarding/offline-view.js";
 
 const CAREER_STORAGE_KEY = "touchline.career.mode.v1";
@@ -17,9 +16,10 @@ function readSave() {
   catch { return {}; }
 }
 
-async function selectClub(index, { initial = false } = {}) {
-  const root = document.querySelector(".career-club-selection");
+async function selectClub(index) {
+  const root = document.querySelector(".tl-club-select");
   if (!root) return;
+
   const manifest = await loadManifest();
   selectedIndex = (index + CLUBS.length) % CLUBS.length;
   const club = CLUBS[selectedIndex];
@@ -27,15 +27,15 @@ async function selectClub(index, { initial = false } = {}) {
   const version = ++selectionVersion;
 
   updateRail(root, selectedIndex);
-  root.dataset.switching = initial ? "false" : "true";
+  root.dataset.switching = "true";
 
-  const task = decodeClub(entry)
-    .then(() => stageClubMedia(root, club, entry, initial))
+  const task = stageClubMedia(root, club, entry)
     .then(staged => {
       if (version !== selectionVersion || !root.isConnected) return;
       requestAnimationFrame(() => {
         if (version !== selectionVersion || !root.isConnected) return;
         commitClub(root, club, staged);
+        prewarm(manifest, selectedIndex);
       });
     })
     .catch(error => {
@@ -61,10 +61,9 @@ async function renderSelector() {
   const club = CLUBS[selectedIndex];
   const entry = manifest.clubs[club.code];
 
-  await decodeClub(entry);
   app.innerHTML = selectorMarkup(manifest, selectedIndex);
-  const root = app.querySelector(".career-club-selection");
-  const staged = await stageClubMedia(root, club, entry, true);
+  const root = app.querySelector(".tl-club-select");
+  const staged = await stageClubMedia(root, club, entry);
   commitClub(root, club, staged);
   updateRail(root, selectedIndex);
   prewarm(manifest, selectedIndex);
@@ -96,11 +95,17 @@ async function confirmClub() {
   };
   ["selectedSquadId", "xi", "playerStatus", "contractNegotiations", "releasedPlayers"].forEach(key => delete next[key]);
   localStorage.setItem(CAREER_STORAGE_KEY, JSON.stringify(next));
-  document.querySelector(".career-club-selection")?.classList.add("career-club-confirmed");
+  document.querySelector(".tl-club-select")?.classList.add("career-club-confirmed");
   window.setTimeout(() => {
     history.replaceState(null, "", `${location.pathname}${location.search}`);
     location.reload();
   }, 320);
+}
+
+function backToWelcome() {
+  history.replaceState(null, "", "#welcome");
+  stage = "welcome";
+  renderWelcome();
 }
 
 function handleClick(event) {
@@ -111,6 +116,7 @@ function handleClick(event) {
   const step = event.target.closest("[data-club-step]");
   if (step) return void selectClub(selectedIndex + Number(step.dataset.clubStep));
   if (event.target.closest("[data-confirm-club]")) return void confirmClub();
+  if (event.target.closest("[data-back-welcome]")) return backToWelcome();
 }
 
 function handleKeydown(event) {
@@ -130,18 +136,16 @@ function handleKeydown(event) {
   }
   if (event.key === "Escape") {
     event.preventDefault();
-    history.replaceState(null, "", "#welcome");
-    stage = "welcome";
-    renderWelcome();
+    return backToWelcome();
   }
 }
 
 function handleWheel(event) {
-  if (stage !== "clubs" || !event.target.closest(".club-rail")) return;
+  if (stage !== "clubs" || !event.target.closest(".tl-club-select__rail")) return;
   event.preventDefault();
   const now = performance.now();
   if (now < wheelLockedUntil) return;
-  wheelLockedUntil = now + 140;
+  wheelLockedUntil = now + 120;
   void selectClub(selectedIndex + (event.deltaY > 0 || event.deltaX > 0 ? 1 : -1));
 }
 
@@ -153,7 +157,7 @@ function shouldOpenOnboarding() {
 async function registerOfflineWorker() {
   if (!("serviceWorker" in navigator) || !import.meta.env.PROD) return;
   try { await navigator.serviceWorker.register("/touchline-sw.js", { scope: "/" }); }
-  catch { /* local assets still work without a worker */ }
+  catch { /* committed local assets still work without the worker */ }
 }
 
 function mount() {
