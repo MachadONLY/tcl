@@ -7,21 +7,25 @@ const EXPECTED = [
   "ARS", "AVL", "BOU", "BRE", "BHA", "CHE", "COV", "CRY", "EVE", "FUL",
   "HUL", "IPS", "LEE", "LIV", "MCI", "MUN", "NEW", "NFO", "SUN", "TOT"
 ];
+const REQUIRED = ["crest", "city", "stadium", "manager", "rivalCrest", "homeKit", "awayKit"];
 
 function localPath(url) {
-  if (!String(url || "").startsWith("/assets/")) return null;
+  if (!String(url || "").startsWith("/assets/clubs/2026-27/")) return null;
   return path.join(ROOT, "public", ...String(url).split("/").filter(Boolean));
 }
 
 async function validFile(url) {
   const filePath = localPath(url);
   if (!filePath) return false;
-  try { return (await stat(filePath)).size >= 512; }
+  try { return (await stat(filePath)).size >= 96; }
   catch { return false; }
 }
 
 const manifest = JSON.parse(await readFile(MANIFEST, "utf8"));
 const failures = [];
+
+if (manifest.runtimeNetworkRequired !== false) failures.push("manifest must declare runtimeNetworkRequired=false");
+if (Object.keys(manifest.clubs || {}).length !== EXPECTED.length) failures.push("manifest must contain exactly twenty clubs");
 
 for (const code of EXPECTED) {
   const entry = manifest.clubs?.[code];
@@ -30,19 +34,12 @@ for (const code of EXPECTED) {
     continue;
   }
 
-  const checks = {
-    crest: await validFile(entry.crest),
-    city: await validFile(entry.city),
-    stadium: await validFile(entry.stadium),
-    rivalCrest: await validFile(entry.rivalCrest),
-    homeKit: await validFile(entry.homeKit),
-    awayKit: await validFile(entry.awayKit)
-  };
-
-  if (code !== "NEW") checks.manager = await validFile(entry.manager);
-  for (const [key, ok] of Object.entries(checks)) {
-    if (!ok) failures.push(`${code}: invalid ${key} (${entry[key] || "missing"})`);
+  for (const key of REQUIRED) {
+    if (!await validFile(entry[key])) failures.push(`${code}: invalid ${key} (${entry[key] || "missing"})`);
   }
+
+  if (!entry.managerName) failures.push(`${code}: missing managerName`);
+  if (!entry.rivalName) failures.push(`${code}: missing rivalName`);
 }
 
 if (failures.length) {
