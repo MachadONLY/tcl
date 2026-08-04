@@ -6,6 +6,7 @@ on:
     paths:
       - "public/assets/clubs/2026-27/**"
       - "src/career-onboarding*"
+      - "src/career-club-selector*"
       - "scripts/ensure-onboarding-pack.mjs"
       - "tests/onboarding-*"
       - "index.html"
@@ -58,6 +59,9 @@ jobs:
 
       - name: Validate exact club-to-media switching
         run: node tests/onboarding-club-switch-integrity.mjs
+
+      - name: Validate static viewport and hidden footer controls
+        run: node tests/onboarding-static-frame.mjs
 
       - name: Validate titles tile for all twenty clubs
         run: node tests/onboarding-titles-visual.mjs
