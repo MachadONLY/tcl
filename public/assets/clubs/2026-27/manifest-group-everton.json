@@ -1,0 +1,112 @@
+{
+  "pipelineVersion": 14,
+  "season": "2026/27",
+  "generatedAt": "2026-08-03T03:42:10.253Z",
+  "runtimeNetworkRequired": false,
+  "source": "Wikidata P18/P154 media with Wikimedia Commons and TheSportsDB fallbacks",
+  "clubCount": 4,
+  "completeClubCount": 4,
+  "clubs": {
+    "EVE": {
+      "code": "EVE",
+      "name": "Everton",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/eve/crest.png",
+      "city": "/assets/clubs/2026-27/eve/city.jpg",
+      "stadium": "/assets/clubs/2026-27/eve/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/eve/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/eve/manager.jpg",
+      "managerName": "David Moyes",
+      "homeKit": "/assets/clubs/2026-27/eve/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/eve/away-kit.svg",
+      "rivalName": "Liverpool",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/eqayrf1523184794.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Liverpool%20Montage.jpg?width=1600",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Liverpool%20fc%20everton%20stadium.jpg?width=1800",
+        "manager": "https://commons.wikimedia.org/wiki/Special:Redirect/file/David%20Moyes%202025.jpg?width=1000",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/kfaher1737969724.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/eve/rival-crest.png",
+      "complete": true
+    },
+    "FUL": {
+      "code": "FUL",
+      "name": "Fulham",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/ful/crest.png",
+      "city": "/assets/clubs/2026-27/ful/city.jpg",
+      "stadium": "/assets/clubs/2026-27/ful/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/ful/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/ful/manager.jpg",
+      "managerName": "Álvaro Arbeloa",
+      "homeKit": "/assets/clubs/2026-27/ful/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/ful/away-kit.svg",
+      "rivalName": "Chelsea",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/xwwvyt1448811086.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/London%20Skyline%20(125508655).jpeg?width=1600",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Craven%20Cottage%20stadium%20view.jpg?width=1280",
+        "manager": "https://commons.wikimedia.org/wiki/Special:Redirect/file/%C3%81lvaro%20Arbeloa.jpg?width=1000",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://www.thesportsdb.com/images/media/team/badge/pbf4ul1782638263.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/ful/rival-crest.png",
+      "complete": true
+    },
+    "HUL": {
+      "code": "HUL",
+      "name": "Hull City",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/hul/crest.png",
+      "city": "/assets/clubs/2026-27/hul/city.jpg",
+      "stadium": "/assets/clubs/2026-27/hul/stadium.png",
+      "backdrop": "/assets/clubs/2026-27/hul/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/hul/manager.png",
+      "managerName": "Sergej Jakirović",
+      "homeKit": "/assets/clubs/2026-27/hul/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/hul/away-kit.svg",
+      "rivalName": "Leeds United",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/fbqqda1601726113.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Skyline%20of%20Kingston%20upon%20Hull%20from%20across%20the%20Humber.jpg?width=1280",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Mkm%20stadium.png?width=1280",
+        "manager": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sergej%20Jakirovi%C4%87%202024%20(cropped).png?width=800",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/jcgrml1756649030.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/hul/rival-crest.png",
+      "complete": true
+    },
+    "IPS": {
+      "code": "IPS",
+      "name": "Ipswich Town",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/ips/crest.png",
+      "city": "/assets/clubs/2026-27/ips/city.jpg",
+      "stadium": "/assets/clubs/2026-27/ips/stadium.jpg",
+      "backdrop": null,
+      "manager": "/assets/clubs/2026-27/ips/manager.jpg",
+      "managerName": "Gary O'Neil",
+      "homeKit": "/assets/clubs/2026-27/ips/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/ips/away-kit.svg",
+      "rivalName": "Norwich City",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/mdj1ey1634670785.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Cmglee%20Ipswich%20aerial.jpg?width=1024",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Portman%20Road%20aerial.jpg?width=1280",
+        "manager": "https://commons.wikimedia.org/wiki/Special:Redirect/file/GaryO'NeilWHU.jpg?width=900",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/pabczm1679951464.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/ips/rival-crest.png",
+      "complete": true
+    }
+  },
+  "explicitMediaRepairedAt": "2026-08-03T03:42:19.670Z"
+}

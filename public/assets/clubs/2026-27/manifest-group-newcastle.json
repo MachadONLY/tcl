@@ -1,0 +1,87 @@
+{
+  "pipelineVersion": 14,
+  "season": "2026/27",
+  "generatedAt": "2026-08-03T03:41:23.392Z",
+  "runtimeNetworkRequired": false,
+  "source": "Wikidata P18/P154 media with Wikimedia Commons and TheSportsDB fallbacks",
+  "clubCount": 3,
+  "completeClubCount": 3,
+  "clubs": {
+    "NEW": {
+      "code": "NEW",
+      "name": "Newcastle United",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/new/crest.png",
+      "city": "/assets/clubs/2026-27/new/city.jpg",
+      "stadium": "/assets/clubs/2026-27/new/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/new/stadium.jpg",
+      "manager": null,
+      "managerName": null,
+      "homeKit": "/assets/clubs/2026-27/new/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/new/away-kit.svg",
+      "rivalName": "Sunderland",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/lhwuiz1621593302.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Tyne%20Bridge%20-%20Newcastle%20Upon%20Tyne%20-%20England%20-%202004-08-14.jpg?width=1600",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Newcastle%20st-james-park%20stadium.jpg?width=1800",
+        "manager": "",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/tprtus1448813498.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/new/rival-crest.png",
+      "complete": true
+    },
+    "NFO": {
+      "code": "NFO",
+      "name": "Nottingham Forest",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/nfo/crest.png",
+      "city": "/assets/clubs/2026-27/nfo/city.jpg",
+      "stadium": "/assets/clubs/2026-27/nfo/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/nfo/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/nfo/manager.jpg",
+      "managerName": "Oliver Glasner",
+      "homeKit": "/assets/clubs/2026-27/nfo/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/nfo/away-kit.svg",
+      "rivalName": "Derby County",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/1i2kvh1719918076.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Nottingham%20skyline.jpg?width=1600",
+        "stadium": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/ForestWestHam_2022.jpeg/1920px-ForestWestHam_2022.jpeg",
+        "manager": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Oliver_Glasner30.JPG",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/jioo4z1557155744.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/nfo/rival-crest.png",
+      "complete": true
+    },
+    "TOT": {
+      "code": "TOT",
+      "name": "Tottenham Hotspur",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/tot/crest.png",
+      "city": "/assets/clubs/2026-27/tot/city.jpg",
+      "stadium": "/assets/clubs/2026-27/tot/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/tot/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/tot/manager.png",
+      "managerName": "Roberto De Zerbi",
+      "homeKit": "/assets/clubs/2026-27/tot/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/tot/away-kit.svg",
+      "rivalName": "Arsenal",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/dfyfhl1604094109.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/London%20Skyline.jpg?width=1280",
+        "stadium": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Tottenham_Hotspur_Stadium.jpg/1280px-Tottenham_Hotspur_Stadium.jpg",
+        "manager": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Roberto_De_Zerbi%2C_2019_%28cropped%29.png",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/uyhbfe1612467038.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/tot/rival-crest.png",
+      "complete": true
+    }
+  },
+  "explicitMediaRepairedAt": "2026-08-03T03:41:30.769Z"
+}

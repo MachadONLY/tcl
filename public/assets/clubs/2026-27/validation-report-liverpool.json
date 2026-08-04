@@ -1,0 +1,16 @@
+{
+  "generatedAt": "2026-08-03T03:40:53.328Z",
+  "clubs": [
+    {
+      "code": "LIV",
+      "crest": true,
+      "city": true,
+      "stadium": true,
+      "manager": true,
+      "rival": true,
+      "homeKit": true,
+      "awayKit": true,
+      "complete": true
+    }
+  ]
+}

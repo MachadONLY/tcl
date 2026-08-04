@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-08-03T03:41:33.058Z",
+  "clubs": [
+    {
+      "code": "LEE",
+      "crest": true,
+      "city": true,
+      "stadium": true,
+      "manager": true,
+      "rival": true,
+      "homeKit": true,
+      "awayKit": true,
+      "complete": true
+    },
+    {
+      "code": "MCI",
+      "crest": true,
+      "city": true,
+      "stadium": true,
+      "manager": true,
+      "rival": true,
+      "homeKit": true,
+      "awayKit": true,
+      "complete": true
+    },
+    {
+      "code": "MUN",
+      "crest": true,
+      "city": true,
+      "stadium": true,
+      "manager": true,
+      "rival": true,
+      "homeKit": true,
+      "awayKit": true,
+      "complete": true
+    }
+  ]
+}

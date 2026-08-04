@@ -1,0 +1,16 @@
+{
+  "generatedAt": "2026-08-03T03:41:03.148Z",
+  "clubs": [
+    {
+      "code": "SUN",
+      "crest": true,
+      "city": true,
+      "stadium": true,
+      "manager": true,
+      "rival": true,
+      "homeKit": true,
+      "awayKit": true,
+      "complete": true
+    }
+  ]
+}

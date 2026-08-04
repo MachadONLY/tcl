@@ -1,0 +1,49 @@
+{
+  "generatedAt": "2026-08-03T03:42:33.669Z",
+  "clubs": [
+    {
+      "code": "ARS",
+      "crest": true,
+      "city": true,
+      "stadium": true,
+      "manager": true,
+      "rival": true,
+      "homeKit": true,
+      "awayKit": true,
+      "complete": true
+    },
+    {
+      "code": "AVL",
+      "crest": true,
+      "city": true,
+      "stadium": true,
+      "manager": true,
+      "rival": true,
+      "homeKit": true,
+      "awayKit": true,
+      "complete": true
+    },
+    {
+      "code": "BOU",
+      "crest": true,
+      "city": true,
+      "stadium": true,
+      "manager": true,
+      "rival": true,
+      "homeKit": true,
+      "awayKit": true,
+      "complete": true
+    },
+    {
+      "code": "BRE",
+      "crest": true,
+      "city": true,
+      "stadium": true,
+      "manager": true,
+      "rival": true,
+      "homeKit": true,
+      "awayKit": true,
+      "complete": true
+    }
+  ]
+}

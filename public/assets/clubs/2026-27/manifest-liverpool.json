@@ -1,0 +1,37 @@
+{
+  "pipelineVersion": 14,
+  "season": "2026/27",
+  "generatedAt": "2026-08-03T03:40:51.891Z",
+  "runtimeNetworkRequired": false,
+  "source": "Wikidata P18/P154 media with Wikimedia Commons and TheSportsDB fallbacks",
+  "clubCount": 1,
+  "completeClubCount": 1,
+  "clubs": {
+    "LIV": {
+      "code": "LIV",
+      "name": "Liverpool",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/liv/crest.png",
+      "city": "/assets/clubs/2026-27/liv/city.jpg",
+      "stadium": "/assets/clubs/2026-27/liv/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/liv/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/liv/manager.jpg",
+      "managerName": "Andoni Iraola",
+      "homeKit": "/assets/clubs/2026-27/liv/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/liv/away-kit.svg",
+      "rivalName": "Everton",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/kfaher1737969724.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Liverpool%20Montage.jpg?width=1600",
+        "stadium": "https://upload.wikimedia.org/wikipedia/commons/3/33/Anfield_Stadium.jpg",
+        "manager": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Andoni_Iraola_2023.jpg",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/eqayrf1523184794.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/liv/rival-crest.png",
+      "complete": true
+    }
+  },
+  "explicitMediaRepairedAt": "2026-08-03T03:40:53.328Z"
+}

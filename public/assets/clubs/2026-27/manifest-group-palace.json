@@ -1,0 +1,87 @@
+{
+  "pipelineVersion": 14,
+  "season": "2026/27",
+  "generatedAt": "2026-08-03T03:41:20.667Z",
+  "runtimeNetworkRequired": false,
+  "source": "Wikidata P18/P154 media with Wikimedia Commons and TheSportsDB fallbacks",
+  "clubCount": 3,
+  "completeClubCount": 3,
+  "clubs": {
+    "BHA": {
+      "code": "BHA",
+      "name": "Brighton & Hove Albion",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/bha/crest.png",
+      "city": "/assets/clubs/2026-27/bha/city.jpg",
+      "stadium": "/assets/clubs/2026-27/bha/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/bha/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/bha/manager.jpg",
+      "managerName": "Fabian Hürzeler",
+      "homeKit": "/assets/clubs/2026-27/bha/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/bha/away-kit.svg",
+      "rivalName": "Crystal Palace",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/ywypts1448810904.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Brighton.UK.JPG?width=1600",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Falmer%20Stadium%20-%20night.jpg?width=1800",
+        "manager": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Fabian%20H%C3%BCrzeler%2024012026%20(1).jpg?width=1000",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "league:CRY"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/cry/crest.png",
+      "complete": true
+    },
+    "COV": {
+      "code": "COV",
+      "name": "Coventry City",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/cov/crest.png",
+      "city": "/assets/clubs/2026-27/cov/city.jpg",
+      "stadium": "/assets/clubs/2026-27/cov/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/cov/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/cov/manager.jpg",
+      "managerName": "Frank Lampard",
+      "homeKit": "/assets/clubs/2026-27/cov/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/cov/away-kit.svg",
+      "rivalName": "Leicester City",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/uxyqys1424033798.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Broadgate%20and%20Precincts%20-%20geograph.org.uk%20-%20554599.jpg?width=1600",
+        "stadium": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Coventry_Building_Society_Arena_%28geograph_7345889%29.jpg/960px-Coventry_Building_Society_Arena_%28geograph_7345889%29.jpg",
+        "manager": "https://upload.wikimedia.org/wikipedia/commons/0/05/Frank_lampard.jpg",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "https://r2.thesportsdb.com/images/media/team/badge/xtxwtu1448813356.png"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/cov/rival-crest.png",
+      "complete": true
+    },
+    "CRY": {
+      "code": "CRY",
+      "name": "Crystal Palace",
+      "season": "2026/27",
+      "crest": "/assets/clubs/2026-27/cry/crest.png",
+      "city": "/assets/clubs/2026-27/cry/city.jpg",
+      "stadium": "/assets/clubs/2026-27/cry/stadium.jpg",
+      "backdrop": "/assets/clubs/2026-27/cry/stadium.jpg",
+      "manager": "/assets/clubs/2026-27/cry/manager.jpg",
+      "managerName": "Pierre Sage",
+      "homeKit": "/assets/clubs/2026-27/cry/home-kit.svg",
+      "awayKit": "/assets/clubs/2026-27/cry/away-kit.svg",
+      "rivalName": "Brighton & Hove Albion",
+      "sources": {
+        "crest": "https://r2.thesportsdb.com/images/media/team/badge/ia6i3m1656014992.png",
+        "city": "https://commons.wikimedia.org/wiki/Special:Redirect/file/London%20Skyline.jpg?width=1280",
+        "stadium": "https://commons.wikimedia.org/wiki/Special:Redirect/file/London%20Selhurst%20Park%20crystal%20palace%20stadium%20aerialview.JPG?width=1800",
+        "manager": "https://upload.wikimedia.org/wikipedia/commons/f/f2/Pierre_Sage_lors_d%E2%80%99un_entra%C3%AEnement.jpg",
+        "homeKit": "generated-local-fallback",
+        "awayKit": "generated-local-fallback",
+        "rivalCrest": "league:BHA"
+      },
+      "rivalCrest": "/assets/clubs/2026-27/bha/crest.png",
+      "complete": true
+    }
+  },
+  "explicitMediaRepairedAt": "2026-08-03T03:41:28.050Z"
+}
