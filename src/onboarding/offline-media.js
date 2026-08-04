@@ -71,7 +71,6 @@ export function decodeImage(value) {
 
 export async function decodeClub(entry) {
   await Promise.all(REQUIRED_ROLES.map(role => decodeImage(entry[role])));
-  if (entry.backdrop) await decodeImage(entry.backdrop);
   return entry;
 }
 
@@ -97,7 +96,7 @@ export function mediaStack(role, className = "") {
  */
 export async function stageClubMedia(root, club, entry) {
   const jobs = [
-    ["backdrop", entry.backdrop || entry.stadium, ""],
+    ["backdrop", entry.stadium, ""],
     ["crest", entry.crest, `Escudo do ${club.name}`],
     ["city", entry.city, club.city],
     ["manager", entry.manager, club.manager],
