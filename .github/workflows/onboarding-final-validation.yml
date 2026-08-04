@@ -59,6 +59,9 @@ jobs:
       - name: Capture exact Chelsea media DOM
         run: node tests/onboarding-dom-diagnostic.mjs
 
+      - name: Validate titles tile for all twenty clubs
+        run: node tests/onboarding-titles-visual.mjs
+
       - name: Review all twenty clubs at two desktop sizes
         run: node tests/onboarding-final-visual.mjs
 
