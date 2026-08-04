@@ -1,0 +1,84 @@
+/* v14: manager photo is an independent, full-bleed layer. */
+.onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 {
+  position: relative !important;
+  display: grid !important;
+  grid-template: minmax(0,1fr) 46px / minmax(0,1fr) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #111b25 !important;
+  isolation: isolate;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > .club-manager-photo-v14 {
+  position: relative !important;
+  z-index: 1 !important;
+  grid-area: 1 / 1 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: #17232e !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  background-position: 50% 16% !important;
+  filter: saturate(.94) contrast(1.03) brightness(.92) !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > img,
+.onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > .club-manager-placeholder {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  clip-path: inset(50%) !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > .club-manager-copy-v14 {
+  position: relative !important;
+  z-index: 3 !important;
+  grid-area: 2 / 1 !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 2px !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
+  height: 46px !important;
+  margin: 0 !important;
+  padding: 6px 10px 7px !important;
+  overflow: hidden !important;
+  border-top: 1px solid rgba(255,255,255,.12) !important;
+  background: rgba(2,8,14,.97) !important;
+  box-shadow: 0 -12px 26px rgba(2,8,14,.38) !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 strong {
+  display: block !important;
+  overflow: hidden !important;
+  color: #fff !important;
+  font-size: clamp(11px,.88vw,15px) !important;
+  line-height: 1.04 !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+@media (max-height:780px) and (min-width:981px) {
+  .onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 {
+    grid-template-rows: minmax(0,1fr) 43px !important;
+  }
+
+  .onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > .club-manager-copy-v14 {
+    min-height: 43px !important;
+    height: 43px !important;
+    padding: 5px 8px 6px !important;
+  }
+}
