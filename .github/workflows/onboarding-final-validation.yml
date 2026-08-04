@@ -56,9 +56,6 @@ jobs:
           cat /tmp/touchline-vite.log
           exit 1
 
-      - name: Capture exact Chelsea media DOM
-        run: node tests/onboarding-dom-diagnostic.mjs
-
       - name: Validate titles tile for all twenty clubs
         run: node tests/onboarding-titles-visual.mjs
 
