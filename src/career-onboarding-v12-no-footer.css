@@ -1,0 +1,30 @@
+/* Club selector without the obsolete A/B footer controls. */
+
+.career-club-selection.no-onboarding-footer,
+.career-club-selection.onboarding-premier-v7.no-onboarding-footer {
+  grid-template-rows:
+    clamp(108px, 13.2dvh, 126px)
+    clamp(56px, 6.9dvh, 63px)
+    minmax(0, 1fr) !important;
+}
+
+.career-club-selection .club-selection-controls,
+.career-club-selection > footer,
+.career-club-selection footer:has([data-confirm-club]),
+.career-club-selection footer:has([data-back-welcome]) {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.career-club-selection.no-onboarding-footer .club-selection-details {
+  padding-bottom: clamp(8px, 1.15dvh, 12px) !important;
+}
