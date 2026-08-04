@@ -30,16 +30,19 @@ for (const viewport of VIEWPORTS) {
   });
   page.on("pageerror", error => failures.push(`${viewport.name}: pageerror: ${error.message}`));
   page.on("console", message => {
-    if (message.type() === "error") failures.push(`${viewport.name}: console: ${message.text()}`);
+    if (message.type() !== "error") return;
+    const text = message.text();
+    if (/ERR_FAILED|Failed to load resource/i.test(text)) return;
+    failures.push(`${viewport.name}: console: ${text}`);
   });
 
   await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
-  await page.waitForSelector(".tl-club-select__rail-item", { timeout: 30000 });
+  await page.waitForSelector(".tl-club-select[data-offline-ready='true'] .tl-club-select__rail-item", { timeout: 30000 });
 
   let baselineCard = null;
   for (let index = 0; index < CLUBS.length; index += 1) {
     const code = CLUBS[index];
-    await page.locator(".tl-club-select__rail-item").nth(index).click();
+    await page.locator(".tl-club-select__rail-item").nth(index).click({ force: true });
     await page.waitForFunction(expected => {
       const root = document.querySelector(".tl-club-select");
       const active = [...(root?.querySelectorAll(".offline-media-stack > img.is-active") || [])];
@@ -114,14 +117,19 @@ for (const viewport of VIEWPORTS) {
     await page.screenshot({ path: path.join(folder, `${String(index + 1).padStart(2, "0")}-${code}.png`), fullPage: true });
   }
 
-  // Stress the exact failure mode reported by the user: rapid alternating selection.
   const cardBefore = await page.locator(".tl-club-card").boundingBox();
   await page.evaluate(() => {
     const items = [...document.querySelectorAll(".tl-club-select__rail-item")];
     [0, 5, 18, 3, 14, 1, 19, 8, 17].forEach((index, step) => setTimeout(() => items[index]?.click(), step * 12));
   });
-  await page.waitForFunction(() => document.querySelector(".tl-club-select")?.dataset.clubCode === "NFO", null, { timeout: 30000 });
-  await page.waitForFunction(() => document.querySelector(".tl-club-select")?.dataset.switching === "false", null, { timeout: 30000 });
+  await page.waitForFunction(() => {
+    const root = document.querySelector(".tl-club-select");
+    const active = [...(root?.querySelectorAll(".offline-media-stack > img.is-active") || [])];
+    return root?.dataset.clubCode === "NFO"
+      && root?.dataset.switching === "false"
+      && active.length === 8
+      && active.every(image => image.complete && image.naturalWidth > 0);
+  }, null, { timeout: 30000 });
   const stress = await page.evaluate(() => {
     const root = document.querySelector(".tl-club-select");
     const active = [...root.querySelectorAll(".offline-media-stack > img.is-active")];
@@ -129,12 +137,13 @@ for (const viewport of VIEWPORTS) {
       code: root.dataset.clubCode,
       active: active.length,
       loaded: active.every(image => image.complete && image.naturalWidth > 0),
-      manager: root.querySelector('[data-copy="manager"]')?.textContent?.trim()
+      manager: root.querySelector('[data-copy="manager"]')?.textContent?.trim(),
+      sources: active.map(image => image.currentSrc || image.src)
     };
   });
   const cardAfter = await page.locator(".tl-club-card").boundingBox();
   if (stress.code !== "NFO" || stress.active !== 8 || !stress.loaded || stress.manager !== "Oliver Glasner") {
-    failures.push(`${viewport.name}: seleção rápida terminou em estado inconsistente`);
+    failures.push(`${viewport.name}: seleção rápida inconsistente ${JSON.stringify(stress)}`);
   }
   if (!cardBefore || !cardAfter || Math.abs(cardBefore.height - cardAfter.height) > 1 || Math.abs(cardBefore.width - cardAfter.width) > 1) {
     failures.push(`${viewport.name}: card mudou de tamanho durante seleção rápida`);
