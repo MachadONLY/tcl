@@ -1,3 +1,4 @@
+// The club selector is a packaged game screen: runtime media must stay local.
 const nativeFetch = window.fetch.bind(window);
 const BLOCKED_HOSTS = new Set([
   "www.thesportsdb.com",
