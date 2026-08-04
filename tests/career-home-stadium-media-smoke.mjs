@@ -12,20 +12,21 @@ const clubCodes = [
 ];
 
 assert.equal(Object.keys(STADIUM_EXTENSION_BY_CLUB).length, 20);
-assert.equal(canonicalStadiumAsset('HUL'), '/assets/clubs/2026-27/hul/stadium.png');
+assert.equal(canonicalStadiumAsset('HUL'), '/assets/clubs/2026-27/hul/stadium-custom.svg');
 assert.equal(canonicalStadiumAsset('ARS'), '/assets/clubs/2026-27/ars/stadium.jpg');
 
 for (const code of clubCodes) {
   const candidates = stadiumAssetCandidates(code);
   assert.equal(new Set(candidates).size, candidates.length, `${code} has duplicate candidates`);
-  assert.ok(candidates[0].endsWith(`stadium.${STADIUM_EXTENSION_BY_CLUB[code]}`));
   const localPath = new URL(`../public${candidates[0]}`, import.meta.url);
   await access(localPath);
 }
 
-const [index, controller] = await Promise.all([
+const [index, controller, onboardingMedia, hullSvg] = await Promise.all([
   readFile(new URL('../index.html', import.meta.url), 'utf8'),
-  readFile(new URL('../src/career-home-stadium-media.js', import.meta.url), 'utf8')
+  readFile(new URL('../src/career-home-stadium-media.js', import.meta.url), 'utf8'),
+  readFile(new URL('../src/onboarding/offline-media.js', import.meta.url), 'utf8'),
+  readFile(new URL('../public/assets/clubs/2026-27/hul/stadium-custom.svg', import.meta.url), 'utf8')
 ]);
 
 assert.match(index, /career-home-stadium-media\.js/);
@@ -34,10 +35,16 @@ assert.match(controller, /data-stadium-candidates/);
 assert.match(controller, /window\.addEventListener\('error'/);
 assert.match(controller, /CareerRepository\.load/);
 assert.match(controller, /nextUserFixture/);
+assert.match(onboardingMedia, /HUL:\s*"\/assets\/clubs\/2026-27\/hul\/stadium-custom\.svg"/);
+assert.match(onboardingMedia, /entry\.stadium = stadium/);
+assert.match(onboardingMedia, /entry\.backdrop = stadium/);
+assert.match(hullSvg, /data:image\/webp;base64,/);
+assert.match(hullSvg, /viewBox="0 0 1024 576"/);
 
 console.log(JSON.stringify({
   ok: true,
   clubs: clubCodes.length,
   hullStadium: canonicalStadiumAsset('HUL'),
+  selectorUsesSameAsset: true,
   source: 'home-club fixture'
 }, null, 2));
