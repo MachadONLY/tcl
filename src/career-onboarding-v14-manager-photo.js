@@ -134,8 +134,24 @@ function photoLayer(panel) {
   layer = document.createElement("div");
   layer.className = "club-manager-photo-v14";
   layer.setAttribute("aria-hidden", "true");
-  panel.insertBefore(layer, copyNode(panel) || panel.firstChild);
+  panel.prepend(layer);
   return layer;
+}
+
+function enforceManagerLayout(panel, copy, layer) {
+  panel.classList.add("manager-photo-card-v14");
+
+  if (layer && panel.firstElementChild !== layer) panel.prepend(layer);
+
+  if (copy) {
+    copy.classList.add("club-manager-copy-v5", "club-manager-copy-v14");
+    copy.removeAttribute("style");
+    if (panel.lastElementChild !== copy) panel.append(copy);
+  }
+
+  panel.querySelectorAll(":scope > .club-manager-photo-v14").forEach((node, index) => {
+    if (index > 0) node.remove();
+  });
 }
 
 function applyPhoto(panel, layer, source) {
@@ -150,13 +166,12 @@ function applyPhoto(panel, layer, source) {
 async function renderPhoto(panel) {
   if (!(panel instanceof HTMLElement)) return;
 
-  const name = managerName(panel);
-  const key = normalize(name);
   const copy = copyNode(panel);
   const layer = photoLayer(panel);
+  enforceManagerLayout(panel, copy, layer);
 
-  panel.classList.add("manager-photo-card-v14");
-  copy?.classList.add("club-manager-copy-v5", "club-manager-copy-v14");
+  const name = managerName(panel);
+  const key = normalize(name);
 
   if (!name || /anunciar|a definir|sem tecnico/i.test(key)) {
     layer.style.removeProperty("background-image");
@@ -188,6 +203,7 @@ async function renderPhoto(panel) {
   }
 
   applyPhoto(panel, layer, source);
+  enforceManagerLayout(panel, copyNode(panel), layer);
 }
 
 function repair() {
@@ -219,7 +235,7 @@ observer.observe(document.documentElement, {
   childList: true,
   subtree: true,
   attributes: true,
-  attributeFilter: ["class", "src", "data-local-pack"]
+  attributeFilter: ["class", "src", "style", "data-local-pack"]
 });
 
 document.addEventListener("click", event => {
