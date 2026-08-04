@@ -1,4 +1,5 @@
 const CENTRAL_ENTRY_BYPASS_KEY = "touchline:central-entry-once";
+const LEGACY_CAREER_KEY = "touchline.career.mode.v1";
 
 function allowCentralOnce() {
   try {
@@ -18,9 +19,18 @@ function consumeCentralBypass() {
   }
 }
 
+function hasExistingCareer() {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(LEGACY_CAREER_KEY) || "null");
+    return Boolean(saved?.onboardingComplete && saved?.selectedClubCode);
+  } catch {
+    return false;
+  }
+}
+
 const isBareEntry = !window.location.hash || window.location.hash === "#";
 
-if (isBareEntry && !consumeCentralBypass()) {
+if (isBareEntry && !hasExistingCareer() && !consumeCentralBypass()) {
   window.history.replaceState(
     null,
     "",
