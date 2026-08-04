@@ -22,12 +22,12 @@ for (const code of clubCodes) {
   await access(localPath);
 }
 
-const [index, controller, onboardingMedia, hullDecoder, hullSvg] = await Promise.all([
+const [index, controller, onboardingMedia, hullSvg, imageFix] = await Promise.all([
   readFile(new URL('../index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-home-stadium-media.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/onboarding/offline-media.js', import.meta.url), 'utf8'),
-  readFile(new URL('../src/career-core/hull-stadium-object-url.js', import.meta.url), 'utf8'),
-  readFile(new URL('../public/assets/clubs/2026-27/hul/stadium-custom.svg', import.meta.url), 'utf8')
+  readFile(new URL('../public/assets/clubs/2026-27/hul/stadium-custom.svg', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-home-image-fix.css', import.meta.url), 'utf8')
 ]);
 
 assert.match(index, /career-home-stadium-media\.js/);
@@ -36,21 +36,24 @@ assert.match(controller, /data-stadium-candidates/);
 assert.match(controller, /window\.addEventListener\('error'/);
 assert.match(controller, /CareerRepository\.load/);
 assert.match(controller, /nextUserFixture/);
-assert.match(controller, /hullStadiumObjectUrl/);
+assert.match(controller, /stadium-custom\.svg/);
+assert.match(controller, /career-home-image-fix\.css/);
 assert.match(onboardingMedia, /hullStadiumObjectUrl/);
 assert.match(onboardingMedia, /club\.code === "HUL"/);
 assert.match(onboardingMedia, /role === "stadium"/);
 assert.match(onboardingMedia, /\["backdrop", hullStadium \|\| entry\.stadium/);
-assert.match(hullDecoder, /URL\.createObjectURL/);
-assert.match(hullDecoder, /new Blob\(\[bytes\], \{ type: 'image\/webp' \}\)/);
 assert.match(hullSvg, /data:image\/webp;base64,/);
 assert.match(hullSvg, /viewBox="0 0 1024 576"/);
+assert.match(imageFix, /filter:none!important/);
+assert.match(imageFix, /backdrop-filter:none!important/);
+assert.match(imageFix, /object-fit:cover!important/);
 
 console.log(JSON.stringify({
   ok: true,
   clubs: clubCodes.length,
   hullStadium: canonicalStadiumAsset('HUL'),
-  nativeWebpBlob: true,
+  directImage: true,
+  sharpBackground: true,
   selectorUsesSameAsset: true,
   source: 'home-club fixture'
 }, null, 2));
