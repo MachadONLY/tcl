@@ -1,0 +1,116 @@
+/* Career onboarding v13 — one stable, edge-to-edge manager portrait per card. */
+
+.onboarding-premier-v7 .club-manager-panel.manager-card-standard-v13 {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) 46px !important;
+  align-items: stretch !important;
+  justify-items: stretch !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  isolation: isolate;
+  background: #101923 !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-card-standard-v13 > img.club-manager-image-v13 {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 1 !important;
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  object-fit: cover !important;
+  object-position: 50% 18% !important;
+  background: #17222d !important;
+  filter: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-card-standard-v13 > img:not(.club-manager-image-v13) {
+  display: none !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-card-standard-v13 > .club-manager-placeholder {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  place-self: stretch !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-card-photo-ready-v13 > .club-manager-placeholder {
+  display: none !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-card-standard-v13 > .club-manager-copy-v13 {
+  position: relative !important;
+  z-index: 2 !important;
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  display: grid !important;
+  align-content: center !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
+  height: 46px !important;
+  margin: 0 !important;
+  padding: 6px 10px 7px !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, .1) !important;
+  background: rgba(2, 8, 14, .96) !important;
+  box-shadow: 0 -10px 24px rgba(2, 8, 14, .28) !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-card-standard-v13 .club-data-label {
+  margin: 0 !important;
+  font-size: clamp(7px, .48vw, 9px) !important;
+  line-height: 1 !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-card-standard-v13 strong {
+  display: block !important;
+  min-width: 0 !important;
+  margin: 2px 0 0 !important;
+  overflow: hidden !important;
+  color: #fff !important;
+  font-size: clamp(11px, .88vw, 15px) !important;
+  line-height: 1.04 !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+@media (max-height: 780px) and (min-width: 981px) {
+  .onboarding-premier-v7 .club-manager-panel.manager-card-standard-v13 {
+    grid-template-rows: minmax(0, 1fr) 43px !important;
+  }
+
+  .onboarding-premier-v7 .club-manager-panel.manager-card-standard-v13 > .club-manager-copy-v13 {
+    min-height: 43px !important;
+    height: 43px !important;
+    padding: 5px 8px 6px !important;
+  }
+}
