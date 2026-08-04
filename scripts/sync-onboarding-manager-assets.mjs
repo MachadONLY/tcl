@@ -14,7 +14,11 @@ const MANAGERS = Object.freeze({
   BOU: { name: "Marco Rose", page: "Marco_Rose" },
   BRE: { name: "Keith Andrews", page: "Keith_Andrews_(footballer)" },
   BHA: { name: "Fabian Hürzeler", page: "Fabian_Hürzeler" },
-  CHE: { name: "Xabi Alonso", page: "Xabi_Alonso" },
+  CHE: {
+    name: "Xabi Alonso",
+    page: "Xabi_Alonso",
+    source: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Xabi_Alonso_01.png"
+  },
   COV: { name: "Frank Lampard", page: "Frank_Lampard" },
   CRY: { name: "Pierre Sage", page: "Pierre_Sage" },
   EVE: { name: "David Moyes", page: "David_Moyes" },
@@ -124,8 +128,8 @@ function optimizedUrl(source) {
   url.searchParams.set("q", "86");
   url.searchParams.set("w", "620");
   url.searchParams.set("h", "760");
-  url.searchParams.set("fit", "contain");
-  url.searchParams.set("bg", "transparent");
+  url.searchParams.set("fit", "cover");
+  url.searchParams.set("position", "top");
   return url.toString();
 }
 
@@ -153,7 +157,9 @@ async function syncManager(code, manager, manifest) {
     return;
   }
 
-  const source = await summaryPortrait(manager.page) || await searchPortrait(manager.name);
+  const source = safeUrl(manager.source)
+    || await summaryPortrait(manager.page)
+    || await searchPortrait(manager.name);
   if (!source) {
     log(`  ! ${code}: manager portrait not found`);
     return;
