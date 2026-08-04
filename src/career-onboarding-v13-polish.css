@@ -1,0 +1,74 @@
+/* Final visual polish for the deterministic onboarding cards. */
+
+.onboarding-deterministic-v13 .club-manager-photo-v13 {
+  isolation: isolate;
+  background: #121d27 !important;
+}
+
+.onboarding-deterministic-v13 .club-manager-photo-v13::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  z-index: -2;
+  background:
+    linear-gradient(180deg, rgba(8, 15, 22, .22), rgba(8, 15, 22, .7)),
+    var(--manager-photo) center 28% / cover no-repeat;
+  filter: blur(7px) saturate(.72) brightness(.7);
+  transform: scale(1.08);
+  opacity: .64;
+}
+
+.onboarding-deterministic-v13 .club-manager-photo-v13::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 50% 31%, transparent 16%, rgba(5, 11, 17, .18) 70%),
+    linear-gradient(180deg, rgba(8, 14, 20, .03), rgba(8, 14, 20, .34));
+  pointer-events: none;
+}
+
+.onboarding-deterministic-v13 .club-manager-photo-v13 > img.club-manager-image-v13 {
+  z-index: 1 !important;
+}
+
+.onboarding-deterministic-v13 .club-titles-panel {
+  position: relative !important;
+  display: grid !important;
+  grid-template-rows: auto auto auto !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 5px !important;
+  padding: 10px 8px 9px !important;
+}
+
+.onboarding-deterministic-v13 .club-titles-panel > .club-trophy-v13,
+.onboarding-deterministic-v13 .club-titles-panel > .club-data-label,
+.onboarding-deterministic-v13 .club-titles-panel > strong {
+  position: relative !important;
+  z-index: 2 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.onboarding-deterministic-v13 .club-titles-panel > .club-trophy-v13 {
+  width: clamp(38px, 3vw, 50px) !important;
+  height: clamp(38px, 3vw, 50px) !important;
+  margin: 0 auto 1px !important;
+}
+
+.onboarding-deterministic-v13 .club-titles-panel > .club-data-label {
+  max-width: 100%;
+  text-align: center !important;
+  line-height: 1.08 !important;
+}
+
+.onboarding-deterministic-v13 .club-titles-panel > strong {
+  margin: 0 !important;
+  color: #fff !important;
+  font-size: clamp(27px, 2.1vw, 36px) !important;
+  font-weight: 700 !important;
+  line-height: .9 !important;
+}
