@@ -1,23 +1,22 @@
-/* v14: manager photo is an independent, full-bleed layer. */
+/* v14: manager portrait fills the upper frame; identity sits in a separate bottom bar. */
 .onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 {
   position: relative !important;
-  display: grid !important;
-  grid-template: minmax(0,1fr) 46px / minmax(0,1fr) !important;
+  display: block !important;
   min-width: 0 !important;
   min-height: 0 !important;
   padding: 0 !important;
   overflow: hidden !important;
   background: #111b25 !important;
-  isolation: isolate;
+  isolation: isolate !important;
 }
 
 .onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > .club-manager-photo-v14 {
-  position: relative !important;
+  position: absolute !important;
   z-index: 1 !important;
-  grid-area: 1 / 1 !important;
+  inset: 0 0 50px 0 !important;
   display: block !important;
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
   min-width: 0 !important;
   min-height: 0 !important;
   margin: 0 !important;
@@ -27,6 +26,7 @@
   background-size: cover !important;
   background-position: 50% 16% !important;
   filter: saturate(.94) contrast(1.03) brightness(.92) !important;
+  pointer-events: none !important;
 }
 
 .onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > img,
@@ -41,44 +41,67 @@
   clip-path: inset(50%) !important;
 }
 
-.onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > .club-manager-copy-v14 {
-  position: relative !important;
-  z-index: 3 !important;
-  grid-area: 2 / 1 !important;
+.onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > .club-manager-copy-v14,
+.onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > div:last-child {
+  position: absolute !important;
+  z-index: 4 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  top: auto !important;
   display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
   align-content: center !important;
+  justify-items: start !important;
   gap: 2px !important;
   box-sizing: border-box !important;
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 46px !important;
-  height: 46px !important;
+  min-height: 50px !important;
+  height: 50px !important;
   margin: 0 !important;
-  padding: 6px 10px 7px !important;
+  padding: 7px 10px 8px !important;
   overflow: hidden !important;
+  border: 0 !important;
   border-top: 1px solid rgba(255,255,255,.12) !important;
-  background: rgba(2,8,14,.97) !important;
-  box-shadow: 0 -12px 26px rgba(2,8,14,.38) !important;
+  background: #02080e !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 .club-data-label {
+  display: block !important;
+  margin: 0 !important;
+  color: rgba(255,255,255,.58) !important;
+  font-size: clamp(7px,.48vw,9px) !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
 }
 
 .onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 strong {
   display: block !important;
+  max-width: 100% !important;
+  margin: 1px 0 0 !important;
   overflow: hidden !important;
   color: #fff !important;
   font-size: clamp(11px,.88vw,15px) !important;
+  font-weight: 750 !important;
   line-height: 1.04 !important;
   white-space: nowrap !important;
   text-overflow: ellipsis !important;
 }
 
 @media (max-height:780px) and (min-width:981px) {
-  .onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 {
-    grid-template-rows: minmax(0,1fr) 43px !important;
+  .onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > .club-manager-photo-v14 {
+    bottom: 46px !important;
   }
 
-  .onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > .club-manager-copy-v14 {
-    min-height: 43px !important;
-    height: 43px !important;
-    padding: 5px 8px 6px !important;
+  .onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > .club-manager-copy-v14,
+  .onboarding-premier-v7 .club-manager-panel.manager-photo-card-v14 > div:last-child {
+    min-height: 46px !important;
+    height: 46px !important;
+    padding: 6px 8px 7px !important;
   }
 }
