@@ -5,7 +5,9 @@ const REQUIRED_ROLES = Object.freeze([
   "crest", "city", "stadium", "manager", "homeKit", "awayKit", "rivalCrest"
 ]);
 const decodeCache = new Map();
+const prewarmedClubs = new Set();
 let manifestPromise;
+let prewarmGeneration = 0;
 
 function normalize(value) {
   return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -51,7 +53,7 @@ export function decodeImage(value) {
     const image = new Image();
     image.decoding = "async";
     image.onload = async () => {
-      try { await image.decode?.(); } catch { /* onload confirms a renderable image */ }
+      try { await image.decode?.(); } catch { /* onload already confirms a renderable image */ }
       if (image.naturalWidth > 0 && image.naturalHeight > 0) resolve(source);
       else reject(new Error(`imagem vazia: ${source}`));
     };
@@ -80,39 +82,6 @@ function dimensions(role) {
   return [1280, 720];
 }
 
-async function stageOne(root, role, source, alt, initial) {
-  const stack = root.querySelector(`[data-media="${role}"]`);
-  if (!stack) throw new Error(`pilha de mídia ausente: ${role}`);
-
-  const activeIndex = Number(stack.dataset.active || 0);
-  const nextIndex = initial ? activeIndex : activeIndex ^ 1;
-  const images = stack.querySelectorAll(":scope > img");
-  const current = images[activeIndex];
-  const next = images[nextIndex];
-  const [width, height] = dimensions(role);
-  const absolute = new URL(source, location.href).href;
-
-  next.alt = alt || "";
-  next.width = width;
-  next.height = height;
-  next.fetchPriority = role === "crest" || role === "manager" ? "high" : "auto";
-  if (next.src !== absolute) next.src = source;
-
-  if (!(next.complete && next.naturalWidth > 0 && next.naturalHeight > 0)) {
-    try { await next.decode(); }
-    catch {
-      await new Promise((resolve, reject) => {
-        next.addEventListener("load", resolve, { once: true });
-        next.addEventListener("error", () => reject(new Error(`falha ao decodificar ${source}`)), { once: true });
-      });
-    }
-  }
-  if (next.naturalWidth <= 0 || next.naturalHeight <= 0) {
-    throw new Error(`imagem sem dimensões: ${source}`);
-  }
-  return { stack, current, next, nextIndex };
-}
-
 export function mediaStack(role, className = "") {
   return `<span class="offline-media-stack ${className}" data-media="${role}" data-active="0" aria-hidden="true">
     <img alt="" decoding="async" draggable="false" />
@@ -120,7 +89,13 @@ export function mediaStack(role, className = "") {
   </span>`;
 }
 
-export async function stageClubMedia(root, club, entry, initial = false) {
+/*
+ * Decode everything in detached Image instances first. The visible DOM is only
+ * touched by activateMedia after the controller confirms this is still the
+ * latest selection. This prevents stale async requests from replacing a newer
+ * club's active portrait, crest or stadium.
+ */
+export async function stageClubMedia(root, club, entry) {
   const jobs = [
     ["backdrop", entry.backdrop || entry.stadium, ""],
     ["crest", entry.crest, `Escudo do ${club.name}`],
@@ -130,33 +105,64 @@ export async function stageClubMedia(root, club, entry, initial = false) {
     ["homeKit", entry.homeKit, `Uniforme principal do ${club.name}`],
     ["awayKit", entry.awayKit, `Uniforme reserva do ${club.name}`],
     ["rivalCrest", entry.rivalCrest, `Escudo do ${club.rival}`]
-  ];
-  return Promise.all(jobs.map(args => stageOne(root, ...args, initial)));
+  ].map(([role, source, alt]) => ({ role, source: localAsset(source), alt }));
+
+  await Promise.all(jobs.map(job => decodeImage(job.source)));
+  return { root, jobs };
 }
 
 export function activateMedia(staged) {
-  for (const { stack, current, next, nextIndex } of staged) {
+  const { root, jobs } = staged;
+  for (const { role, source, alt } of jobs) {
+    const stack = root.querySelector(`[data-media="${role}"]`);
+    if (!stack) throw new Error(`pilha de mídia ausente: ${role}`);
+
+    const images = stack.querySelectorAll(":scope > img");
+    const activeIndex = Number(stack.dataset.active || 0);
+    const nextIndex = activeIndex ^ 1;
+    const current = images[activeIndex];
+    const next = images[nextIndex];
+    const [width, height] = dimensions(role);
+
+    next.alt = alt || "";
+    next.width = width;
+    next.height = height;
+    next.fetchPriority = role === "crest" || role === "manager" ? "high" : "auto";
+    next.src = source;
     next.classList.add("is-active");
-    if (current && current !== next) current.classList.remove("is-active");
+    current?.classList.remove("is-active");
     stack.dataset.active = String(nextIndex);
   }
 }
 
 function idle(callback) {
-  if ("requestIdleCallback" in window) window.requestIdleCallback(callback, { timeout: 1200 });
-  else window.setTimeout(callback, 120);
+  if ("requestIdleCallback" in window) window.requestIdleCallback(callback, { timeout: 900 });
+  else window.setTimeout(() => callback({ didTimeout: true, timeRemaining: () => 0 }), 80);
 }
 
+/* Warm nearby clubs first, then one club per idle slice to avoid startup jank. */
 export function prewarm(manifest, selectedIndex) {
-  idle(async () => {
-    const ordered = CLUBS.map((club, index) => ({
-      club,
-      distance: Math.min(Math.abs(index - selectedIndex), CLUBS.length - Math.abs(index - selectedIndex))
-    })).sort((a, b) => a.distance - b.distance);
+  const generation = ++prewarmGeneration;
+  const ordered = CLUBS.map((club, index) => ({
+    club,
+    distance: Math.min(Math.abs(index - selectedIndex), CLUBS.length - Math.abs(index - selectedIndex))
+  })).sort((a, b) => a.distance - b.distance);
+  let cursor = 0;
 
-    for (const { club } of ordered) {
-      try { await decodeClub(manifest.clubs[club.code]); } catch { /* visible selection reports errors */ }
-      await new Promise(resolve => window.setTimeout(resolve, 0));
+  const pump = () => idle(async () => {
+    if (generation !== prewarmGeneration) return;
+    while (cursor < ordered.length && prewarmedClubs.has(ordered[cursor].club.code)) cursor += 1;
+    if (cursor >= ordered.length) return;
+
+    const club = ordered[cursor++].club;
+    try {
+      await decodeClub(manifest.clubs[club.code]);
+      prewarmedClubs.add(club.code);
+    } catch {
+      /* The visible selection reports actionable media errors. */
     }
+    if (cursor < ordered.length) pump();
   });
+
+  pump();
 }
