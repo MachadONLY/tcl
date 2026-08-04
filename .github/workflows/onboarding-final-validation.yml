@@ -4,41 +4,18 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "public/assets/clubs/2026-27/**"
       - "src/career-onboarding*"
-      - "scripts/sync-onboarding*"
       - "scripts/ensure-onboarding-pack.mjs"
-      - "scripts/apply-onboarding-explicit-media.mjs"
       - "tests/onboarding-final*"
       - "index.html"
       - "package.json"
       - ".github/workflows/onboarding-final-validation.yml"
 
 jobs:
-  media-shards:
-    name: Media ${{ matrix.shard }}
+  validate-onboarding:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        include:
-          - shard: group-arsenal
-            clubs: ARS,AVL,BOU,BRE
-          - shard: group-palace
-            clubs: BHA,COV,CRY
-          - shard: chelsea
-            clubs: CHE
-          - shard: group-everton
-            clubs: EVE,FUL,HUL,IPS
-          - shard: group-manchester
-            clubs: LEE,MCI,MUN
-          - shard: liverpool
-            clubs: LIV
-          - shard: group-newcastle
-            clubs: NEW,NFO,TOT
-          - shard: sunderland
-            clubs: SUN
 
     steps:
       - name: Checkout
@@ -53,57 +30,11 @@ jobs:
       - name: Install project
         run: npm ci
 
-      - name: Build isolated offline media shard
-        shell: bash
+      - name: Verify committed offline media for twenty clubs
         run: |
-          node scripts/run-onboarding-media-shard.mjs \
-            --clubs="${{ matrix.clubs }}" \
-            --shard="${{ matrix.shard }}" \
-            --force || true
-
-          node scripts/apply-onboarding-explicit-media.mjs \
-            --clubs="${{ matrix.clubs }}" \
-            --shard="${{ matrix.shard }}"
-
-      - name: Upload media shard
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: onboarding-media-${{ matrix.shard }}
-          path: public/assets/clubs/2026-27
-          if-no-files-found: error
-          retention-days: 7
-
-  validate-onboarding:
-    needs: media-shards
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install project
-        run: npm ci
-
-      - name: Download all verified club media shards
-        uses: actions/download-artifact@v4
-        with:
-          pattern: onboarding-media-*
-          path: public/assets/clubs/2026-27
-          merge-multiple: true
-
-      - name: Finalize and statically verify twenty clubs
-        run: |
-          node scripts/merge-onboarding-media-shards.mjs
           node scripts/ensure-onboarding-pack.mjs
           node tests/onboarding-final-media-integrity.mjs
+          git diff --exit-code -- public/assets/clubs/2026-27
 
       - name: Production build
         run: npm run build
@@ -125,7 +56,7 @@ jobs:
           cat /tmp/touchline-vite.log
           exit 1
 
-      - name: Review every Premier League club in Chromium at two desktop sizes
+      - name: Review all twenty clubs at two desktop sizes
         run: node tests/onboarding-final-visual.mjs
 
       - name: Upload forty-screen visual review
@@ -137,7 +68,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-      - name: Upload complete offline club pack
+      - name: Upload verified offline pack
         if: always()
         uses: actions/upload-artifact@v4
         with:
