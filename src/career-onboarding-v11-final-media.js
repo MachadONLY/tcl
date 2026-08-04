@@ -39,6 +39,12 @@ function selectedCode(root) {
   return root?.querySelector(".club-rail-item.selected span")?.textContent?.trim().toUpperCase() || "";
 }
 
+function localCrest(code) {
+  return CLUB_ORDER.includes(code)
+    ? `/assets/clubs/2026-27/${code.toLowerCase()}/crest.png`
+    : "";
+}
+
 function canonicalCrest(code) {
   const id = CREST_IDS[code];
   return id ? `https://crests.football-data.org/${id}.png` : "";
@@ -73,6 +79,8 @@ async function firstValid(sources) {
 
 function setReadyImage(image, source, alt = "") {
   if (!(image instanceof HTMLImageElement) || !source) return;
+
+  const absoluteSource = new URL(source, window.location.href).href;
   image.alt = alt;
   image.decoding = "async";
   image.loading = "eager";
@@ -86,7 +94,8 @@ function setReadyImage(image, source, alt = "") {
     if (!image.isConnected) return;
     image.dataset.mediaReady = "false";
   };
-  image.src = source;
+
+  if (image.src !== absoluteSource) image.src = source;
   if (image.complete && image.naturalWidth > 0) image.onload();
 }
 
@@ -99,6 +108,7 @@ async function repairRail(root, clubs, version) {
     if (!code || !(image instanceof HTMLImageElement)) return;
 
     const source = await firstValid([
+      localCrest(code),
       clubs?.[code]?.crest,
       image.currentSrc,
       image.src,
@@ -113,27 +123,47 @@ async function repairRail(root, clubs, version) {
 function ensureMainBadge(details, code) {
   const panel = details?.querySelector(".club-badge-panel");
   if (!panel) return null;
+
   let image = panel.querySelector(":scope > img");
   if (!image) {
     image = document.createElement("img");
     const title = panel.querySelector("h2");
     panel.insertBefore(image, title || panel.firstChild);
   }
+
   image.classList.add("club-badge-image-v11");
   image.fetchPriority = "high";
   return image;
 }
 
+function paintMainBadgeImmediately(root, details, code) {
+  const image = ensureMainBadge(details, code);
+  const rail = root?.querySelector(".club-rail-item.selected img");
+  if (!image) return;
+
+  const railSource = rail?.currentSrc || rail?.src || "";
+  if (rail instanceof HTMLImageElement && rail.complete && rail.naturalWidth > 0 && railSource) {
+    setReadyImage(image, railSource, `Escudo do ${details.querySelector(".club-badge-panel h2")?.textContent?.trim() || code}`);
+    image.dataset.mediaReady = "true";
+    return;
+  }
+
+  setReadyImage(image, localCrest(code), `Escudo do ${details.querySelector(".club-badge-panel h2")?.textContent?.trim() || code}`);
+}
+
 async function repairMainBadge(root, details, code, entry, version) {
   const image = ensureMainBadge(details, code);
   if (!image) return;
+
   const rail = root.querySelector(".club-rail-item.selected img");
   const source = await firstValid([
+    localCrest(code),
     entry?.crest,
     rail?.currentSrc,
     rail?.src,
     canonicalCrest(code)
   ]);
+
   if (!source || version !== renderVersion || !image.isConnected || selectedCode(root) !== code) return;
   setReadyImage(image, source, `Escudo do ${details.querySelector(".club-badge-panel h2")?.textContent?.trim() || code}`);
 }
@@ -218,7 +248,9 @@ async function repairRival(root, details, code, entry, clubs, version) {
   const rivalCode = RIVALS[code];
   const source = await firstValid([
     entry?.rivalCrest,
+    rivalCode ? `/assets/clubs/2026-27/${code.toLowerCase()}/rival-crest.png` : "",
     rivalCode ? clubs?.[rivalCode]?.crest : "",
+    rivalCode ? localCrest(rivalCode) : "",
     rivalCode ? canonicalCrest(rivalCode) : ""
   ]);
   if (!source || version !== renderVersion || !image?.isConnected || selectedCode(root) !== code) {
@@ -255,6 +287,8 @@ async function renderCurrentClub({ refresh = false } = {}) {
   const details = root?.querySelector("[data-club-details]");
   const code = selectedCode(root);
   if (!root || !details || !CLUB_ORDER.includes(code)) return;
+
+  paintMainBadgeImmediately(root, details, code);
 
   const version = ++renderVersion;
   const manifest = await loadManifest(refresh);
@@ -300,8 +334,8 @@ const observer = new MutationObserver(mutations => {
       return mutation.target instanceof Element && mutation.target.matches(".club-rail-item, [data-club-details]");
     }
     return [...mutation.addedNodes].some(node => node instanceof Element && (
-      node.matches?.(".career-club-selection, [data-club-details], .club-manager-panel, .club-rival-panel")
-      || node.querySelector?.(".career-club-selection, [data-club-details], .club-manager-panel, .club-rival-panel")
+      node.matches?.(".career-club-selection, [data-club-details], .club-manager-panel, .club-rival-panel, .club-badge-panel")
+      || node.querySelector?.(".career-club-selection, [data-club-details], .club-manager-panel, .club-rival-panel, .club-badge-panel")
     ));
   });
   if (relevant) scheduleRender();
