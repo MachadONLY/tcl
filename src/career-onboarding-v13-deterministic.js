@@ -43,6 +43,10 @@ function isLocalAsset(source) {
   }
 }
 
+function cssImage(source) {
+  return isLocalAsset(source) ? `url("${source}")` : "none";
+}
+
 function prepareImage(image, source, alt, priority = "auto") {
   if (!(image instanceof HTMLImageElement) || !isLocalAsset(source)) return false;
 
@@ -117,6 +121,7 @@ function paintManager(details, entry) {
     media.className = "club-manager-photo-v13";
     panel.insertBefore(media, copy || panel.firstChild);
   }
+  media.style.setProperty("--manager-photo", cssImage(entry.manager));
 
   let image = media.querySelector(":scope > img.club-manager-image-v13");
   if (!image) {
@@ -131,7 +136,7 @@ function paintManager(details, entry) {
 
 function setBackground(element, property, source) {
   if (!(element instanceof HTMLElement) || !isLocalAsset(source)) return;
-  const value = `url("${source}")`;
+  const value = cssImage(source);
   if (element.style.getPropertyValue(property) !== value) element.style.setProperty(property, value);
 }
 
@@ -147,12 +152,7 @@ function paintLocationAndStadium(details, entry) {
   setBackground(background, "--club-background", entry.backdrop || entry.stadium);
 }
 
-function paintTrophy(details) {
-  const panel = details.querySelector(".club-titles-panel");
-  if (!panel) return;
-  panel.querySelectorAll(":scope > .club-trophy-media-v5").forEach(node => node.remove());
-  if (panel.querySelector(":scope > .club-trophy-v13")) return;
-
+function trophyMarkup() {
   const media = document.createElement("div");
   media.className = "club-trophy-v13";
   media.setAttribute("aria-hidden", "true");
@@ -163,8 +163,34 @@ function paintTrophy(details) {
     <path d="M29 37h6v10h-6zM21 48h22v7H21z" fill="url(#cup-v13)"/>
     <path d="M25 8V4h14v4" fill="none" stroke="#f0c62d" stroke-width="3"/>
   </svg>`;
-  const label = panel.querySelector(".club-data-label");
-  panel.insertBefore(media, label || panel.firstChild);
+  return media;
+}
+
+function paintTrophy(details) {
+  const panel = details.querySelector(".club-titles-panel");
+  if (!panel) return;
+
+  const count = panel.dataset.titlesCountV13
+    || panel.querySelector(":scope > strong")?.textContent?.trim()
+    || "0";
+
+  if (panel.dataset.titlesReadyV13 === "true"
+    && panel.querySelector(":scope > .club-trophy-v13")
+    && panel.querySelector(":scope > .club-data-label")
+    && panel.querySelector(":scope > strong")) {
+    return;
+  }
+
+  const label = document.createElement("span");
+  label.className = "club-data-label";
+  label.textContent = "TÍTULOS NACIONAIS";
+
+  const value = document.createElement("strong");
+  value.textContent = count;
+
+  panel.replaceChildren(trophyMarkup(), label, value);
+  panel.dataset.titlesCountV13 = count;
+  panel.dataset.titlesReadyV13 = "true";
 }
 
 function paintKits(details, entry) {
