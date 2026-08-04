@@ -30,15 +30,18 @@ for (const viewport of VIEWPORTS) {
     const controls = document.querySelector(".tl-club-select__controls");
     const box = node => {
       const rect = node?.getBoundingClientRect();
-      return rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
+      return rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height, right: rect.right, bottom: rect.bottom } : null;
     };
+    const railBox = box(rail);
+    const cardBox = box(card);
     return {
       code: root?.dataset.clubCode,
       root: box(root),
-      card: box(card),
+      card: cardBox,
       header: box(header),
-      rail: box(rail),
+      rail: railBox,
       stage: box(stage),
+      panelGap: railBox && cardBox ? cardBox.y - railBox.bottom : null,
       scrollX: window.scrollX,
       scrollY: window.scrollY,
       documentWidth: document.documentElement.scrollWidth,
@@ -59,6 +62,9 @@ for (const viewport of VIEWPORTS) {
     }
     if (state.controlsDisplay !== "none" && state.controlsDisplay !== "absent") {
       failures.push(`${viewport.name} ${label}: controles inferiores ainda visíveis`);
+    }
+    if (state.panelGap === null || Math.abs(state.panelGap) > 0.6) {
+      failures.push(`${viewport.name} ${label}: gap entre barra e painel = ${state.panelGap}px`);
     }
     for (const key of stableKeys) {
       const before = roundedBox(baseline[key]);
@@ -100,4 +106,4 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("Static selector frame passed for 20/20 clubs at two desktop sizes; no scroll, no geometry drift, no footer controls.");
+console.log("Static selector frame passed for 20/20 clubs at two desktop sizes; no scroll, no geometry drift, no panel gap, no footer controls.");
