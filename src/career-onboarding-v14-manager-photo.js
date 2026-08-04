@@ -12,7 +12,7 @@ const MANAGER_PAGES = Object.freeze({
   "david moyes": "David_Moyes",
   "alvaro arbeloa": "Álvaro_Arbeloa",
   "sergej jakirovic": "Sergej_Jakirović",
-  "gary oneil": "Gary_O'Neil",
+  "gary o neil": "Gary_O'Neil",
   "daniel farke": "Daniel_Farke",
   "andoni iraola": "Andoni_Iraola",
   "enzo maresca": "Enzo_Maresca",
@@ -20,6 +20,11 @@ const MANAGER_PAGES = Object.freeze({
   "oliver glasner": "Oliver_Glasner",
   "regis le bris": "Régis_Le_Bris",
   "roberto de zerbi": "Roberto_De_Zerbi"
+});
+
+const DIRECT_PHOTOS = Object.freeze({
+  "xabi alonso": "https://upload.wikimedia.org/wikipedia/commons/b/b6/Los_Caminos_del_f%C3%BAtbol._Xabi_Alonso_%2839666778464%29_%28cropped%29.jpg",
+  "pierre sage": "https://upload.wikimedia.org/wikipedia/commons/d/db/Pierre_Sage_en_2024.jpg"
 });
 
 const photoPromises = new Map();
@@ -112,6 +117,8 @@ function remotePhoto(name) {
   const key = normalize(name);
   if (photoPromises.has(key)) return photoPromises.get(key);
   const pending = (async () => {
+    const direct = DIRECT_PHOTOS[key];
+    if (direct && await canLoad(direct)) return direct;
     const page = MANAGER_PAGES[key] || name.replace(/\s+/g, "_");
     const summary = await summaryPhoto(page);
     if (summary && await canLoad(summary)) return summary;
@@ -129,6 +136,15 @@ function photoLayer(panel) {
   layer.setAttribute("aria-hidden", "true");
   panel.insertBefore(layer, copyNode(panel) || panel.firstChild);
   return layer;
+}
+
+function applyPhoto(panel, layer, source) {
+  if (!source) return false;
+  layer.style.backgroundImage = `url("${String(source).replaceAll('"', "%22")}")`;
+  panel.classList.add("manager-photo-ready-v14");
+  panel.dataset.managerPhotoState = "ready";
+  panel.dataset.managerPhotoSource = source;
+  return true;
 }
 
 async function renderPhoto(panel) {
@@ -149,27 +165,29 @@ async function renderPhoto(panel) {
     return;
   }
 
+  const pinned = DIRECT_PHOTOS[key];
+  if (pinned) applyPhoto(panel, layer, pinned);
+
   if (panel.dataset.managerPhotoName === key && panel.classList.contains("manager-photo-ready-v14")) return;
 
   const requestId = `${key}:${Date.now()}:${Math.random()}`;
   panel.dataset.managerPhotoRequest = requestId;
   panel.dataset.managerPhotoName = key;
-  panel.dataset.managerPhotoState = "loading";
-  panel.classList.remove("manager-photo-ready-v14");
+  if (!pinned) {
+    panel.dataset.managerPhotoState = "loading";
+    panel.classList.remove("manager-photo-ready-v14");
+  }
 
   const existing = [...panel.querySelectorAll(":scope > img")].map(sourceOf).filter(validSource);
   const source = await firstWorking(existing) || await remotePhoto(name);
 
   if (!panel.isConnected || panel.dataset.managerPhotoRequest !== requestId) return;
   if (!source) {
-    panel.dataset.managerPhotoState = "failed";
+    if (!pinned) panel.dataset.managerPhotoState = "failed";
     return;
   }
 
-  layer.style.backgroundImage = `url("${String(source).replaceAll('"', "%22")}")`;
-  panel.classList.add("manager-photo-ready-v14");
-  panel.dataset.managerPhotoState = "ready";
-  panel.dataset.managerPhotoSource = source;
+  applyPhoto(panel, layer, source);
 }
 
 function repair() {
