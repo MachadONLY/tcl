@@ -3,6 +3,8 @@ name: Install offline onboarding v16
 on:
   push:
     branches: [fix/offline-club-switch-v16]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
@@ -22,9 +24,11 @@ jobs:
           rm -rf bootstrap/offline-v16
           rm -f .github/workflows/bootstrap-v16.yml
       - name: Commit architecture rebuild
+        env:
+          TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
           git config user.name "touchline-ci"
           git config user.email "actions@users.noreply.github.com"
           git add -A
           git commit -m "refactor: install deterministic offline onboarding"
-          git push origin HEAD:${GITHUB_REF_NAME}
+          git push origin HEAD:${TARGET_BRANCH}
