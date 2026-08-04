@@ -32,7 +32,7 @@ function assertEntry(club, entry) {
 
 export function loadManifest() {
   if (manifestPromise) return manifestPromise;
-  manifestPromise = fetch(MANIFEST_URL, { cache: "force-cache" })
+  manifestPromise = fetch(MANIFEST_URL, { cache: "no-cache" })
     .then(response => {
       if (!response.ok) throw new Error(`manifest HTTP ${response.status}`);
       return response.json();
@@ -54,7 +54,7 @@ export function decodeImage(value) {
     const image = new Image();
     image.decoding = "async";
     image.onload = async () => {
-      try { await image.decode?.(); } catch { /* onload already confirms a renderable image */ }
+      try { await image.decode?.(); } catch { /* onload confirms renderability */ }
       if (image.naturalWidth > 0 && image.naturalHeight > 0) resolve(source);
       else reject(new Error(`imagem vazia: ${source}`));
     };
@@ -72,6 +72,7 @@ export function decodeImage(value) {
 
 export async function decodeClub(entry) {
   await Promise.all(REQUIRED_ROLES.map(role => decodeImage(entry[role])));
+  if (entry.backdrop) await decodeImage(entry.backdrop);
   return entry;
 }
 
@@ -83,70 +84,57 @@ function dimensions(role) {
 }
 
 export function mediaStack(role, className = "") {
-  return `<span class="offline-media-stack ${className}" data-media="${role}" data-active="0" aria-hidden="true">
-    <img alt="" decoding="async" draggable="false" />
-    <img alt="" decoding="async" draggable="false" />
-  </span>`;
+  return `<span class="offline-media-stack ${className}" data-media="${role}" aria-hidden="true"></span>`;
 }
 
-function awaitElementDecode(image, source) {
-  const absolute = new URL(source, location.href).href;
-  if (image.src !== absolute) image.src = source;
-  if (image.complete && image.naturalWidth > 0 && image.naturalHeight > 0) {
-    return image.decode?.().catch(() => undefined) || Promise.resolve();
-  }
-  return new Promise((resolve, reject) => {
-    const loaded = async () => {
-      cleanup();
-      try { await image.decode?.(); } catch { /* load already confirms renderability */ }
-      image.naturalWidth > 0 ? resolve() : reject(new Error(`imagem vazia: ${source}`));
-    };
-    const failed = () => {
-      cleanup();
-      reject(new Error(`imagem inválida: ${source}`));
-    };
-    const cleanup = () => {
-      image.removeEventListener("load", loaded);
-      image.removeEventListener("error", failed);
-    };
-    image.addEventListener("load", loaded, { once: true });
-    image.addEventListener("error", failed, { once: true });
-  });
-}
-
-async function prepareStack(root, job, token) {
-  const stack = root.querySelector(`[data-media="${job.role}"]`);
-  if (!stack) throw new Error(`pilha de mídia ausente: ${job.role}`);
-
-  const images = stack.querySelectorAll(":scope > img");
-  const activeIndex = Number(stack.dataset.active || 0);
-  const nextIndex = activeIndex ^ 1;
-  const current = images[activeIndex];
-  const next = images[nextIndex];
+async function prepareDetachedImage(job, token) {
+  const image = new Image();
   const [width, height] = dimensions(job.role);
 
-  next.dataset.stageToken = token;
-  next.alt = job.alt || "";
-  next.width = width;
-  next.height = height;
-  next.fetchPriority = job.role === "crest" || job.role === "manager" ? "high" : "auto";
-  await awaitElementDecode(next, job.source);
+  image.alt = job.alt || "";
+  image.width = width;
+  image.height = height;
+  image.decoding = "async";
+  image.draggable = false;
+  image.fetchPriority = job.role === "crest" || job.role === "manager" ? "high" : "auto";
+  image.dataset.stageToken = token;
+  image.dataset.mediaRole = job.role;
+  image.src = job.source;
 
-  const absolute = new URL(job.source, location.href).href;
-  if (next.dataset.stageToken !== token || next.src !== absolute) {
-    throw new DOMException("staging superseded", "AbortError");
+  if (!(image.complete && image.naturalWidth > 0 && image.naturalHeight > 0)) {
+    await new Promise((resolve, reject) => {
+      const loaded = () => {
+        cleanup();
+        resolve();
+      };
+      const failed = () => {
+        cleanup();
+        reject(new Error(`imagem inválida: ${job.source}`));
+      };
+      const cleanup = () => {
+        image.removeEventListener("load", loaded);
+        image.removeEventListener("error", failed);
+      };
+      image.addEventListener("load", loaded, { once: true });
+      image.addEventListener("error", failed, { once: true });
+    });
   }
-  return { stack, current, next, nextIndex, token };
+
+  try { await image.decode?.(); } catch { /* load already confirmed renderability */ }
+  if (image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+    throw new Error(`imagem vazia: ${job.source}`);
+  }
+  return image;
 }
 
 /*
- * Each selection first decodes detached images, then prepares only the hidden
- * half of every fixed-size media stack. A newer selection can supersede that
- * hidden buffer safely; only a fully decoded, still-current set is activated.
+ * Every selection owns a completely detached image batch. Concurrent clicks
+ * never share or overwrite a hidden DOM slot. Only the controller's latest,
+ * fully decoded batch is committed to the visible stacks.
  */
 export async function stageClubMedia(root, club, entry) {
   const jobs = [
-    ["backdrop", entry.stadium, ""],
+    ["backdrop", entry.backdrop || entry.stadium, ""],
     ["crest", entry.crest, `Escudo do ${club.name}`],
     ["city", entry.city, club.city],
     ["manager", entry.manager, club.manager],
@@ -156,23 +144,49 @@ export async function stageClubMedia(root, club, entry) {
     ["rivalCrest", entry.rivalCrest, `Escudo do ${club.rival}`]
   ].map(([role, source, alt]) => ({ role, source: localAsset(source), alt }));
 
-  await Promise.all(jobs.map(job => decodeImage(job.source)));
+  for (const job of jobs) {
+    if (!job.source) throw new Error(`${club.code}.${job.role} não local`);
+  }
+
   const token = `${club.code}-${++stageSequence}`;
-  const prepared = await Promise.all(jobs.map(job => prepareStack(root, job, token)));
-  return { root, prepared, token };
+  const prepared = await Promise.all(jobs.map(async job => {
+    const stack = root.querySelector(`[data-media="${job.role}"]`);
+    if (!stack) throw new Error(`pilha de mídia ausente: ${job.role}`);
+    const image = await prepareDetachedImage(job, token);
+    return { stack, image, role: job.role, source: job.source, token };
+  }));
+
+  return { root, clubCode: club.code, prepared, token };
 }
 
 export function activateMedia(staged) {
-  for (const { stack, current, next, nextIndex, token } of staged.prepared) {
-    if (next.dataset.stageToken !== token || !next.complete || next.naturalWidth <= 0) {
+  if (!staged?.root?.isConnected) throw new DOMException("root detached", "AbortError");
+
+  for (const item of staged.prepared) {
+    const { image, role, source, token } = item;
+    if (token !== staged.token || image.dataset.stageToken !== staged.token) {
       throw new DOMException("staging superseded", "AbortError");
     }
+    if (!image.complete || image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+      throw new Error(`imagem não decodificada: ${role} ${source}`);
+    }
   }
-  for (const { stack, current, next, nextIndex } of staged.prepared) {
-    next.classList.add("is-active");
-    current?.classList.remove("is-active");
-    stack.dataset.active = String(nextIndex);
+
+  const previous = [];
+  for (const { stack, image } of staged.prepared) {
+    previous.push(...stack.querySelectorAll(":scope > img"));
+    image.classList.add("is-active");
+    stack.append(image);
   }
+
+  for (const oldImage of previous) oldImage.classList.remove("is-active");
+  staged.root.dataset.mediaClubCode = staged.clubCode;
+
+  window.setTimeout(() => {
+    for (const oldImage of previous) {
+      if (!oldImage.classList.contains("is-active")) oldImage.remove();
+    }
+  }, 120);
 }
 
 function idle(callback) {
@@ -199,7 +213,7 @@ export function prewarm(manifest, selectedIndex) {
       await decodeClub(manifest.clubs[club.code]);
       prewarmedClubs.add(club.code);
     } catch {
-      /* The visible selection reports actionable media errors. */
+      /* Visible selection reports actionable media errors. */
     }
     if (cursor < ordered.length) pump();
   });
