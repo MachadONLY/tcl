@@ -2,13 +2,75 @@
 
 .career-club-selection.onboarding-premier-v7 {
   grid-template-rows:
-    clamp(108px, 13.2dvh, 126px)
-    clamp(56px, 6.9dvh, 63px)
+    clamp(82px, 10.2dvh, 98px)
+    clamp(52px, 6.35dvh, 58px)
     minmax(0, 1fr) !important;
 }
 
 .onboarding-premier-v7 .club-selection-controls {
   display: none !important;
+}
+
+/* Compact editorial header: keep the full screen inside the browser viewport. */
+.onboarding-premier-v7 .club-selection-header {
+  gap: clamp(20px, 2.4vw, 38px) !important;
+  padding: clamp(10px, 1.7dvh, 15px) 2px clamp(7px, 1.05dvh, 10px) !important;
+}
+
+.onboarding-premier-v7 .club-selection-header > div:first-child > span {
+  margin-bottom: 5px !important;
+  font-size: clamp(7px, .49vw, 9px) !important;
+  letter-spacing: .2em !important;
+}
+
+.onboarding-premier-v7 .club-selection-header h1 {
+  font-size: clamp(31px, 2.42vw, 43px) !important;
+  line-height: .88 !important;
+  letter-spacing: -.022em !important;
+}
+
+.onboarding-premier-v7 .club-selection-header p {
+  margin-top: 7px !important;
+  font-size: clamp(10px, .72vw, 12px) !important;
+  line-height: 1.05 !important;
+}
+
+.onboarding-premier-v7 .club-season-badge {
+  min-width: 116px !important;
+  gap: 3px !important;
+  padding: 7px 12px 7px 18px !important;
+}
+
+.onboarding-premier-v7 .club-season-badge span {
+  font-size: 6px !important;
+}
+
+.onboarding-premier-v7 .club-season-badge strong {
+  font-size: clamp(22px, 1.62vw, 28px) !important;
+}
+
+.onboarding-premier-v7 .club-selection-details {
+  padding: clamp(6px, .85dvh, 8px) 0 clamp(7px, 1dvh, 9px) !important;
+}
+
+/* The primary crest is a first-class element, not an optional media state. */
+.onboarding-premier-v7 .club-badge-panel > img.club-badge-image-v11,
+.onboarding-premier-v7 .club-badge-panel > img[data-media-ready="true"] {
+  display: block !important;
+  grid-row: 1 !important;
+  align-self: center !important;
+  justify-self: center !important;
+  width: min(205px, 66%) !important;
+  height: min(190px, 70%) !important;
+  max-width: 66% !important;
+  max-height: 70% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  filter: drop-shadow(0 17px 22px rgba(0, 0, 0, .29)) !important;
 }
 
 .onboarding-premier-v7 .club-identity-card,
@@ -153,6 +215,23 @@
 }
 
 @media (max-width: 1280px), (max-height: 760px) {
+  .career-club-selection.onboarding-premier-v7 {
+    grid-template-rows: 78px 50px minmax(0, 1fr) !important;
+  }
+
+  .onboarding-premier-v7 .club-selection-header {
+    padding: 8px 2px 6px !important;
+  }
+
+  .onboarding-premier-v7 .club-selection-header h1 {
+    font-size: clamp(29px, 2.5vw, 38px) !important;
+  }
+
+  .onboarding-premier-v7 .club-selection-header p {
+    margin-top: 5px !important;
+    font-size: 10px !important;
+  }
+
   .onboarding-premier-v7 .club-identity-card,
   .onboarding-premier-v7 .club-details-v5 .club-identity-card {
     grid-template-rows: minmax(0, 41%) minmax(0, 34%) minmax(0, 25%) !important;
