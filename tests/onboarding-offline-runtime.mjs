@@ -40,8 +40,12 @@ if (!media.includes("decodeImage") || !media.includes("stageClubMedia") || !medi
   fail("pipeline atômico de mídia ausente");
 }
 if (!media.includes("activeIndex ^ 1") || !media.includes("offline-media-stack")) fail("double buffer de imagens ausente");
-if (!/await Promise\.all\(jobs\.map\(job => decodeImage\(job\.source\)\)\)/.test(media)) fail("mídias não são decodificadas antes do commit");
-if (/stageClubMedia[\s\S]*?\.src\s*=/.test(media.split("export function activateMedia")[0])) fail("stageClubMedia altera o DOM visível");
+if (!/await Promise\.all\(jobs\.map\(job => decodeImage\(job\.source\)\)\)/.test(media)) fail("mídias não são decodificadas antes do staging");
+if (!media.includes("prepareStack") || !media.includes("awaitElementDecode")) fail("buffer oculto não é preparado e decodificado");
+if (!media.includes("next.dataset.stageToken !== token") || !media.includes("staging superseded")) fail("proteção contra corrida de seleção ausente");
+if (!/export function activateMedia[\s\S]*next\.complete[\s\S]*next\.classList\.add\("is-active"\)/.test(media)) {
+  fail("buffer pode ser ativado antes da decodificação");
+}
 if (!media.includes("one club per idle slice") || !media.includes("prewarmedClubs")) fail("prewarm progressivo ausente");
 
 const geometryChecks = [
