@@ -2,6 +2,7 @@ import { CLUB_BY_CODE } from './career-core/season-2026-27.js';
 import { nextUserFixture } from './career-core/career-core.js';
 import { CareerRepository } from './career-core/career-repository.js';
 import { stadiumAssetCandidates } from './career-core/stadium-assets.js';
+import { hullStadiumObjectUrl } from './career-core/hull-stadium-object-url.js';
 
 const app = document.querySelector('#app');
 const imageState = new WeakMap();
@@ -42,6 +43,18 @@ function handleImageError(event) {
   useCandidate(image, state.index + 1);
 }
 
+async function candidatesForClub(clubCode) {
+  const standard = stadiumAssetCandidates(clubCode);
+  if (clubCode !== 'HUL') return standard;
+
+  try {
+    const objectUrl = await hullStadiumObjectUrl();
+    return [objectUrl, ...standard.filter(candidate => !candidate.endsWith('/stadium-custom.svg'))];
+  } catch {
+    return standard;
+  }
+}
+
 async function refreshHomeStadium() {
   refreshQueued = false;
   if (!isCareerHome()) return;
@@ -59,7 +72,9 @@ async function refreshHomeStadium() {
   const homeClub = CLUB_BY_CODE.get(fixture.home);
   if (!homeClub) return;
 
-  const candidates = stadiumAssetCandidates(homeClub.code);
+  const candidates = await candidatesForClub(homeClub.code);
+  if (version !== refreshVersion || !image.isConnected || !isCareerHome()) return;
+
   installFallbackCycle(image, candidates);
   image.dataset.venueClub = homeClub.code;
   image.alt = homeClub.stadium || homeClub.name;
