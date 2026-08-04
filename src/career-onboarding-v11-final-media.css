@@ -1,5 +1,16 @@
 /* Touchline onboarding v11 — final deterministic media layout. */
 
+.career-club-selection.onboarding-premier-v7 {
+  grid-template-rows:
+    clamp(108px, 13.2dvh, 126px)
+    clamp(56px, 6.9dvh, 63px)
+    minmax(0, 1fr) !important;
+}
+
+.onboarding-premier-v7 .club-selection-controls {
+  display: none !important;
+}
+
 .onboarding-premier-v7 .club-identity-card,
 .onboarding-premier-v7 .club-details-v5 .club-identity-card {
   grid-template-rows: minmax(0, 42%) minmax(0, 33%) minmax(0, 25%) !important;
