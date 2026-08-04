@@ -1,7 +1,10 @@
 import "./career-onboarding-v13-manager-card.css";
 
 const MANAGER_FALLBACKS = Object.freeze({
-  CHE: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Xabi_Alonso_01.png"
+  CHE: {
+    source: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Xabi_Alonso_01.png",
+    localMarker: "/assets/clubs/2026-27/che/manager.webp?portrait=2"
+  }
 });
 
 let scheduledFrame = 0;
@@ -47,15 +50,25 @@ function preferredManagerImage(panel) {
   return images.sort((a, b) => sourceScore(b) - sourceScore(a))[0] || null;
 }
 
-function fallbackManagerImage(panel) {
-  const source = MANAGER_FALLBACKS[selectedClubCode()];
-  if (!source) return null;
-
+function createManagerImage(panel) {
   const image = document.createElement("img");
-  image.src = source;
-  image.dataset.managerFallback = "true";
   const copy = managerCopy(panel);
   panel.insertBefore(image, copy || panel.firstChild);
+  return image;
+}
+
+function resolvedManagerImage(panel) {
+  const fallback = MANAGER_FALLBACKS[selectedClubCode()];
+  let image = preferredManagerImage(panel);
+
+  if (!fallback) return image;
+
+  const currentSource = sourceValue(image);
+  if (currentSource.includes(fallback.localMarker)) return image;
+
+  if (!image) image = createManagerImage(panel);
+  if (sourceValue(image) !== fallback.source) image.src = fallback.source;
+  image.dataset.managerFallback = "true";
   return image;
 }
 
@@ -65,9 +78,7 @@ function normalizeManagerPanel(panel) {
   const copy = managerCopy(panel);
   if (copy) copy.classList.add("club-manager-copy-v5", "club-manager-copy-v13");
 
-  let keeper = preferredManagerImage(panel);
-  if (!keeper) keeper = fallbackManagerImage(panel);
-
+  const keeper = resolvedManagerImage(panel);
   panel.classList.add("manager-card-standard-v13");
 
   if (!keeper || !validImageSource(sourceValue(keeper))) {
