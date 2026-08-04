@@ -9,8 +9,8 @@ const CLUBS = Object.freeze([
 let manifestPromise = null;
 let renderFrame = 0;
 let renderVersion = 0;
-let retryOne = 0;
-let retryTwo = 0;
+let retryTimer = 0;
+const prewarmed = new Set();
 
 function selectedCode(root) {
   return root?.querySelector(".club-rail-item.selected span")?.textContent?.trim().toUpperCase() || "";
@@ -45,13 +45,20 @@ function isLocalAsset(source) {
 
 function prepareImage(image, source, alt, priority = "auto") {
   if (!(image instanceof HTMLImageElement) || !isLocalAsset(source)) return false;
+
+  const absolute = new URL(source, window.location.href).href;
   image.alt = alt;
   image.decoding = "async";
   image.loading = "eager";
   image.fetchPriority = priority;
   image.removeAttribute("referrerpolicy");
-  image.dataset.mediaReady = "false";
 
+  if (image.src === absolute && image.complete && image.naturalWidth > 0 && image.naturalHeight > 0) {
+    image.dataset.mediaReady = "true";
+    return true;
+  }
+
+  image.dataset.mediaReady = "false";
   image.onload = () => {
     if (!image.isConnected) return;
     image.dataset.mediaReady = image.naturalWidth > 0 && image.naturalHeight > 0 ? "true" : "false";
@@ -61,7 +68,6 @@ function prepareImage(image, source, alt, priority = "auto") {
     image.dataset.mediaReady = "false";
   };
 
-  const absolute = new URL(source, window.location.href).href;
   if (image.src !== absolute) image.src = source;
   if (image.complete && image.naturalWidth > 0) image.onload();
   return true;
@@ -125,7 +131,8 @@ function paintManager(details, entry) {
 
 function setBackground(element, property, source) {
   if (!(element instanceof HTMLElement) || !isLocalAsset(source)) return;
-  element.style.setProperty(property, `url("${source}")`);
+  const value = `url("${source}")`;
+  if (element.style.getPropertyValue(property) !== value) element.style.setProperty(property, value);
 }
 
 function paintLocationAndStadium(details, entry) {
@@ -143,7 +150,9 @@ function paintLocationAndStadium(details, entry) {
 function paintTrophy(details) {
   const panel = details.querySelector(".club-titles-panel");
   if (!panel) return;
-  panel.querySelectorAll(":scope > .club-trophy-media-v5, :scope > .club-trophy-v13").forEach(node => node.remove());
+  panel.querySelectorAll(":scope > .club-trophy-media-v5").forEach(node => node.remove());
+  if (panel.querySelector(":scope > .club-trophy-v13")) return;
+
   const media = document.createElement("div");
   media.className = "club-trophy-v13";
   media.setAttribute("aria-hidden", "true");
@@ -161,12 +170,24 @@ function paintTrophy(details) {
 function paintKits(details, entry) {
   const sources = [entry.homeKit, entry.awayKit];
   const labels = ["CASA", "FORA"];
+
   [...details.querySelectorAll(".club-kit-slot")].slice(0, 2).forEach((slot, index) => {
-    const image = document.createElement("img");
-    image.className = "club-kit-image club-kit-image-v13";
-    const caption = document.createElement("small");
+    slot.querySelectorAll(":scope > .club-kit-fallback, :scope > img:not(.club-kit-image-v13)").forEach(node => node.remove());
+
+    let image = slot.querySelector(":scope > img.club-kit-image-v13");
+    if (!image) {
+      image = document.createElement("img");
+      image.className = "club-kit-image club-kit-image-v13";
+      slot.prepend(image);
+    }
+
+    let caption = slot.querySelector(":scope > small");
+    if (!caption) {
+      caption = document.createElement("small");
+      slot.append(caption);
+    }
     caption.textContent = labels[index];
-    slot.replaceChildren(image, caption);
+
     slot.classList.add("has-kit-image", "has-local-kit");
     slot.classList.remove("club-kit-missing", "club-kit-loading", "has-procedural-kit");
     prepareImage(image, sources[index], `Uniforme ${labels[index].toLowerCase()} 2026/27`, "high");
@@ -176,12 +197,16 @@ function paintKits(details, entry) {
 function paintRival(details, entry) {
   const panel = details.querySelector(".club-rival-panel");
   if (!panel) return;
-  panel.querySelectorAll(":scope > img").forEach(image => image.remove());
-  panel.querySelectorAll(":scope > .club-rival-symbol").forEach(symbol => symbol.remove());
+
+  panel.querySelectorAll(":scope > .club-rival-symbol, :scope > img:not(.club-rival-image-v13)").forEach(node => node.remove());
   const name = panel.querySelector("strong");
-  const image = document.createElement("img");
-  image.className = "club-rival-image-v13";
-  panel.insertBefore(image, name || null);
+  let image = panel.querySelector(":scope > img.club-rival-image-v13");
+  if (!image) {
+    image = document.createElement("img");
+    image.className = "club-rival-image-v13";
+    panel.insertBefore(image, name || null);
+  }
+
   prepareImage(image, entry.rivalCrest, `${entry.rivalName || name?.textContent?.trim() || "Rival"} crest`, "high");
 }
 
@@ -190,6 +215,10 @@ function removeFooter(root) {
 }
 
 function prewarm(entry) {
+  const key = entry.code || entry.name;
+  if (prewarmed.has(key)) return;
+  prewarmed.add(key);
+
   [entry.crest, entry.city, entry.stadium, entry.manager, entry.homeKit, entry.awayKit, entry.rivalCrest]
     .filter(isLocalAsset)
     .forEach(source => {
@@ -238,11 +267,9 @@ async function renderCurrent({ refresh = false } = {}) {
 
 function scheduleRender() {
   cancelAnimationFrame(renderFrame);
-  window.clearTimeout(retryOne);
-  window.clearTimeout(retryTwo);
+  window.clearTimeout(retryTimer);
   renderFrame = requestAnimationFrame(() => requestAnimationFrame(() => renderCurrent()));
-  retryOne = window.setTimeout(() => renderCurrent(), 120);
-  retryTwo = window.setTimeout(() => renderCurrent({ refresh: true }), 420);
+  retryTimer = window.setTimeout(() => renderCurrent(), 220);
 }
 
 const observer = new MutationObserver(mutations => {
