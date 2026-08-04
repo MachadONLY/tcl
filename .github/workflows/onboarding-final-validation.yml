@@ -7,7 +7,7 @@ on:
       - "public/assets/clubs/2026-27/**"
       - "src/career-onboarding*"
       - "scripts/ensure-onboarding-pack.mjs"
-      - "tests/onboarding-final*"
+      - "tests/onboarding-*"
       - "index.html"
       - "package.json"
       - ".github/workflows/onboarding-final-validation.yml"
@@ -55,6 +55,9 @@ jobs:
           done
           cat /tmp/touchline-vite.log
           exit 1
+
+      - name: Capture exact Chelsea media DOM
+        run: node tests/onboarding-dom-diagnostic.mjs
 
       - name: Review all twenty clubs at two desktop sizes
         run: node tests/onboarding-final-visual.mjs
