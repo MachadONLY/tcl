@@ -9,7 +9,6 @@ permissions:
 
 jobs:
   install:
-    if: ${{ hashFiles('bootstrap/offline-v16/chunk-*') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,6 +16,7 @@ jobs:
           fetch-depth: 0
       - name: Reconstruct reviewed source payload
         run: |
+          test -f bootstrap/offline-v16/chunk-000
           cat bootstrap/offline-v16/chunk-* | base64 --decode > /tmp/offline-v16.tar.gz
           tar -xzf /tmp/offline-v16.tar.gz -C .
           rm -rf bootstrap/offline-v16
