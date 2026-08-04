@@ -22,10 +22,11 @@ for (const code of clubCodes) {
   await access(localPath);
 }
 
-const [index, controller, onboardingMedia, hullSvg] = await Promise.all([
+const [index, controller, onboardingMedia, hullDecoder, hullSvg] = await Promise.all([
   readFile(new URL('../index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-home-stadium-media.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/onboarding/offline-media.js', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-core/hull-stadium-object-url.js', import.meta.url), 'utf8'),
   readFile(new URL('../public/assets/clubs/2026-27/hul/stadium-custom.svg', import.meta.url), 'utf8')
 ]);
 
@@ -35,9 +36,13 @@ assert.match(controller, /data-stadium-candidates/);
 assert.match(controller, /window\.addEventListener\('error'/);
 assert.match(controller, /CareerRepository\.load/);
 assert.match(controller, /nextUserFixture/);
-assert.match(onboardingMedia, /HUL:\s*"\/assets\/clubs\/2026-27\/hul\/stadium-custom\.svg"/);
-assert.match(onboardingMedia, /entry\.stadium = stadium/);
-assert.match(onboardingMedia, /entry\.backdrop = stadium/);
+assert.match(controller, /hullStadiumObjectUrl/);
+assert.match(onboardingMedia, /hullStadiumObjectUrl/);
+assert.match(onboardingMedia, /club\.code === "HUL"/);
+assert.match(onboardingMedia, /role === "stadium"/);
+assert.match(onboardingMedia, /\["backdrop", hullStadium \|\| entry\.stadium/);
+assert.match(hullDecoder, /URL\.createObjectURL/);
+assert.match(hullDecoder, /new Blob\(\[bytes\], \{ type: 'image\/webp' \}\)/);
 assert.match(hullSvg, /data:image\/webp;base64,/);
 assert.match(hullSvg, /viewBox="0 0 1024 576"/);
 
@@ -45,6 +50,7 @@ console.log(JSON.stringify({
   ok: true,
   clubs: clubCodes.length,
   hullStadium: canonicalStadiumAsset('HUL'),
+  nativeWebpBlob: true,
   selectorUsesSameAsset: true,
   source: 'home-club fixture'
 }, null, 2));
