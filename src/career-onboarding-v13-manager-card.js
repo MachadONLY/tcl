@@ -1,5 +1,9 @@
 import "./career-onboarding-v13-manager-card.css";
 
+const MANAGER_FALLBACKS = Object.freeze({
+  CHE: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Xabi_Alonso_01.png"
+});
+
 let scheduledFrame = 0;
 let delayedRepairOne = 0;
 let delayedRepairTwo = 0;
@@ -8,29 +12,51 @@ function managerCopy(panel) {
   return panel?.querySelector(":scope > .club-manager-copy-v5, :scope > div:last-child") || null;
 }
 
+function selectedClubCode() {
+  return document.querySelector(".club-rail-item.selected span")?.textContent?.trim().toUpperCase() || "";
+}
+
 function sourceValue(image) {
   if (!(image instanceof HTMLImageElement)) return "";
   return image.currentSrc || image.src || image.getAttribute("src") || "";
 }
 
+function validImageSource(source) {
+  const value = String(source || "").trim();
+  return /^(?:https?:|blob:|data:image\/|\/assets\/)/i.test(value);
+}
+
 function sourceScore(image) {
   const source = sourceValue(image);
-  let score = 0;
+  if (!validImageSource(source)) return Number.NEGATIVE_INFINITY;
 
+  let score = 0;
   if (source.startsWith(`${location.origin}/assets/clubs/`) || source.startsWith("/assets/clubs/")) score += 1000;
   if (image.dataset.localPackSource || image.dataset.localPackAsset === "true") score += 700;
   if (image.classList.contains("club-manager-image-v9")) score += 400;
   if (image.classList.contains("club-manager-image")) score += 250;
   if (image.complete && image.naturalWidth > 0 && image.naturalHeight > 0) score += 150;
   score += Math.min(120, Math.round((image.naturalWidth || 0) * (image.naturalHeight || 0) / 10000));
-
   return score;
 }
 
 function preferredManagerImage(panel) {
-  const images = [...panel.querySelectorAll("img")];
+  const images = [...panel.querySelectorAll("img")]
+    .filter(image => validImageSource(sourceValue(image)));
   if (!images.length) return null;
   return images.sort((a, b) => sourceScore(b) - sourceScore(a))[0] || null;
+}
+
+function fallbackManagerImage(panel) {
+  const source = MANAGER_FALLBACKS[selectedClubCode()];
+  if (!source) return null;
+
+  const image = document.createElement("img");
+  image.src = source;
+  image.dataset.managerFallback = "true";
+  const copy = managerCopy(panel);
+  panel.insertBefore(image, copy || panel.firstChild);
+  return image;
 }
 
 function normalizeManagerPanel(panel) {
@@ -39,20 +65,19 @@ function normalizeManagerPanel(panel) {
   const copy = managerCopy(panel);
   if (copy) copy.classList.add("club-manager-copy-v5", "club-manager-copy-v13");
 
-  const keeper = preferredManagerImage(panel);
-  if (!keeper) {
+  let keeper = preferredManagerImage(panel);
+  if (!keeper) keeper = fallbackManagerImage(panel);
+
+  panel.classList.add("manager-card-standard-v13");
+
+  if (!keeper || !validImageSource(sourceValue(keeper))) {
     panel.classList.remove("manager-card-photo-ready-v13");
-    panel.classList.add("manager-card-standard-v13");
     return;
   }
-
-  const preferredSource = sourceValue(keeper);
 
   [...panel.querySelectorAll("img")].forEach(image => {
     if (image !== keeper) image.remove();
   });
-
-  if (preferredSource && sourceValue(keeper) !== preferredSource) keeper.src = preferredSource;
 
   keeper.classList.add(
     "club-manager-image",
@@ -72,7 +97,20 @@ function normalizeManagerPanel(panel) {
   if (copy && keeper.nextElementSibling !== copy) panel.insertBefore(keeper, copy);
   else if (!copy && keeper !== panel.firstElementChild) panel.prepend(keeper);
 
-  panel.classList.add("manager-card-standard-v13", "manager-card-photo-ready-v13");
+  const markReady = () => {
+    if (!keeper.isConnected || keeper.naturalWidth <= 0 || keeper.naturalHeight <= 0) return;
+    panel.classList.add("manager-card-photo-ready-v13");
+    panel.dataset.managerPhotoReady = "true";
+  };
+
+  keeper.addEventListener("load", markReady, { once: true });
+  keeper.addEventListener("error", () => {
+    if (!keeper.isConnected) return;
+    panel.classList.remove("manager-card-photo-ready-v13");
+    panel.dataset.managerPhotoReady = "false";
+  }, { once: true });
+
+  if (keeper.complete && keeper.naturalWidth > 0) markReady();
 }
 
 function repairManagerCards() {
