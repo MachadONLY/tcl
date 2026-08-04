@@ -5,6 +5,7 @@ import path from "node:path";
 const ROOT = process.cwd();
 const OUTPUT_ROOT = path.join(ROOT, "public", "assets", "clubs", "2026-27");
 const MANIFEST_PATH = path.join(OUTPUT_ROOT, "manifest.json");
+const MANAGER_ASSET_VERSION = "2";
 const FORCE = process.argv.includes("--force");
 const CLUB_FILTER = process.argv.find(value => value.startsWith("--club="))?.split("=")[1]?.toUpperCase() || null;
 
@@ -129,7 +130,6 @@ function optimizedUrl(source) {
   url.searchParams.set("w", "620");
   url.searchParams.set("h", "760");
   url.searchParams.set("fit", "cover");
-  url.searchParams.set("position", "top");
   return url.toString();
 }
 
@@ -152,12 +152,13 @@ async function syncManager(code, manager, manifest) {
   const destination = path.join(directory, "manager.webp");
   await mkdir(directory, { recursive: true });
 
-  if (!FORCE && entry.manager && await existingFile(destination)) {
+  const pinnedSource = safeUrl(manager.source);
+  if (!FORCE && !pinnedSource && entry.manager && await existingFile(destination)) {
     entry.managerName = manager.name;
     return;
   }
 
-  const source = safeUrl(manager.source)
+  const source = pinnedSource
     || await summaryPortrait(manager.page)
     || await searchPortrait(manager.name);
   if (!source) {
@@ -166,7 +167,7 @@ async function syncManager(code, manager, manifest) {
   }
 
   await savePortrait(source, destination);
-  entry.manager = `/assets/clubs/2026-27/${code.toLowerCase()}/manager.webp`;
+  entry.manager = `/assets/clubs/2026-27/${code.toLowerCase()}/manager.webp?portrait=${MANAGER_ASSET_VERSION}`;
   entry.managerName = manager.name;
   entry.sources ||= {};
   entry.sources.manager = source;
