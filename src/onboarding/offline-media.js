@@ -134,7 +134,7 @@ async function prepareDetachedImage(job, token) {
  */
 export async function stageClubMedia(root, club, entry) {
   const jobs = [
-    ["backdrop", entry.backdrop || entry.stadium, ""],
+    ["backdrop", entry.stadium, ""],
     ["crest", entry.crest, `Escudo do ${club.name}`],
     ["city", entry.city, club.city],
     ["manager", entry.manager, club.manager],
@@ -174,7 +174,9 @@ export function activateMedia(staged) {
 
   const previous = [];
   for (const { stack, image } of staged.prepared) {
-    previous.push(...stack.querySelectorAll(":scope > img"));
+    for (const stale of stack.querySelectorAll(":scope > img:not(.is-active)")) stale.remove();
+    const current = stack.querySelector(":scope > img.is-active");
+    if (current) previous.push(current);
     image.classList.add("is-active");
     stack.append(image);
   }
