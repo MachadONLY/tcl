@@ -56,6 +56,9 @@ jobs:
           cat /tmp/touchline-vite.log
           exit 1
 
+      - name: Validate exact club-to-media switching
+        run: node tests/onboarding-club-switch-integrity.mjs
+
       - name: Validate titles tile for all twenty clubs
         run: node tests/onboarding-titles-visual.mjs
 
