@@ -28,7 +28,7 @@ body.touchline-onboarding-mode #app {
 }
 
 .tl-club-select {
-  grid-template-rows: 102px 58px minmax(0, 1fr) !important;
+  grid-template-rows: 102px 52px minmax(0, 1fr) !important;
   width: 100% !important;
   height: 100vh !important;
   min-height: 0 !important;
@@ -47,6 +47,7 @@ body.touchline-onboarding-mode #app {
 
 .tl-club-select__stage {
   align-self: stretch;
+  padding-top: 0 !important;
   contain: layout paint size;
 }
 
@@ -57,7 +58,7 @@ body.touchline-onboarding-mode #app {
 
 @media (max-height: 820px) {
   .tl-club-select {
-    grid-template-rows: 82px 50px minmax(0, 1fr) !important;
+    grid-template-rows: 82px 46px minmax(0, 1fr) !important;
     min-height: 0 !important;
     padding-bottom: 10px !important;
   }
