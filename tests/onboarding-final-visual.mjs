@@ -125,6 +125,8 @@ for (const viewport of VIEWPORTS) {
       const managerMediaRatio = managerBox && managerMediaBox && managerBox.height > 0
         ? managerMediaBox.height / managerBox.height
         : 0;
+      const managerBottomAligned = managerStyle.objectPosition.includes("bottom")
+        || managerStyle.objectPosition.includes("100%");
 
       return {
         selected: root?.querySelector(".club-rail-item.selected span")?.textContent?.trim(),
@@ -135,7 +137,7 @@ for (const viewport of VIEWPORTS) {
         badgeReady: Boolean(badge?.naturalWidth) && localAsset(badge.currentSrc || badge.src) && badgeBox.width >= 54 && inside(badgeBox, badgePanelBox),
         managerReady: managerImages.length === 1 && Boolean(managerImage?.naturalWidth) && localAsset(managerImage.currentSrc || managerImage.src),
         managerUncropped: managerStyle.objectFit === "contain"
-          && managerStyle.objectPosition.includes("bottom")
+          && managerBottomAligned
           && managerWidthRatio >= .98
           && managerMediaRatio >= .72
           && inside(managerImageBox, managerMediaBox)
