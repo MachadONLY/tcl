@@ -36,16 +36,23 @@ if (!controller.includes('import "./career-club-selector.css"')) fail("seletor n
 if (/career-onboarding-v7-premier\.css|career-onboarding-offline\.css/.test(controller)) fail("CSS legado ainda carregado");
 if (/details\.innerHTML|club-selection-details[^\n]*innerHTML/.test(controller + view)) fail("painel é recriado durante a troca");
 
-if (!media.includes("decodeImage") || !media.includes("stageClubMedia") || !media.includes("activateMedia")) {
-  fail("pipeline atômico de mídia ausente");
+if (!media.includes("prepareDetachedImage") || !media.includes("stageClubMedia") || !media.includes("activateMedia")) {
+  fail("pipeline isolado de mídia ausente");
 }
-if (!media.includes("activeIndex ^ 1") || !media.includes("offline-media-stack")) fail("double buffer de imagens ausente");
-if (!/await Promise\.all\(jobs\.map\(job => decodeImage\(job\.source\)\)\)/.test(media)) fail("mídias não são decodificadas antes do staging");
-if (!media.includes("prepareStack") || !media.includes("awaitElementDecode")) fail("buffer oculto não é preparado e decodificado");
-if (!media.includes("next.dataset.stageToken !== token") || !media.includes("staging superseded")) fail("proteção contra corrida de seleção ausente");
-if (!/export function activateMedia[\s\S]*next\.complete[\s\S]*next\.classList\.add\("is-active"\)/.test(media)) {
-  fail("buffer pode ser ativado antes da decodificação");
+if (!media.includes("completely detached image batch") || !media.includes("stack.append(image)")) {
+  fail("lotes isolados por seleção ausentes");
 }
+if (!media.includes("mediaClubCode") || !controller.includes("requestedClubCode")) {
+  fail("rastreio de clube textual e visual ausente");
+}
+if (!controller.includes("committedIndex") || !controller.includes("selectedIndex = committedIndex")) {
+  fail("rollback de seleção inválida ausente");
+}
+if (controller.includes("requestAnimationFrame(() =>") && controller.includes("commitClub(root, club, staged)")) {
+  fail("commit ainda possui janela de corrida entre staging e frame");
+}
+const stageBody = media.slice(media.indexOf("export async function stageClubMedia"), media.indexOf("export function activateMedia"));
+if (/\.append\(|classList\.|\.remove\(/.test(stageBody)) fail("stageClubMedia altera o DOM visível");
 if (!media.includes("one club per idle slice") || !media.includes("prewarmedClubs")) fail("prewarm progressivo ausente");
 
 const geometryChecks = [
@@ -99,4 +106,4 @@ if (normalize(sun.managerName) !== "regis le bris") fail("Sunderland sem Régis 
 if (!/\/sun\/manager\.webp$/i.test(sun.manager)) fail(`Sunderland usa arquivo incorreto: ${sun.manager}`);
 if (total > 60 * 1024 * 1024) fail(`pack pesado: ${(total / 1024 / 1024).toFixed(1)} MB`);
 
-process.stdout.write(`Club selector OK: 20 clubes, mídia local, geometria estável, ${(total / 1024 / 1024).toFixed(1)} MB\n`);
+process.stdout.write(`Club selector OK: 20 clubes, lotes isolados, mídia local, ${(total / 1024 / 1024).toFixed(1)} MB\n`);
