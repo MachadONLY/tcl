@@ -4,6 +4,9 @@ const MANIFEST_URL = "/assets/clubs/2026-27/manifest.json";
 const REQUIRED_ROLES = Object.freeze([
   "crest", "city", "stadium", "manager", "homeKit", "awayKit", "rivalCrest"
 ]);
+const CUSTOM_STADIUM_BY_CLUB = Object.freeze({
+  HUL: "/assets/clubs/2026-27/hul/stadium-custom.svg"
+});
 const decodeCache = new Map();
 const prewarmedClubs = new Set();
 let manifestPromise;
@@ -18,6 +21,20 @@ function normalize(value) {
 export function localAsset(value) {
   const source = String(value || "").trim();
   return source.startsWith("/assets/clubs/2026-27/") ? source : "";
+}
+
+function applyLocalOverrides(manifest) {
+  for (const [clubCode, stadium] of Object.entries(CUSTOM_STADIUM_BY_CLUB)) {
+    const entry = manifest?.clubs?.[clubCode];
+    if (!entry) continue;
+    entry.stadium = stadium;
+    entry.backdrop = stadium;
+    entry.sources = {
+      ...(entry.sources || {}),
+      stadium: "user-supplied-local-asset"
+    };
+  }
+  return manifest;
 }
 
 function assertEntry(club, entry) {
@@ -38,6 +55,7 @@ export function loadManifest() {
       return response.json();
     })
     .then(manifest => {
+      applyLocalOverrides(manifest);
       if (!manifest?.clubs) throw new Error("manifesto offline ausente");
       CLUBS.forEach(club => assertEntry(club, manifest.clubs[club.code]));
       return manifest;
