@@ -32,3 +32,4 @@ jobs:
           git add -A
           git commit -m "refactor: install deterministic offline onboarding"
           git push origin HEAD:${TARGET_BRANCH}
+# one-time installer trigger
