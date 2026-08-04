@@ -59,7 +59,7 @@ for (const viewport of VIEWPORTS) {
       const required = [
         ...root.querySelectorAll(".club-rail-item img"),
         details?.querySelector(".club-badge-panel > img.club-badge-image-v13"),
-        details?.querySelector(".club-manager-panel > img.club-manager-image-v13"),
+        details?.querySelector(".club-manager-photo-v13 > img.club-manager-image-v13"),
         details?.querySelector(".club-rival-panel > img.club-rival-image-v13"),
         ...details.querySelectorAll(".club-kit-slot > img.club-kit-image-v13")
       ].filter(Boolean);
@@ -85,10 +85,11 @@ for (const viewport of VIEWPORTS) {
       const locationPanel = details?.querySelector(".club-location-panel");
       const stadiumPanel = details?.querySelector(".club-stadium-panel");
       const manager = details?.querySelector(".club-manager-panel");
+      const managerMedia = manager?.querySelector(":scope > .club-manager-photo-v13");
       const badgePanel = details?.querySelector(".club-badge-panel");
       const badge = badgePanel?.querySelector(":scope > img.club-badge-image-v13");
-      const managerImages = [...(manager?.querySelectorAll(":scope > img") || [])];
-      const managerImage = manager?.querySelector(":scope > img.club-manager-image-v13");
+      const managerImages = [...(managerMedia?.querySelectorAll(":scope > img") || [])];
+      const managerImage = managerMedia?.querySelector(":scope > img.club-manager-image-v13");
       const rivalImages = [...(details?.querySelectorAll(".club-rival-panel > img") || [])];
       const rival = details?.querySelector(".club-rival-panel > img.club-rival-image-v13");
       const kits = [...(details?.querySelectorAll(".club-kit-slot > img.club-kit-image-v13") || [])];
@@ -107,6 +108,7 @@ for (const viewport of VIEWPORTS) {
       const identityBox = identity?.getBoundingClientRect();
       const locationBox = locationPanel?.getBoundingClientRect();
       const managerBox = manager?.getBoundingClientRect();
+      const managerMediaBox = managerMedia?.getBoundingClientRect();
       const managerImageBox = managerImage?.getBoundingClientRect();
       const badgeBox = badge?.getBoundingClientRect();
       const badgePanelBox = badgePanel?.getBoundingClientRect();
@@ -117,8 +119,11 @@ for (const viewport of VIEWPORTS) {
       const stadiumStyle = getComputedStyle(stadiumPanel);
       const managerStyle = getComputedStyle(managerImage);
       const titleStyle = getComputedStyle(header?.querySelector("h1"));
-      const managerWidthRatio = managerBox && managerImageBox && managerBox.width > 0
-        ? managerImageBox.width / managerBox.width
+      const managerWidthRatio = managerMediaBox && managerImageBox && managerMediaBox.width > 0
+        ? managerImageBox.width / managerMediaBox.width
+        : 0;
+      const managerMediaRatio = managerBox && managerMediaBox && managerBox.height > 0
+        ? managerMediaBox.height / managerBox.height
         : 0;
 
       return {
@@ -131,8 +136,10 @@ for (const viewport of VIEWPORTS) {
         managerReady: managerImages.length === 1 && Boolean(managerImage?.naturalWidth) && localAsset(managerImage.currentSrc || managerImage.src),
         managerUncropped: managerStyle.objectFit === "contain"
           && managerStyle.objectPosition.includes("bottom")
-          && managerWidthRatio >= .88
-          && inside(managerImageBox, managerBox),
+          && managerWidthRatio >= .98
+          && managerMediaRatio >= .72
+          && inside(managerImageBox, managerMediaBox)
+          && inside(managerMediaBox, managerBox),
         managerPlaceholderAbsent: !manager?.querySelector(":scope > .club-manager-placeholder"),
         rivalReady: rivalImages.length === 1 && Boolean(rival?.naturalWidth) && localAsset(rival.currentSrc || rival.src),
         kitsReady: kits.length === 2 && kits.every(image => image.naturalWidth > 0 && localAsset(image.currentSrc || image.src)),
@@ -141,6 +148,7 @@ for (const viewport of VIEWPORTS) {
         locationRatio: identityBox && locationBox ? locationBox.height / identityBox.height : 1,
         managerRatio: identityBox && managerBox ? managerBox.height / identityBox.height : 0,
         managerWidthRatio,
+        managerMediaRatio,
         headerCompact: Number.parseFloat(titleStyle.fontSize) <= 43 && headerBox.bottom <= railBox.top + 1,
         viewportFit: gridBox && gridBox.bottom <= innerHeight + 1 && document.documentElement.scrollHeight <= innerHeight + 2,
         visibleBroken
@@ -155,7 +163,7 @@ for (const viewport of VIEWPORTS) {
       [result.railReady, "one or more rail crests failed or are not local"],
       [result.badgeReady, "main club badge failed, is too small, or overflows"],
       [result.managerReady, "manager tile does not contain exactly one local portrait"],
-      [result.managerUncropped, `manager portrait is cropped, narrow, or overflows (${result.managerWidthRatio.toFixed(3)} width ratio)`],
+      [result.managerUncropped, `manager portrait is cropped, narrow, or overlaps its label (${result.managerWidthRatio.toFixed(3)} width; ${result.managerMediaRatio.toFixed(3)} media height)`],
       [result.managerPlaceholderAbsent, "manager initials/placeholder remained visible"],
       [result.rivalReady, "rival badge failed or is not local"],
       [result.kitsReady, "both kit images must be local and visible"],
