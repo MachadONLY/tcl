@@ -121,17 +121,33 @@
 }
 
 .onboarding-deterministic-v13 .club-manager-panel > .club-manager-placeholder,
-.onboarding-deterministic-v13 .club-manager-panel > img:not(.club-manager-image-v13) {
+.onboarding-deterministic-v13 .club-manager-panel > img {
   display: none !important;
 }
 
-.onboarding-deterministic-v13 .club-manager-panel > img.club-manager-image-v13 {
+.onboarding-deterministic-v13 .club-manager-photo-v13 {
   box-sizing: border-box !important;
-  display: block !important;
+  position: relative !important;
+  inset: auto !important;
   grid-column: 1 / -1 !important;
   grid-row: 1 !important;
-  align-self: stretch !important;
-  justify-self: stretch !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.onboarding-deterministic-v13 .club-manager-photo-v13 > img.club-manager-image-v13 {
+  box-sizing: border-box !important;
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
   width: 100% !important;
   height: 100% !important;
   min-width: 0 !important;
