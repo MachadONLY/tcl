@@ -27,30 +27,38 @@ for (let index = 0; index < CLUBS.length; index += 1) {
     const trophy = panel?.querySelector(":scope > .club-trophy-v13 svg");
     const label = panel?.querySelector(":scope > .club-data-label");
     const value = panel?.querySelector(":scope > strong");
-    const visible = element => {
-      if (!element) return false;
+
+    const metrics = element => {
+      if (!element) return { visible: false, width: 0, height: 0 };
       const style = getComputedStyle(element);
       const box = element.getBoundingClientRect();
-      return style.display !== "none"
-        && style.visibility !== "hidden"
-        && Number(style.opacity || 1) > 0
-        && box.width > 4
-        && box.height > 4;
+      return {
+        visible: style.display !== "none"
+          && style.visibility !== "hidden"
+          && Number(style.opacity || 1) > 0,
+        width: box.width,
+        height: box.height
+      };
     };
 
     return {
-      trophy: visible(trophy),
-      label: visible(label) && label.textContent.trim() === "TÍTULOS NACIONAIS",
-      value: visible(value) && /^\d+$/.test(value.textContent.trim()),
-      panelWidth: panel?.getBoundingClientRect().width || 0,
-      panelHeight: panel?.getBoundingClientRect().height || 0
+      trophy: metrics(trophy),
+      label: metrics(label),
+      labelText: label?.textContent?.trim() || "",
+      value: metrics(value),
+      valueText: value?.textContent?.trim() || ""
     };
   });
 
-  if (!result.trophy) failures.push(`${code}: trophy is missing or invisible`);
-  if (!result.label) failures.push(`${code}: titles label is missing or invisible`);
-  if (!result.value) failures.push(`${code}: titles value is missing or invalid`);
-  if (result.panelWidth < 80 || result.panelHeight < 90) failures.push(`${code}: titles panel is collapsed`);
+  if (!result.trophy.visible || result.trophy.width < 24 || result.trophy.height < 24) {
+    failures.push(`${code}: trophy is missing, invisible, or too small`);
+  }
+  if (!result.label.visible || result.label.width < 30 || result.label.height < 5 || result.labelText !== "TÍTULOS NACIONAIS") {
+    failures.push(`${code}: titles label is missing or invisible`);
+  }
+  if (!result.value.visible || result.value.width < 8 || result.value.height < 18 || !/^\d+$/.test(result.valueText)) {
+    failures.push(`${code}: titles value is missing or invalid`);
+  }
 }
 
 await browser.close();
