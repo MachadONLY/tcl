@@ -42,6 +42,7 @@ const EXPLICIT = Object.freeze({
   },
   CRY: {
     city: LONDON_CITY,
+    stadium: commonsFile("Selhurst Park Stadium.jpg", 1280),
     manager: "https://upload.wikimedia.org/wikipedia/commons/f/f2/Pierre_Sage_lors_d%E2%80%99un_entra%C3%AEnement.jpg"
   },
   FUL: {
