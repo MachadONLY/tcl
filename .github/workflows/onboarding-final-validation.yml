@@ -6,6 +6,7 @@ on:
     paths:
       - "src/career-onboarding*"
       - "scripts/sync-onboarding*"
+      - "scripts/ensure-onboarding-pack.mjs"
       - "scripts/apply-onboarding-explicit-media.mjs"
       - "tests/onboarding-final*"
       - "index.html"
@@ -75,7 +76,7 @@ jobs:
   validate-onboarding:
     needs: media-shards
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -97,9 +98,10 @@ jobs:
           path: public/assets/clubs/2026-27
           merge-multiple: true
 
-      - name: Merge and statically verify twenty clubs
+      - name: Finalize and statically verify twenty clubs
         run: |
           node scripts/merge-onboarding-media-shards.mjs
+          node scripts/ensure-onboarding-pack.mjs
           node tests/onboarding-final-media-integrity.mjs
 
       - name: Production build
@@ -122,10 +124,10 @@ jobs:
           cat /tmp/touchline-vite.log
           exit 1
 
-      - name: Review every Premier League club in Chromium
+      - name: Review every Premier League club in Chromium at two desktop sizes
         run: node tests/onboarding-final-visual.mjs
 
-      - name: Upload twenty-club visual review
+      - name: Upload forty-screen visual review
         if: always()
         uses: actions/upload-artifact@v4
         with:
