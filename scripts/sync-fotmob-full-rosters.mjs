@@ -180,20 +180,16 @@ function groupFromRawContext(html, id) {
 }
 
 function pickName(anchor, slug) {
-  const candidates = [
+  const canonical = titleFromSlug(slug);
+  const visible = [
     anchor.getAttribute('aria-label'),
     anchor.getAttribute('title'),
-    anchor.textContent,
-    titleFromSlug(slug)
-  ].map(cleanText).filter(Boolean);
-
-  const usable = candidates.find(value =>
-    value.length >= 2 &&
-    value.length <= 70 &&
-    !/[€£$]/.test(value) &&
-    !/^player$/i.test(value)
-  );
-  return usable || titleFromSlug(slug);
+    anchor.textContent
+  ]
+    .map(cleanText)
+    .filter(value => value.length >= 2 && value.length <= 70 && !/[€£$]/.test(value));
+  const exactVisible = visible.find(value => normalize(value) === normalize(canonical));
+  return exactVisible || canonical;
 }
 
 function extractSquad(html, clubCode) {
