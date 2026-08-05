@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveRosterGroup, rosterGroupOrder } from '../src/career-core/roster-integrity.js';
-import { auditRatings } from './sync-fc26-ratings.mjs';
+import { auditPremierLeagueRatings } from './rating-audit-policy.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MANIFEST_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 'manifest.json');
@@ -70,7 +70,7 @@ async function validRatings() {
     if (rosterPayload?.meta?.ratingSource !== 'SOFIFA_LATEST_WITH_CONSERVATIVE_FALLBACK') return false;
     if (!Number.isFinite(rosterPayload.meta.sofifaRatingCount) || rosterPayload.meta.sofifaRatingCount < 250) return false;
     if (rosterPayload.meta.ratingAuditPassed !== true || rosterPayload.meta.ratingAuditTeamCount !== 20) return false;
-    const audit = auditRatings(rosterPayload);
+    const audit = auditPremierLeagueRatings(rosterPayload);
     return audit.passed && audit.teamCount === 20 && audit.playerCount >= 600;
   } catch {
     return false;
