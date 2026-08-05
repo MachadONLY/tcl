@@ -6,6 +6,7 @@ import { squadFor } from '../src/career-core/career-core.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MANIFEST_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 'manifest.json');
+const REPORT_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 'fotmob-sync-report.json');
 const CLUB_CODES = [
   'ARS', 'AVL', 'BOU', 'BRE', 'BHA', 'CHE', 'COV', 'CRY', 'EVE', 'FUL',
   'HUL', 'IPS', 'LEE', 'LIV', 'MCI', 'MUN', 'NEW', 'NFO', 'SUN', 'TOT'
@@ -31,6 +32,17 @@ async function validManifest() {
   }
 }
 
+async function printFailureReport() {
+  try {
+    const report = JSON.parse(await readFile(REPORT_PATH, 'utf8'));
+    if (!Array.isArray(report.unresolved) || !report.unresolved.length) return;
+    console.error('\nJogadores ainda não mapeados:');
+    for (const row of report.unresolved) console.error(`- [${row.clubCode}] ${row.name}`);
+  } catch {
+    // The sync process already prints its primary error.
+  }
+}
+
 function runSync() {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['scripts/sync-fotmob-player-faces.mjs'], {
@@ -39,7 +51,11 @@ function runSync() {
       env: process.env
     });
     child.on('error', reject);
-    child.on('exit', code => code === 0 ? resolve() : reject(new Error(`sync terminou com código ${code}`)));
+    child.on('exit', async code => {
+      if (code === 0) return resolve();
+      await printFailureReport();
+      reject(new Error(`sync terminou com código ${code}`));
+    });
   });
 }
 
