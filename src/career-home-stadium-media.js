@@ -43,15 +43,6 @@ function handleImageError(event) {
   useCandidate(image, state.index + 1);
 }
 
-function candidatesForClub(clubCode) {
-  const standard = stadiumAssetCandidates(clubCode);
-  if (clubCode !== 'HUL') return standard;
-  return [
-    '/assets/clubs/2026-27/hul/stadium-custom.svg',
-    ...standard.filter(candidate => !candidate.endsWith('/stadium-custom.svg'))
-  ];
-}
-
 async function refreshHomeStadium() {
   refreshQueued = false;
   if (!isCareerHome()) return;
@@ -69,7 +60,7 @@ async function refreshHomeStadium() {
   const homeClub = CLUB_BY_CODE.get(fixture.home);
   if (!homeClub) return;
 
-  const candidates = candidatesForClub(homeClub.code);
+  const candidates = stadiumAssetCandidates(homeClub.code);
   if (version !== refreshVersion || !image.isConnected || !isCareerHome()) return;
 
   installFallbackCycle(image, candidates);
