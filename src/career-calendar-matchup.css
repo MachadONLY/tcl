@@ -4,15 +4,16 @@
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
-  min-height: 270px;
-  padding: 18px 0 16px;
+  min-height: 290px;
+  padding: 16px 0 14px;
+  animation: tcc-matchup-enter 260ms cubic-bezier(.2,.72,.2,1);
 }
 
 .tcc-matchup-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(54px, 4.8vw, 76px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) clamp(58px, 4.8vw, 78px) minmax(0, 1fr);
   align-items: center;
-  gap: clamp(6px, 1vw, 14px);
+  gap: clamp(7px, 1vw, 15px);
 }
 
 .tcc-matchup-club {
@@ -20,13 +21,24 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 9px;
   text-align: center;
 }
 
+.tcc-matchup-club > small {
+  color: rgba(255,255,255,.38);
+  font-size: 8px;
+  font-weight: 780;
+  letter-spacing: .18em;
+}
+
+.tcc-matchup-club.is-controlled > small {
+  color: color-mix(in srgb, var(--tcc-club) 78%, white 18%);
+}
+
 .tcc-matchup-crest-shell {
-  width: clamp(68px, 6.3vw, 104px);
-  height: clamp(68px, 6.3vw, 104px);
+  width: clamp(68px, 6.2vw, 102px);
+  height: clamp(68px, 6.2vw, 102px);
   display: grid;
   place-items: center;
   position: relative;
@@ -40,6 +52,15 @@
   background: rgba(255,255,255,.035);
   box-shadow: 0 18px 38px rgba(0,0,0,.26);
   filter: blur(2px);
+}
+
+.tcc-matchup-club.is-controlled .tcc-matchup-crest-shell::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--tcc-club) 55%, transparent);
+  opacity: .7;
 }
 
 .tcc-matchup-crest {
@@ -64,9 +85,7 @@
   white-space: nowrap;
 }
 
-.tcc-matchup-club.is-controlled h3 {
-  color: #fff;
-}
+.tcc-matchup-club.is-controlled h3 { color: #fff; }
 
 .tcc-matchup-center {
   display: flex;
@@ -112,12 +131,81 @@
   text-transform: uppercase;
 }
 
+.tcc-matchup-goals {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  gap: 12px;
+  max-height: 108px;
+  margin-top: 18px;
+  padding: 12px 4px 2px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.18) transparent;
+}
+
+.tcc-goals-side {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tcc-goals-side.is-home { align-items: flex-end; text-align: right; }
+.tcc-goals-side.is-away { align-items: flex-start; text-align: left; }
+
+.tcc-goal-event {
+  max-width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: rgba(255,255,255,.78);
+  font-size: 11px;
+  line-height: 1.15;
+}
+
+.tcc-goals-side.is-away .tcc-goal-event { flex-direction: row-reverse; }
+
+.tcc-goal-event span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tcc-goal-event time {
+  flex: none;
+  color: rgba(255,255,255,.44);
+  font-size: 10px;
+  font-weight: 720;
+}
+
+.tcc-goals-divider {
+  width: 1px;
+  min-height: 100%;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,.14), transparent);
+}
+
+.tcc-goals-empty {
+  color: rgba(255,255,255,.18);
+  font-size: 11px;
+}
+
+.tcc-goals-goalless,
+.tcc-goals-unavailable {
+  margin-top: 17px;
+  color: rgba(255,255,255,.38);
+  font-size: 10px;
+  font-weight: 620;
+  letter-spacing: .04em;
+  text-align: center;
+}
+
 .tcc-matchup-context {
   display: grid;
   justify-items: center;
   gap: 6px;
-  margin-top: 22px;
-  padding-top: 18px;
+  margin-top: 17px;
+  padding-top: 15px;
   position: relative;
 }
 
@@ -132,15 +220,24 @@
 }
 
 .tcc-matchup-context span {
+  max-width: 100%;
+  overflow: hidden;
   color: rgba(255,255,255,.54);
   font-size: 12px;
   font-weight: 520;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tcc-matchup-context b {
   color: rgba(255,255,255,.88);
   font-size: 14px;
   font-weight: 680;
+}
+
+@keyframes tcc-matchup-enter {
+  from { opacity: .35; transform: translateY(5px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @media (max-width: 1100px) {
@@ -150,40 +247,38 @@
   }
 
   .tcc-matchup-crest-shell {
-    width: 64px;
-    height: 64px;
-  }
-
-  .tcc-matchup-club h3 {
-    font-size: 12px;
-  }
-
-  .tcc-matchup-score {
-    font-size: 27px;
-  }
-
-  .tcc-matchup-versus {
-    font-size: 33px;
-  }
-}
-
-@media (max-height: 760px) {
-  .tcc-opponent.tcc-matchup {
-    min-height: 185px;
-    padding-block: 10px;
-  }
-
-  .tcc-matchup-crest-shell {
     width: 62px;
     height: 62px;
   }
 
-  .tcc-matchup-club {
-    gap: 8px;
+  .tcc-matchup-club h3 { font-size: 12px; }
+  .tcc-matchup-score { font-size: 27px; }
+  .tcc-matchup-versus { font-size: 33px; }
+  .tcc-matchup-goals { gap: 7px; }
+  .tcc-goal-event { font-size: 9px; gap: 4px; }
+}
+
+@media (max-height: 760px) {
+  .tcc-opponent.tcc-matchup {
+    min-height: 195px;
+    padding-block: 8px;
+  }
+
+  .tcc-matchup-club { gap: 6px; }
+
+  .tcc-matchup-crest-shell {
+    width: 56px;
+    height: 56px;
+  }
+
+  .tcc-matchup-goals {
+    max-height: 72px;
+    margin-top: 10px;
+    padding-top: 8px;
   }
 
   .tcc-matchup-context {
-    margin-top: 14px;
-    padding-top: 13px;
+    margin-top: 10px;
+    padding-top: 10px;
   }
 }
