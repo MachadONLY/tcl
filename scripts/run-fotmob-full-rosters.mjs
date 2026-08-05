@@ -6,6 +6,10 @@ const helperRuntimeUrl = new URL('./.official-football-data.runtime.mjs', import
 const syncUrl = new URL('./sync-fotmob-full-rosters.mjs', import.meta.url);
 const syncRuntimeUrl = new URL('./.sync-fotmob-full-rosters.runtime.mjs', import.meta.url);
 
+function normalizeLineEndings(source) {
+  return String(source).replace(/\r\n?/g, '\n');
+}
+
 const sourcePositionGrouping = `const explicitPositions = positionTokens(positionText);
     let group = groupFromPositions(positionText);
     if (!group) {
@@ -16,7 +20,7 @@ const sectionFirstGrouping = `const explicitPositions = positionTokens(positionT
     const section = precedingSectionGroup(anchor);
     let group = section && section !== 'COACH' ? section : groupFromPositions(positionText);`;
 
-const helperSource = await readFile(helperUrl, 'utf8');
+const helperSource = normalizeLineEndings(await readFile(helperUrl, 'utf8'));
 const helperPatched = helperSource
   .replace(
     "if (!playersById.has(player.fotmobId)) playersById.set(player.fotmobId, { ...player });",
@@ -35,7 +39,7 @@ const sanitizedTeamAssignment = "const players = sanitizeRosterRows(parsed.playe
 const sourceMetaLine = "officialRatingCount, teams: Object.fromEntries(Object.entries(metaTeams).map(([code, team]) => [code, team.playerCount]))";
 const sanitizedMetaLine = "officialRatingCount,\n      teams: Object.fromEntries(Object.entries(metaTeams).map(([code, team]) => [code, team.playerCount])),\n      coaches: Object.fromEntries(Object.entries(metaTeams).map(([code, team]) => [code, team.coach]))";
 
-const syncSource = await readFile(syncUrl, 'utf8');
+const syncSource = normalizeLineEndings(await readFile(syncUrl, 'utf8'));
 const syncPatched = syncSource
   .replace(
     "from './official-football-data.mjs';",
