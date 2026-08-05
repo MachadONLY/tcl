@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveRosterGroup, rosterGroupOrder } from '../src/career-core/roster-integrity.js';
+import { auditRatings } from './sync-fc26-ratings.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MANIFEST_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 'manifest.json');
@@ -68,12 +69,9 @@ async function validRatings() {
     const rosterPayload = JSON.parse(await readFile(ROSTER_PATH, 'utf8'));
     if (rosterPayload?.meta?.ratingSource !== 'SOFIFA_LATEST_WITH_CONSERVATIVE_FALLBACK') return false;
     if (!Number.isFinite(rosterPayload.meta.sofifaRatingCount) || rosterPayload.meta.sofifaRatingCount < 250) return false;
-    const united = rosterPayload.rosters?.MUN || [];
-    const heaven = united.find(row => normalize(row.name) === 'ayden heaven');
-    const deLigt = united.find(row => normalize(row.name) === 'matthijs de ligt');
-    if (!heaven || !deLigt) return false;
-    if (!Number.isFinite(heaven.rating) || !Number.isFinite(deLigt.rating)) return false;
-    return deLigt.rating > heaven.rating;
+    if (rosterPayload.meta.ratingAuditPassed !== true || rosterPayload.meta.ratingAuditTeamCount !== 20) return false;
+    const audit = auditRatings(rosterPayload);
+    return audit.passed && audit.teamCount === 20 && audit.playerCount >= 600;
   } catch {
     return false;
   }
@@ -115,12 +113,12 @@ if (await validPack()) {
 }
 
 if (!process.env.CI && !(await validRatings())) {
-  console.log('Ratings reais ausentes ou inconsistentes. Atualizando somente os overalls pelo SoFIFA...');
+  console.log('Ratings reais ausentes ou inconsistentes. Auditando os 20 clubes e atualizando somente os overalls...');
   await runScript(RATINGS_SCRIPT, 'sync de ratings');
-  if (!(await validRatings())) throw new Error('Os ratings foram atualizados, mas a validação final não passou.');
+  if (!(await validRatings())) throw new Error('Os ratings foram atualizados, mas a auditoria final dos 20 clubes não passou.');
 }
 
 if (await validRatings()) {
   const rosterPayload = JSON.parse(await readFile(ROSTER_PATH, 'utf8'));
-  console.log(`✓ Ratings validados: ${rosterPayload.meta.sofifaRatingCount} jogadores correspondidos no SoFIFA.`);
+  console.log(`✓ Ratings dos 20 clubes validados: ${rosterPayload.meta.sofifaRatingCount} jogadores correspondidos no SoFIFA/FC 26.`);
 }
