@@ -28,6 +28,7 @@ const ID_OVERRIDES = Object.freeze({
   'BRE|Kim Ji-soo': 1341538,
   'BHA|Diego Coppola': 1321562,
   'CHE|Emmanuel Emegha': 1183148,
+  'COV|Kaine Andrews': 1526413,
   'COV|Norman Bassette': 1292100,
   'CRY|Yéremy Pino': 1047676,
   'CRY|Christantus Uche': 1580704,
@@ -48,7 +49,7 @@ const ALIASES = Object.freeze({
   "Matt O'Riley": ['Matt ORiley', 'Matthew O Riley'],
   'Jamie Bynoe-Gittens': ['Jamie Gittens', 'Jamie Bynoe Gittens'],
   'Emmanuel Emegha': ['Emanuel Emegha', 'Emmanuel Emegha'],
-  'Kaine Andrews': ['Kaine Kesler-Hayden', 'Kaine Andrews'],
+  'Kaine Andrews': ['Kai Andrews'],
   'Cheick Doucouré': ['Cheick Oumar Doucoure', 'Cheick Doucoure'],
   'Eddie Nketiah': ['Edward Nketiah', 'Eddie Nketiah'],
   'Vitalii Mykolenko': ['Vitaliy Mykolenko', 'Vitali Mykolenko'],
@@ -319,6 +320,16 @@ async function main() {
     console.error('\nNão mapeados:');
     unresolved.forEach(row => console.error(`- [${row.clubCode}] ${row.name}`));
     throw new Error(`Mapeamento FotMob incompleto: ${assignments.length}/${jobs.length}`);
+  }
+
+  const duplicateAssignments = new Map();
+  for (const assignment of assignments) {
+    const key = `${assignment.clubCode}:${assignment.match.id}`;
+    const existing = duplicateAssignments.get(key);
+    if (existing) {
+      throw new Error(`ID FotMob duplicado em ${assignment.clubCode}: ${existing} e ${assignment.player.name} → ${assignment.match.id}`);
+    }
+    duplicateAssignments.set(key, assignment.player.name);
   }
 
   const manifest = {
