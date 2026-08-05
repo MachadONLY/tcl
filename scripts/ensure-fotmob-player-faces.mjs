@@ -7,7 +7,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MANIFEST_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 'manifest.json');
 const ROSTER_PATH = path.join(ROOT, 'src', 'career-core', 'fotmob-rosters.local.json');
 const REPORT_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 'fotmob-sync-report.json');
-const SYNC_SCRIPT = 'scripts/sync-fotmob-full-rosters.mjs';
+const SYNC_SCRIPT = 'scripts/run-fotmob-full-rosters.mjs';
 
 async function validPack() {
   try {
