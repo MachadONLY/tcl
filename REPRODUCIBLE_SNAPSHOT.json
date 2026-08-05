@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-05T20:44:26.273Z",
+  "branch": "feat/playable-career-v1",
+  "playerPortraits": 628,
+  "generatedFiles": 632,
+  "restore": [
+    "npm install",
+    "npm run dev"
+  ],
+  "note": "This repository ZIP contains the frozen data and assets used by the validated game build."
+}
