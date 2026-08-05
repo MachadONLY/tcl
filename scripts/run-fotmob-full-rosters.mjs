@@ -15,18 +15,33 @@ if (helperPatched === helperSource) {
   throw new Error('Não foi possível ativar a recuperação verificada de jogadores do FotMob.');
 }
 
+const sourceTeamAssignment = "teams[clubCode] = { ...team, url, coach: parsed.coach, players: parsed.players };\n      console.log(`✓ [${clubCode}] técnico separado + ${parsed.players.length} jogadores`);";
+const sanitizedTeamAssignment = "const players = sanitizeRosterRows(parsed.players, { managerNames: [parsed.coach?.name] });\n      teams[clubCode] = { ...team, url, coach: parsed.coach, players };\n      console.log(`✓ [${clubCode}] técnico separado + ${players.length} jogadores`);";
+const sourceMetaLine = "officialRatingCount, teams: Object.fromEntries(Object.entries(metaTeams).map(([code, team]) => [code, team.playerCount]))";
+const sanitizedMetaLine = "officialRatingCount,\n      teams: Object.fromEntries(Object.entries(metaTeams).map(([code, team]) => [code, team.playerCount])),\n      coaches: Object.fromEntries(Object.entries(metaTeams).map(([code, team]) => [code, team.coach]))";
+
 const syncSource = await readFile(syncUrl, 'utf8');
 const syncPatched = syncSource
-  .replace("from './official-football-data.mjs';", "from './.official-football-data.runtime.mjs';\nimport { parseOfficialEaRatingsHtml } from './official-ea-ratings.mjs';")
+  .replace(
+    "from './official-football-data.mjs';",
+    "from './.official-football-data.runtime.mjs';\nimport { parseOfficialEaRatingsHtml } from './official-ea-ratings.mjs';\nimport { sanitizeRosterRows } from '../src/career-core/roster-integrity.js';"
+  )
   .replaceAll('parseEaRatingsHtml(', 'parseOfficialEaRatingsHtml(')
   .replace('if (parsed.players.length < 24)', 'if (parsed.players.length < 20)')
-  .replace('(rosterRows[player.clubCode] ||= []).push(row);', '(rosterRows[player.clubCode] ||= [])[player.index] = row;');
+  .replace(sourceTeamAssignment, sanitizedTeamAssignment)
+  .replace('(rosterRows[player.clubCode] ||= []).push(row);', '(rosterRows[player.clubCode] ||= [])[player.index] = row;')
+  .replace(sourceMetaLine, sanitizedMetaLine)
+  .replace('schemaVersion: 7,', 'schemaVersion: 8,');
+
 if (
   syncPatched === syncSource ||
   !syncPatched.includes('parseOfficialEaRatingsHtml') ||
-  !syncPatched.includes('[player.index] = row')
+  !syncPatched.includes('sanitizeRosterRows') ||
+  !syncPatched.includes('[player.index] = row') ||
+  !syncPatched.includes('coaches: Object.fromEntries') ||
+  !syncPatched.includes('schemaVersion: 8')
 ) {
-  throw new Error('Não foi possível aplicar as validações atualizadas do elenco, ratings e ordem dos jogadores.');
+  throw new Error('Não foi possível aplicar as validações atualizadas do elenco, ratings, técnicos e ordem dos jogadores.');
 }
 
 await writeFile(helperRuntimeUrl, helperPatched, 'utf8');
