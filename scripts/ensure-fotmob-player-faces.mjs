@@ -7,6 +7,7 @@ import { squadFor } from '../src/career-core/career-core.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MANIFEST_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 'manifest.json');
 const REPORT_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 'fotmob-sync-report.json');
+const SYNC_SCRIPT = 'scripts/sync-fotmob-player-faces-exact.mjs';
 const CLUB_CODES = [
   'ARS', 'AVL', 'BOU', 'BRE', 'BHA', 'CHE', 'COV', 'CRY', 'EVE', 'FUL',
   'HUL', 'IPS', 'LEE', 'LIV', 'MCI', 'MUN', 'NEW', 'NFO', 'SUN', 'TOT'
@@ -39,13 +40,13 @@ async function printFailureReport() {
     console.error('\nJogadores ainda não mapeados:');
     for (const row of report.unresolved) console.error(`- [${row.clubCode}] ${row.name}`);
   } catch {
-    // The sync process already prints its primary error.
+    // The synchronizer already prints its primary error.
   }
 }
 
 function runSync() {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ['scripts/sync-fotmob-player-faces.mjs'], {
+    const child = spawn(process.execPath, [SYNC_SCRIPT], {
       cwd: ROOT,
       stdio: 'inherit',
       env: process.env
