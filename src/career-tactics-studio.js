@@ -16,6 +16,15 @@ const FOCUSES = Object.freeze(['Defender', 'Apoiar', 'Atacar']);
 const PHASES = Object.freeze(['base', 'possession', 'out']);
 const PLANS = Object.freeze(['A', 'B', 'C']);
 const BENCH_LIMIT = 9;
+const GROUP_FILTERS = Object.freeze([
+  ['ALL', 'Todos'],
+  ['GK', 'Goleiros'],
+  ['DEF', 'Defensores'],
+  ['MID', 'Meio-campo'],
+  ['FWD', 'Atacantes']
+]);
+const PLAN_LABELS = Object.freeze({ A: 'Plano principal', B: 'Buscar o jogo', C: 'Controlar resultado' });
+const PHASE_LABELS = Object.freeze({ base: 'Estrutura base', possession: 'Com a bola', out: 'Sem a bola' });
 
 const FORMATION_SLOTS = Object.freeze({
   '4-2-3-1': [[50,91],[16,73],[38,77],[62,77],[84,73],[38,57],[62,57],[17,34],[50,39],[83,34],[50,15]],
@@ -53,6 +62,7 @@ const ROLE_COPY = Object.freeze({
 let mounting = false;
 let activeTab = 'possession';
 let pitchPhase = 'base';
+let rosterFilter = 'ALL';
 let selectedPlayerId = null;
 let currentCareer = null;
 let bridgeRoot = null;
@@ -82,13 +92,13 @@ function ensureCareerCollections() {
   currentCareer.tactics = normalizeTactics(currentCareer.tactics);
   const players = roster();
   const valid = new Set(players.map(player => player.id));
-  let lineup = uniqueValid(currentCareer.lineup, valid).slice(0, 11);
+  const lineup = uniqueValid(currentCareer.lineup, valid).slice(0, 11);
   for (const player of players) {
     if (lineup.length >= 11) break;
     if (!lineup.includes(player.id)) lineup.push(player.id);
   }
 
-  let bench = uniqueValid(currentCareer.bench, valid)
+  const bench = uniqueValid(currentCareer.bench, valid)
     .filter(id => !lineup.includes(id))
     .slice(0, BENCH_LIMIT);
   const available = players.filter(player => !lineup.includes(player.id) && !bench.includes(player.id));
@@ -123,6 +133,11 @@ function benchPlayers() {
 function reservePlayers() {
   const related = new Set([...currentCareer.lineup, ...currentCareer.bench]);
   return roster().filter(player => !related.has(player.id));
+}
+
+function filteredReservePlayers() {
+  const players = reservePlayers();
+  return rosterFilter === 'ALL' ? players : players.filter(player => player.group === rosterFilter);
 }
 
 function defaultRole(player) {
@@ -218,10 +233,10 @@ function statusLabel(playerId) {
 function playerNode(player, index) {
   const position = positionFor(player, index);
   const role = assignment(player);
-  return `<button class="tl-player-node ${selectedPlayerId === player.id ? 'selected' : ''}" data-drag-player="${player.id}" data-drop-player="${player.id}" data-zone="lineup" style="--x:${position.x}%;--y:${position.y}%" type="button" aria-label="${esc(player.name)}">
+  const focusClass = role.focus.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return `<button class="tl-player-node focus-${focusClass} ${selectedPlayerId === player.id ? 'selected' : ''}" data-drag-player="${player.id}" data-drop-player="${player.id}" data-zone="lineup" style="--x:${position.x}%;--y:${position.y}%" type="button" aria-label="${esc(player.name)}">
     <span class="tl-player-photo"><img src="${portrait(player)}" alt="" draggable="false" onerror="this.hidden=true"/></span>
-    <strong>${esc(lastName(player.name))}</strong>
-    <small>${esc(role.role)}</small>
+    <span class="tl-player-label"><strong>${esc(lastName(player.name))}</strong><small>${esc(role.role)}</small></span>
   </button>`;
 }
 
@@ -253,7 +268,7 @@ function transitionControls() {
   return `${selectSetting('afterWin', 'Após recuperar', TACTIC_OPTIONS.afterWin)}
     ${selectSetting('afterLoss', 'Após perder', TACTIC_OPTIONS.afterLoss)}
     ${selectSetting('distribution', 'Distribuição do goleiro', TACTIC_OPTIONS.distribution)}
-    <div class="tl-explainer"><b>Leitura da transição</b><p>Estas escolhas definem a velocidade da reação quando a posse muda de lado.</p></div>`;
+    <div class="tl-explainer"><b>Impacto no jogo</b><p>Essas escolhas alteram a velocidade da reação, o volume de contra-ataques e o risco após perder a bola.</p></div>`;
 }
 
 function outOfPossessionControls() {
@@ -269,12 +284,11 @@ function outOfPossessionControls() {
 
 function controlsPanel() {
   const body = activeTab === 'possession' ? possessionControls() : activeTab === 'transition' ? transitionControls() : outOfPossessionControls();
-  return `<aside class="tl-tactic-controls">
-    <div class="tl-plan-card"><div><small>Plano de jogo</small><strong>${currentCareer.tactics.activePlan}</strong></div><div class="tl-plan-tabs">${PLANS.map(plan =>
-      `<button class="${currentCareer.tactics.activePlan === plan ? 'active' : ''}" data-tl-plan="${plan}" type="button">${plan}</button>`
-    ).join('')}</div></div>
+  return `<aside class="tl-tactic-controls tl-game-panel">
+    <div class="tl-panel-heading"><span>Instruções do time</span><small>${PLAN_LABELS[currentCareer.tactics.activePlan]}</small></div>
+    <div class="tl-plan-tabs">${PLANS.map(plan => `<button class="${currentCareer.tactics.activePlan === plan ? 'active' : ''}" data-tl-plan="${plan}" type="button"><b>${plan}</b><span>${PLAN_LABELS[plan]}</span></button>`).join('')}</div>
     ${selectSetting('mentality', 'Mentalidade', TACTIC_OPTIONS.mentality)}
-    <nav class="tl-phase-tabs"><button class="${activeTab === 'possession' ? 'active' : ''}" data-tl-tab="possession">Com a bola</button><button class="${activeTab === 'transition' ? 'active' : ''}" data-tl-tab="transition">Transição</button><button class="${activeTab === 'out' ? 'active' : ''}" data-tl-tab="out">Sem a bola</button></nav>
+    <nav class="tl-phase-tabs"><button class="${activeTab === 'possession' ? 'active' : ''}" data-tl-tab="possession">Com bola</button><button class="${activeTab === 'transition' ? 'active' : ''}" data-tl-tab="transition">Transição</button><button class="${activeTab === 'out' ? 'active' : ''}" data-tl-tab="out">Sem bola</button></nav>
     <div class="tl-controls-scroll">${body}</div>
   </aside>`;
 }
@@ -282,47 +296,73 @@ function controlsPanel() {
 function inspector(players) {
   const all = roster();
   const player = all.find(item => item.id === selectedPlayerId) || players[0] || all[0];
-  if (!player) return '<aside class="tl-inspector"></aside>';
+  if (!player) return '<section class="tl-inspector"></section>';
   selectedPlayerId = player.id;
   const role = assignment(player);
   const roles = PLAYER_ROLE_OPTIONS[player.group] || [];
   const fit = roleFit(player, role.role);
   const state = currentCareer.playerState[player.id] || {};
   const inLineup = currentCareer.lineup.includes(player.id);
-  return `<aside class="tl-inspector">
-    <header><img src="${portrait(player)}" alt="" draggable="false" onerror="this.hidden=true"/><div><small>${esc(player.position)} · ${player.rating} OVR</small><h2>${esc(player.name)}</h2><span>${esc(statusLabel(player.id))} · ${state.condition || 100}% de condição</span></div></header>
+  return `<section class="tl-inspector">
+    <div class="tl-player-hero">
+      <div class="tl-player-hero-photo"><img src="${portrait(player)}" alt="" draggable="false" onerror="this.hidden=true"/></div>
+      <div class="tl-player-hero-copy"><span>${esc(statusLabel(player.id))}</span><h2>${esc(player.name)}</h2><p>${esc(player.position)} · ${state.condition || 100}% condição</p></div>
+      <div class="tl-overall"><b>${player.rating}</b><span>OVR</span></div>
+    </div>
     <div class="tl-role-select"><span>Função</span><select data-tl-role="${player.id}" ${inLineup ? '' : 'disabled'}>${roles.map(option => `<option ${role.role === option ? 'selected' : ''}>${esc(option)}</option>`).join('')}</select></div>
-    <div class="tl-focus"><span>Foco</span><div>${FOCUSES.map(focus => `<button class="${role.focus === focus ? 'active' : ''}" data-tl-focus="${player.id}" data-focus="${focus}" type="button" ${inLineup ? '' : 'disabled'}>${focus}</button>`).join('')}</div></div>
-    ${inLineup ? `<div class="tl-fit"><div><span>Adequação à função</span><b>${fit}%</b></div><i style="--fit:${fit}%"></i></div>
-    <div class="tl-role-copy"><b>${esc(role.role)}</b><p>${esc(ROLE_COPY[role.role] || 'A função altera posicionamento, risco e participação nas diferentes fases.')}</p></div>` : `<div class="tl-inspector-hint"><b>Fora do XI</b><p>Arraste este jogador sobre um titular para fazer a troca imediatamente.</p></div>`}
-  </aside>`;
+    <div class="tl-focus"><span>Comportamento</span><div>${FOCUSES.map(focus => `<button class="${role.focus === focus ? 'active' : ''}" data-tl-focus="${player.id}" data-focus="${focus}" type="button" ${inLineup ? '' : 'disabled'}>${focus}</button>`).join('')}</div></div>
+    ${inLineup ? `<div class="tl-fit"><div><span>Encaixe na função</span><b>${fit}%</b></div><i style="--fit:${fit}%"></i></div><div class="tl-role-copy"><b>${esc(role.role)}</b><p>${esc(ROLE_COPY[role.role] || 'A função altera posicionamento, risco e participação nas diferentes fases.')}</p></div>` : `<div class="tl-inspector-hint"><b>Pronto para entrar</b><p>Arraste sobre um titular para trocar sem abrir outro menu.</p></div>`}
+  </section>`;
 }
 
 function pitch(players) {
-  return `<section class="tl-pitch-card">
-    <div class="tl-pitch-toolbar"><label><span>Formação</span><select data-tl-formation>${Object.keys(FORMATION_SHAPES).map(formation => `<option ${formation === currentCareer.formation ? 'selected' : ''}>${formation}</option>`).join('')}</select></label><nav>${[['base','Base'],['possession','Com bola'],['out','Sem bola']].map(([key,label]) => `<button class="${pitchPhase === key ? 'active' : ''}" data-tl-pitch-phase="${key}" type="button">${label}</button>`).join('')}</nav><small>Arraste livremente ou solte sobre outro jogador para trocar</small></div>
-    <div class="tl-pitch" data-drop-zone="pitch"><div class="tl-pitch-lines"><i></i><b></b><em></em></div>${players.map(playerNode).join('')}</div>
-  </section>`;
+  return `<main class="tl-pitch-stage">
+    <div class="tl-field-hud"><div><span>${PHASE_LABELS[pitchPhase]}</span><strong>${currentCareer.formation}</strong></div><small>Arraste para reposicionar · solte sobre outro jogador para trocar</small></div>
+    <div class="tl-pitch phase-${pitchPhase}" data-drop-zone="pitch">
+      <div class="tl-pitch-atmosphere"></div>
+      <div class="tl-pitch-zones"><span></span><span></span><span></span></div>
+      <div class="tl-pitch-lines"><i></i><b></b><em></em></div>
+      ${players.map(playerNode).join('')}
+    </div>
+  </main>`;
 }
 
-function squadCard(player, zone) {
+function squadCard(player, zone, compact = false) {
   const state = currentCareer.playerState[player.id] || {};
-  return `<button class="tl-squad-card ${selectedPlayerId === player.id ? 'selected' : ''}" data-drag-player="${player.id}" data-drop-player="${player.id}" data-zone="${zone}" type="button">
+  return `<button class="tl-squad-card ${compact ? 'compact' : ''} ${selectedPlayerId === player.id ? 'selected' : ''}" data-drag-player="${player.id}" data-drop-player="${player.id}" data-zone="${zone}" type="button">
     <span class="tl-squad-photo"><img src="${portrait(player)}" alt="" draggable="false" onerror="this.hidden=true"/></span>
-    <span class="tl-squad-copy"><strong>${esc(player.name)}</strong><small>${esc(player.position)} · ${state.condition || 100}% condição</small></span>
-    <b>${player.rating}</b>
-    <i>${zone === 'bench' ? 'Banco' : 'Fora'}</i>
+    <span class="tl-squad-copy"><strong>${esc(player.name)}</strong><small>${esc(player.position)} · ${state.condition || 100}%</small></span>
+    <span class="tl-card-overall">${player.rating}</span>
   </button>`;
 }
 
-function squadManager() {
+function benchDock() {
   const bench = benchPlayers();
-  const reserves = reservePlayers();
-  return `<section class="tl-squad-manager">
-    <header><div><small>Gestão da partida</small><h2>Relacionados</h2><p>Arraste jogadores entre o campo, o banco e os não relacionados.</p></div><div><b>${currentCareer.lineup.length}</b><span>XI</span><b>${bench.length}</b><span>Banco</span><b>${reserves.length}</b><span>Fora</span></div></header>
-    <div class="tl-roster-section tl-bench-section" data-drop-zone="bench"><div class="tl-roster-title"><h3>Banco de reservas</h3><span>${bench.length}/${BENCH_LIMIT}</span></div><div class="tl-roster-grid bench">${bench.map(player => squadCard(player, 'bench')).join('') || '<p class="tl-empty-roster">Arraste jogadores para formar o banco.</p>'}</div></div>
-    <div class="tl-roster-section" data-drop-zone="reserves"><div class="tl-roster-title"><h3>Não relacionados</h3><span>${reserves.length} jogadores</span></div><div class="tl-roster-grid reserves">${reserves.map(player => squadCard(player, 'reserves')).join('') || '<p class="tl-empty-roster">Todo o elenco está relacionado.</p>'}</div></div>
+  return `<section class="tl-bench-dock" data-drop-zone="bench">
+    <header><div><span>Banco</span><small>${bench.length}/${BENCH_LIMIT}</small></div><p>Arraste para o campo</p></header>
+    <div class="tl-bench-list">${bench.map(player => squadCard(player, 'bench', true)).join('') || '<p class="tl-empty-roster">Banco vazio</p>'}</div>
   </section>`;
+}
+
+function sideRail(players) {
+  return `<aside class="tl-side-rail tl-game-panel">${inspector(players)}${benchDock()}</aside>`;
+}
+
+function squadManager() {
+  const reserves = reservePlayers();
+  const filtered = filteredReservePlayers();
+  return `<section class="tl-squad-manager tl-game-panel" data-drop-zone="reserves">
+    <header><div><span>Elenco disponível</span><small>${reserves.length} não relacionados</small></div><nav>${GROUP_FILTERS.map(([key, label]) => `<button class="${rosterFilter === key ? 'active' : ''}" data-roster-filter="${key}" type="button">${label}</button>`).join('')}</nav></header>
+    <div class="tl-roster-grid reserves">${filtered.map(player => squadCard(player, 'reserves')).join('') || '<p class="tl-empty-roster">Nenhum jogador neste filtro.</p>'}</div>
+  </section>`;
+}
+
+function commandBar() {
+  return `<header class="tl-command-bar">
+    <div class="tl-command-title"><span>Centro tático</span><div><h1>Plano ${currentCareer.tactics.activePlan}</h1><p>${PLAN_LABELS[currentCareer.tactics.activePlan]} · ${currentCareer.tactics.mentality}</p></div></div>
+    <nav class="tl-shape-switch">${[['base','Base'],['possession','Com bola'],['out','Sem bola']].map(([key,label]) => `<button class="${pitchPhase === key ? 'active' : ''}" data-tl-pitch-phase="${key}" type="button"><i></i>${label}</button>`).join('')}</nav>
+    <div class="tl-command-actions"><label><span>Formação</span><select data-tl-formation>${Object.keys(FORMATION_SHAPES).map(formation => `<option ${formation === currentCareer.formation ? 'selected' : ''}>${formation}</option>`).join('')}</select></label><div class="tl-save-state ${saveState}" data-tl-save><i></i><span>${saveState === 'saving' ? 'Salvando…' : 'Salvo'}</span></div></div>
+  </header>`;
 }
 
 function renderStudio() {
@@ -330,10 +370,7 @@ function renderStudio() {
   ensureCareerCollections();
   const players = lineupPlayers();
   if (!selectedPlayerId || !roster().some(player => player.id === selectedPlayerId)) selectedPlayerId = players[0]?.id || null;
-  studioRoot.innerHTML = `<header class="tl-studio-head"><div><small>Modelo de jogo</small><h1>Táticas</h1><p>Monte os relacionados, desenhe as três fases e defina o comportamento de cada jogador.</p></div><div class="tl-save-state ${saveState}" data-tl-save><i></i><span>${saveState === 'saving' ? 'Salvando alterações…' : 'Alterações salvas'}</span></div></header>
-    <div class="tl-studio-grid">${controlsPanel()}${pitch(players)}${inspector(players)}</div>
-    ${squadManager()}
-    <div class="tl-toast" data-tl-toast role="status"></div>`;
+  studioRoot.innerHTML = `<div class="tl-stadium-light" aria-hidden="true"></div>${commandBar()}<div class="tl-war-room">${controlsPanel()}${pitch(players)}${sideRail(players)}</div>${squadManager()}<div class="tl-toast" data-tl-toast role="status"></div>`;
   bindStudioEvents();
 }
 
@@ -342,7 +379,7 @@ function updateSaveBadge() {
   if (!badge) return;
   badge.classList.toggle('saving', saveState === 'saving');
   badge.classList.toggle('saved', saveState === 'saved');
-  badge.querySelector('span')?.replaceChildren(saveState === 'saving' ? 'Salvando alterações…' : 'Alterações salvas');
+  badge.querySelector('span')?.replaceChildren(saveState === 'saving' ? 'Salvando…' : 'Salvo');
 }
 
 function persistCareer() {
@@ -382,13 +419,7 @@ function commitField(key, value) {
 function switchPlan(plan) {
   const current = normalizeTactics(currentCareer.tactics);
   const selected = current.plans[plan];
-  currentCareer.tactics = normalizeTactics({
-    ...current,
-    ...selected,
-    activePlan: plan,
-    plans: current.plans,
-    roles: current.roles
-  });
+  currentCareer.tactics = normalizeTactics({ ...current, ...selected, activePlan: plan, plans: current.plans, roles: current.roles });
   renderStudio();
   persistCareer();
 }
@@ -449,15 +480,7 @@ function beginDrag(event) {
   const source = event.currentTarget;
   const playerId = source.dataset.dragPlayer;
   if (!playerId) return;
-  dragSession = {
-    playerId,
-    source,
-    pointerId: event.pointerId,
-    startX: event.clientX,
-    startY: event.clientY,
-    started: false,
-    ghost: null
-  };
+  dragSession = { playerId, source, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, started: false, ghost: null };
   source.setPointerCapture?.(event.pointerId);
   document.addEventListener('pointermove', moveDrag, { passive: false });
   document.addEventListener('pointerup', finishDrag, { once: true });
@@ -656,6 +679,7 @@ function bindStudioEvents() {
   studioRoot.querySelectorAll('[data-tl-toggle]').forEach(input => input.onchange = () => commitField(input.dataset.tlToggle, input.checked));
   studioRoot.querySelectorAll('[data-tl-role]').forEach(select => select.onchange = () => setRole(select.dataset.tlRole, { role: select.value }));
   studioRoot.querySelectorAll('[data-tl-focus]').forEach(button => button.onclick = () => setRole(button.dataset.tlFocus, { focus: button.dataset.focus }));
+  studioRoot.querySelectorAll('[data-roster-filter]').forEach(button => button.onclick = () => { rosterFilter = button.dataset.rosterFilter; renderStudio(); });
   studioRoot.querySelector('[data-tl-formation]')?.addEventListener('change', event => changeFormation(event.target.value));
   studioRoot.querySelectorAll('[data-drag-player]').forEach(element => {
     element.onpointerdown = beginDrag;
@@ -665,7 +689,12 @@ function bindStudioEvents() {
   });
 }
 
+function syncTacticsMode() {
+  document.documentElement.classList.toggle('touchline-tactics-mode', location.hash === '#tactics');
+}
+
 async function mount() {
+  syncTacticsMode();
   if (mounting || location.hash !== '#tactics') return;
   const content = document.querySelector('.cp-content');
   if (!content || content.dataset.tacticsStudio === 'mounted') return;
@@ -693,4 +722,5 @@ async function mount() {
 const observer = new MutationObserver(() => queueMicrotask(mount));
 observer.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('hashchange', mount);
+syncTacticsMode();
 mount();
