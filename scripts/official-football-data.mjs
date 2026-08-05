@@ -212,34 +212,64 @@ function closestRatingCard(anchor) {
   return anchor.parentElement;
 }
 
+function stripMarkup(value) {
+  return cleanText(String(value || '')
+    .replace(/<script\b[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;|&#34;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'"));
+}
+
+function addEaRating(byId, { eaPlayerId, slug, name, context }) {
+  if (!eaPlayerId || byId.has(eaPlayerId)) return;
+  const text = stripMarkup(context);
+  const overall = Number(text.match(/\b(?:OVR|GER|SML)\s*(\d{2})\b/i)?.[1]);
+  if (!overall) return;
+  const cleanName = cleanText(name) || titleFromSlug(slug);
+  const positions = positionTokens(text);
+  const position = positions.find(token => POSITION_GROUP[token]) || '';
+  byId.set(eaPlayerId, {
+    eaPlayerId,
+    name: cleanName,
+    normalizedName: normalizeName(cleanName),
+    position,
+    group: groupFromPositions(position),
+    overall
+  });
+}
+
 export function parseEaRatingsHtml(html) {
   const source = String(html || '').replace(/\\u002F/gi, '/').replace(/\\\//g, '/');
+  const byId = new Map();
+  const rawAnchorPattern = /<a\b[^>]*href=["'][^"']*\/ratings\/player-ratings\/([^/?#"']+)\/(\d+)[^"']*["'][^>]*>([\s\S]*?)<\/a>/gi;
+  for (const match of source.matchAll(rawAnchorPattern)) {
+    const start = match.index ?? 0;
+    const context = source.slice(Math.max(0, start - 500), Math.min(source.length, start + match[0].length + 2200));
+    addEaRating(byId, {
+      eaPlayerId: Number(match[2]),
+      slug: match[1],
+      name: stripMarkup(match[3]),
+      context
+    });
+  }
+
   const window = new Window({ settings: { disableJavaScriptEvaluation: true, disableJavaScriptFileLoading: true, disableCSSFileLoading: true } });
   window.document.write(source);
-  const byId = new Map();
-
   for (const anchor of window.document.querySelectorAll('a[href*="/ratings/player-ratings/"]')) {
     const href = anchor.getAttribute('href') || '';
     const match = href.match(/\/ratings\/player-ratings\/([^/?#]+)\/(\d+)/i);
     if (!match) continue;
-    const eaPlayerId = Number(match[2]);
-    if (!eaPlayerId || byId.has(eaPlayerId)) continue;
     const card = closestRatingCard(anchor);
-    const text = cleanText(card?.textContent);
-    const overall = Number(text.match(/\b(?:OVR|GER|SML)\s*(\d{2})\b/i)?.[1]);
-    if (!overall) continue;
-    const name = cleanText(anchor.textContent) || titleFromSlug(match[1]);
-    const position = positionTokens(text)[0] || '';
-    byId.set(eaPlayerId, {
-      eaPlayerId,
-      name,
-      normalizedName: normalizeName(name),
-      position,
-      group: groupFromPositions(position),
-      overall
+    addEaRating(byId, {
+      eaPlayerId: Number(match[2]),
+      slug: match[1],
+      name: cleanText(anchor.textContent),
+      context: card?.outerHTML || card?.textContent || ''
     });
   }
-
   window.close();
   return [...byId.values()];
 }
