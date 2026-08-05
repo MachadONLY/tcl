@@ -55,6 +55,21 @@ function writeFallback(save) {
   }
 }
 
+function consumeCareerDraft(save) {
+  const draft = globalThis.__touchlineCareerDraft;
+  if (!draft || typeof draft !== "object") return save;
+  if (draft.saveId !== save.saveId || draft.clubCode !== save.clubCode) return save;
+  delete globalThis.__touchlineCareerDraft;
+  return {
+    ...save,
+    ...structuredClone(draft),
+    tactics: { ...(save.tactics || {}), ...(draft.tactics || {}) },
+    results: { ...(save.results || {}), ...(draft.results || {}) },
+    playerState: { ...(save.playerState || {}), ...(draft.playerState || {}) },
+    playerStats: { ...(save.playerStats || {}), ...(draft.playerStats || {}) }
+  };
+}
+
 export const CareerRepository = Object.freeze({
   async load(saveId = "primary") {
     try {
@@ -66,8 +81,9 @@ export const CareerRepository = Object.freeze({
   },
 
   async save(save) {
+    const merged = consumeCareerDraft(save);
     const snapshot = structuredClone({
-      ...save,
+      ...merged,
       updatedAt: new Date().toISOString()
     });
     writeFallback(snapshot);
