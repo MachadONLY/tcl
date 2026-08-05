@@ -12,6 +12,8 @@ assert.match(calendarSource, /index < 42/, 'calendar must render a stable six-we
 assert.match(calendarSource, /career\.clubCode/, 'calendar must derive club-specific content from the save');
 assert.doesNotMatch(calendarSource, /Burnley|Manchester City|Aston Villa/, 'reference clubs must not be hardcoded');
 assert.match(calendarStyles, /grid-template-columns:\s*repeat\(7/, 'calendar must keep seven weekday columns');
+assert.match(calendarStyles, /left:\s*236px/, 'calendar must preserve the full career sidebar on wide screens');
+assert.match(calendarStyles, /@media \(max-width: 1180px\)[\s\S]*left:\s*76px/, 'calendar must preserve the compact sidebar on narrower screens');
 assert.match(calendarStyles, /@media \(max-height: 760px\)/, 'calendar must support 1366x768 class displays');
 
 console.log('career calendar smoke: ok');
