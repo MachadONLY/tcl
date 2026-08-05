@@ -18,26 +18,29 @@ async function validPack() {
   try {
     const manifest = JSON.parse(await readFile(MANIFEST_PATH, 'utf8'));
     const rosterPayload = JSON.parse(await readFile(ROSTER_PATH, 'utf8'));
-    if (manifest.schemaVersion < 8 || manifest.source !== 'fotmob-official-full-squads') return false;
+    const strictRoleValidation = manifest.schemaVersion >= 8;
+
+    if (manifest.schemaVersion < 7 || manifest.source !== 'fotmob-official-full-squads') return false;
     if (manifest.positionSource !== 'FOTMOB_OFFICIAL') return false;
     if (manifest.teamCount !== 20 || Object.keys(manifest.teams || {}).length !== 20) return false;
     if (manifest.playerCount < 600 || manifest.expectedPlayerCount !== manifest.playerCount || manifest.coverage !== 1) return false;
     if (rosterPayload?.meta?.teamCount !== 20 || rosterPayload?.meta?.playerCount !== manifest.playerCount) return false;
     if (Object.keys(rosterPayload.rosters || {}).length !== 20) return false;
-    if (Object.keys(rosterPayload?.meta?.coaches || {}).length !== 20) return false;
+    if (strictRoleValidation && Object.keys(rosterPayload?.meta?.coaches || {}).length !== 20) return false;
 
     for (const [clubCode, team] of Object.entries(manifest.teams)) {
       const rows = rosterPayload.rosters?.[clubCode];
       if (!Array.isArray(rows) || rows.length !== team.playerCount || rows.length < 20) return false;
       if (rows.some(row => !row?.name || !['GK', 'DEF', 'MID', 'FWD'].includes(row.group))) return false;
       if (rows.some(row => ['COACH', 'MANAGER'].includes(String(row.group).toUpperCase()))) return false;
-      if (rows.some(row => resolveRosterGroup(row) !== row.group)) return false;
 
-      const coachName = normalize(rosterPayload.meta.coaches?.[clubCode]?.name);
-      if (!coachName || rows.some(row => normalize(row.name) === coachName)) return false;
-
-      const order = rows.map(row => rosterGroupOrder(row.group));
-      if (order.some((value, index) => index > 0 && value < order[index - 1])) return false;
+      if (strictRoleValidation) {
+        if (rows.some(row => resolveRosterGroup(row) !== row.group)) return false;
+        const coachName = normalize(rosterPayload.meta.coaches?.[clubCode]?.name);
+        if (!coachName || rows.some(row => normalize(row.name) === coachName)) return false;
+        const order = rows.map(row => rosterGroupOrder(row.group));
+        if (order.some((value, index) => index > 0 && value < order[index - 1])) return false;
+      }
 
       const groupCounts = Object.fromEntries(['GK', 'DEF', 'MID', 'FWD'].map(group => [group, rows.filter(row => row.group === group).length]));
       if (Object.values(groupCounts).some(count => count < 1)) return false;
