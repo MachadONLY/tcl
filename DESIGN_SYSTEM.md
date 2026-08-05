@@ -68,6 +68,22 @@ A identidade da competição é uma camada contextual, não a marca do produto:
 
 Na preparação, a navegação usa cenas animadas na mesma tela: `Matchday`, `Elenco`, `Esquemas`, `Funções`, `Instruções` e `Análise`. Somente a cena ativa revela densidade.
 
+## Adaptador da tela de calendário da carreira
+
+O calendário pode usar uma composição escura e atmosférica inspirada em telas de agenda de jogos, porque sua função é temporal e contemplativa, não operacional. Esta é uma exceção estritamente limitada à rota `calendar`:
+
+- fundo de estádio do clube ativo, escurecido para preservar legibilidade;
+- grade mensal universal de sete colunas e seis linhas;
+- partidas como blocos de competição em ciano/azul, com contraste alto e uso contido de gradiente;
+- escudo, nome, estádio, adversário, mando, resultado, inbox e janela de transferências sempre derivados do save;
+- cor do clube usada somente em filetes, estado selecionado e indicadores contextuais;
+- nenhuma informação visual pode ser hardcoded para Burnley, Manchester City ou qualquer clube de referência;
+- o painel lateral mostra somente o evento selecionado e o estado relevante da janela, evitando cards redundantes;
+- teclado, mouse e controles devem compartilhar a mesma seleção e fornecer foco visível;
+- a tela precisa funcionar em 1366×768 sem rolagem horizontal e manter a densidade legível em 1440×900.
+
+O adaptador escuro não redefine o sistema global e não deve vazar para elenco, táticas, inbox ou hub da carreira.
+
 ## Interações implementadas
 - preparação, partida e pós-jogo são estados visuais distintos;
 - a partida não mantém sidebar ou mini-campo duplicado;
