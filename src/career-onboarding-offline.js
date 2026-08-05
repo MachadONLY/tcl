@@ -164,10 +164,30 @@ function shouldOpenOnboarding() {
   return location.hash === "#welcome" || location.hash === "#club-select" || !save.onboardingComplete;
 }
 
-async function registerOfflineWorker() {
-  if (!("serviceWorker" in navigator) || !import.meta.env.PROD) return;
-  try { await navigator.serviceWorker.register("/touchline-sw.js", { scope: "/" }); }
-  catch {}
+async function clearDevelopmentWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map(registration => registration.unregister()));
+  } catch {}
+  try {
+    if (!("caches" in globalThis)) return;
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key.startsWith("touchline-")).map(key => caches.delete(key)));
+  } catch {}
+}
+
+async function manageOfflineWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  if (import.meta.env.DEV) {
+    await clearDevelopmentWorker();
+    return;
+  }
+  if (!import.meta.env.PROD) return;
+  try {
+    const registration = await navigator.serviceWorker.register("/touchline-sw.js", { scope: "/" });
+    await registration.update();
+  } catch {}
 }
 
 function mount() {
@@ -186,5 +206,5 @@ window.addEventListener("hashchange", () => {
   else if (location.hash === "#welcome") { stage = "welcome"; renderWelcome(); }
 });
 
-void registerOfflineWorker();
+void manageOfflineWorker();
 mount();
