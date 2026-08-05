@@ -2,11 +2,16 @@
   --tcc-club: #67a633;
   --tcc-club-dark: #263323;
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 236px;
   z-index: 4000;
   overflow: hidden;
   color: #f8faf8;
   background: #0a0e10;
+  border-left: 1px solid rgba(255,255,255,.06);
+  box-shadow: -18px 0 42px rgba(0,0,0,.18);
   font-family: "Avenir Next", "SF Pro Display", "Segoe UI Variable", Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
 }
@@ -413,6 +418,10 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
+@media (max-width: 1180px) {
+  .tcc-screen { left: 76px; }
+}
+
 @media (max-width: 1100px) {
   .tcc-layout { grid-template-columns: minmax(0, 1fr) 255px; gap: 20px; }
   .tcc-club em { grid-template-columns: repeat(4, 24px); }
@@ -431,12 +440,12 @@
 }
 
 @media (max-width: 820px) {
-  .tcc-screen { overflow: auto; }
+  .tcc-screen { left: 76px; overflow: auto; }
   .tcc-layout { height: auto; min-height: calc(100vh - 100px); grid-template-columns: 1fr; padding-bottom: 76px; }
   .tcc-main { min-height: 640px; }
   .tcc-detail { padding-top: 0; }
   .tcc-opponent { min-height: 220px; }
-  .tcc-footer { position: fixed; background: rgba(5,8,10,.88); }
+  .tcc-footer { position: fixed; left: calc(76px + clamp(28px, 4vw, 64px)); background: rgba(5,8,10,.88); }
   .tcc-utilities button { font-size: 0; }
   .tcc-utilities button span, .tcc-utilities button b { font-size: 11px; }
 }
