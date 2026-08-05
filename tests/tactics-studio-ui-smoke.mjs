@@ -1,11 +1,15 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const source = await readFile(new URL('../src/career-tactics-studio.js', import.meta.url), 'utf8');
-const css = await readFile(new URL('../src/career-tactics-studio.css', import.meta.url), 'utf8');
-const dragCss = await readFile(new URL('../src/career-tactics-drag-polish.css', import.meta.url), 'utf8');
-const dragSource = await readFile(new URL('../src/career-tactics-drag-polish.js', import.meta.url), 'utf8');
-const index = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+const [source, css, dragCss, dragSource, threeViews, threeViewsCss, index] = await Promise.all([
+  readFile(new URL('../src/career-tactics-studio.js', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-studio.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-drag-polish.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-drag-polish.js', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-three-views.js', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-three-views.css', import.meta.url), 'utf8'),
+  readFile(new URL('../index.html', import.meta.url), 'utf8')
+]);
 
 assert.ok(source.includes('data-drop-zone="pitch"'), 'pitch must be a drop surface');
 assert.ok(source.includes('data-drop-zone="bench"'), 'bench must be a drop surface');
@@ -39,12 +43,33 @@ assert.ok(dragCss.includes('translate3d(var(--tl-drag-x'), 'drag preview must us
 assert.ok(dragCss.includes('tlDragAvatarPickup'), 'drag pickup must have a subtle avatar animation');
 assert.ok(dragSource.includes('requestAnimationFrame'), 'drag movement must be synchronized to animation frames');
 assert.ok(dragSource.includes('const easing = 0.58'), 'drag movement must use controlled smoothing');
+assert.ok(threeViews.includes("let activeView = 'lineup'"), 'lineup must be the default tactics view');
+assert.ok(threeViews.includes("id: 'lineup'"), 'lineup view must exist');
+assert.ok(threeViews.includes("id: 'tactics'"), 'game model view must exist');
+assert.ok(threeViews.includes("id: 'roles'"), 'roles view must exist');
+assert.ok(threeViews.includes('Capitão'), 'captain responsibility must exist');
+assert.ok(threeViews.includes('Pênaltis'), 'penalty responsibility must exist');
+assert.ok(threeViews.includes('Faltas diretas'), 'direct free-kick responsibility must exist');
+assert.ok(threeViews.includes('Faltas indiretas'), 'indirect free-kick responsibility must exist');
+assert.ok(threeViews.includes('Escanteio esquerdo'), 'left-corner responsibility must exist');
+assert.ok(threeViews.includes('Escanteio direito'), 'right-corner responsibility must exist');
+assert.ok(threeViews.includes('localStorage.setItem'), 'responsibilities must persist for the club');
+assert.ok(threeViewsCss.includes('[data-tactics-view="lineup"]'), 'lineup-specific layout must be styled');
+assert.ok(threeViewsCss.includes('[data-tactics-view="tactics"]'), 'tactics-specific layout must be styled');
+assert.ok(threeViewsCss.includes('[data-tactics-view="roles"]'), 'roles-specific layout must be styled');
+assert.ok(threeViewsCss.includes('.tl-responsibilities-view'), 'responsibilities screen must be styled');
+assert.ok(threeViewsCss.includes('prefers-reduced-motion'), 'three-view transitions must respect reduced motion');
 assert.ok(index.includes('career-tactics-drag-polish.css'), 'polished drag CSS must be loaded');
 assert.ok(index.includes('career-tactics-drag-polish.js'), 'polished drag runtime must be loaded');
+assert.ok(index.includes('career-tactics-three-views.css'), 'three-view CSS must be loaded');
+assert.ok(index.includes('career-tactics-three-views.js'), 'three-view runtime must be loaded');
 
 console.log(JSON.stringify({
   ok: true,
-  interface: 'premium-tactics-war-room',
+  interface: 'three-view-premium-tactics-room',
+  views: ['lineup', 'tactics', 'roles'],
+  defaultView: 'lineup',
+  responsibilities: 7,
   dragPreview: 'circular-player-avatar',
   dragRendering: 'request-animation-frame-gpu',
   dropZones: ['pitch', 'bench', 'reserves'],
