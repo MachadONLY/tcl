@@ -50,7 +50,6 @@ jobs:
 
           const roots = [
             'src/career-core/fotmob-rosters.local.json',
-            'src/career-core/ea-fc26-ratings.local.json',
             'public/assets/players/2026-27'
           ];
 
@@ -102,7 +101,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/career-core/fotmob-rosters.local.json
-          git add src/career-core/ea-fc26-ratings.local.json
           git add public/assets/players/2026-27
           git add REPRODUCIBLE_SNAPSHOT.json REPRODUCIBLE_SNAPSHOT.sha256
           git commit -m "chore: freeze reproducible Touchline game snapshot [skip ci]"
@@ -117,7 +115,6 @@ jobs:
           node --input-type=module <<'NODE'
           import { readFile, readdir } from 'node:fs/promises';
           import { createHash } from 'node:crypto';
-          import path from 'node:path';
 
           const expected = (await readFile('REPRODUCIBLE_SNAPSHOT.sha256', 'utf8')).trim().split('\n');
           for (const row of expected) {
