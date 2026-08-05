@@ -9,6 +9,7 @@ const MANIFEST_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 
 const ROSTER_PATH = path.join(ROOT, 'src', 'career-core', 'fotmob-rosters.local.json');
 const REPORT_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 'fotmob-sync-report.json');
 const SYNC_SCRIPT = 'scripts/run-fotmob-full-rosters.mjs';
+const RATINGS_SCRIPT = 'scripts/sync-fc26-ratings.mjs';
 
 function normalize(value) {
   return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -62,6 +63,22 @@ async function validPack() {
   }
 }
 
+async function validRatings() {
+  try {
+    const rosterPayload = JSON.parse(await readFile(ROSTER_PATH, 'utf8'));
+    if (rosterPayload?.meta?.ratingSource !== 'SOFIFA_LATEST_WITH_CONSERVATIVE_FALLBACK') return false;
+    if (!Number.isFinite(rosterPayload.meta.sofifaRatingCount) || rosterPayload.meta.sofifaRatingCount < 250) return false;
+    const united = rosterPayload.rosters?.MUN || [];
+    const heaven = united.find(row => normalize(row.name) === 'ayden heaven');
+    const deLigt = united.find(row => normalize(row.name) === 'matthijs de ligt');
+    if (!heaven || !deLigt) return false;
+    if (!Number.isFinite(heaven.rating) || !Number.isFinite(deLigt.rating)) return false;
+    return deLigt.rating > heaven.rating;
+  } catch {
+    return false;
+  }
+}
+
 async function printFailureReport() {
   try {
     const report = JSON.parse(await readFile(REPORT_PATH, 'utf8'));
@@ -74,14 +91,14 @@ async function printFailureReport() {
   }
 }
 
-function runSync() {
+function runScript(script, label) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [SYNC_SCRIPT], { cwd: ROOT, stdio: 'inherit', env: process.env });
+    const child = spawn(process.execPath, [script], { cwd: ROOT, stdio: 'inherit', env: process.env });
     child.on('error', reject);
     child.on('exit', async code => {
       if (code === 0) return resolve();
-      await printFailureReport();
-      reject(new Error(`sync terminou com código ${code}`));
+      if (script === SYNC_SCRIPT) await printFailureReport();
+      reject(new Error(`${label} terminou com código ${code}`));
     });
   });
 }
@@ -91,8 +108,19 @@ if (await validPack()) {
   console.log(`✓ Pacote oficial completo: ${manifest.playerCount} jogadores nos 20 clubes.`);
 } else {
   console.log('Pacote oficial ausente, antigo ou inconsistente. Sincronizando os 20 clubes...');
-  await runSync();
+  await runScript(SYNC_SCRIPT, 'sync de elencos');
   if (!(await validPack())) throw new Error('A sincronização terminou, mas a validação de técnicos, posições e elenco integral não passou.');
   const manifest = JSON.parse(await readFile(MANIFEST_PATH, 'utf8'));
   console.log(`✓ Pacote oficial validado: ${manifest.playerCount} jogadores nos 20 clubes.`);
+}
+
+if (!process.env.CI && !(await validRatings())) {
+  console.log('Ratings reais ausentes ou inconsistentes. Atualizando somente os overalls pelo SoFIFA...');
+  await runScript(RATINGS_SCRIPT, 'sync de ratings');
+  if (!(await validRatings())) throw new Error('Os ratings foram atualizados, mas a validação final não passou.');
+}
+
+if (await validRatings()) {
+  const rosterPayload = JSON.parse(await readFile(ROSTER_PATH, 'utf8'));
+  console.log(`✓ Ratings validados: ${rosterPayload.meta.sofifaRatingCount} jogadores correspondidos no SoFIFA.`);
 }
