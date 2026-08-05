@@ -141,6 +141,7 @@ async function patchMatchup(explicitFixtureId = null) {
   const panel = screen.querySelector('.tcc-opponent');
   const fixtureId = explicitFixtureId || fixtureIdFromScreen(screen);
   if (!panel || !fixtureId) return;
+  if (panel.dataset.matchupFixtureId === fixtureId && panel.classList.contains('tcc-matchup')) return;
 
   const generation = ++patchGeneration;
   const selectedClub = legacyClubSelection();
@@ -196,6 +197,12 @@ function selectFixtureFromGrid(event) {
   requestedFixtureId = button.dataset.calendarFixture;
   const screen = document.getElementById(SCREEN_ID);
   if (screen) markSelectedFixture(screen, requestedFixtureId);
+
+  const panel = screen?.querySelector('.tcc-opponent');
+  if (panel) {
+    panel.dataset.matchupFixtureId = '';
+    panel.classList.remove('tcc-matchup');
+  }
   patchMatchup(requestedFixtureId);
 }
 
