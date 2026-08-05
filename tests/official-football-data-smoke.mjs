@@ -4,6 +4,11 @@ import {
   parseFotMobSquadHtml
 } from '../scripts/official-football-data.mjs';
 import { parseOfficialEaRatingsHtml } from '../scripts/official-ea-ratings.mjs';
+import {
+  resolveRosterGroup,
+  rosterGroupOrder,
+  sanitizeRosterRows
+} from '../src/career-core/roster-integrity.js';
 
 const fotmobHtml = `
 <table>
@@ -52,11 +57,45 @@ assert.equal(ratings.length, 2);
 assert.equal(matchEaRating({ name: 'Andrey Santos', group: 'MID' }, ratings)?.overall, 80);
 assert.equal(matchEaRating({ name: 'Youri Tielemans', group: 'MID' }, ratings)?.overall, 85);
 
+const dirtyRoster = [
+  { name: 'Benjamin Sesko', group: 'FWD', position: 'ST', fotmobId: 6 },
+  { name: 'Andrey Santos', group: 'DEF', position: 'DM, CM', fotmobId: 3 },
+  { name: 'Michael Carrick', group: 'GK', position: 'GK', fotmobId: 1 },
+  { name: 'Leny Yoro', group: 'DEF', position: 'CB', fotmobId: 4 },
+  { name: 'Altay Bayindir', group: 'GK', position: 'GK', fotmobId: 2 },
+  { name: 'Amad Diallo', group: 'FWD', position: 'RW, RWB, AM', fotmobId: 5 },
+  { name: 'Andrey Santos', group: 'DEF', position: 'DM, CM', fotmobId: 3 }
+];
+
+assert.equal(resolveRosterGroup(dirtyRoster[1]), 'MID');
+assert.equal(resolveRosterGroup(dirtyRoster[5]), 'FWD');
+
+const cleanRoster = sanitizeRosterRows(dirtyRoster, {
+  managerNames: ['Michael Carrick']
+});
+
+assert.deepEqual(cleanRoster.map(player => player.name), [
+  'Altay Bayindir',
+  'Leny Yoro',
+  'Andrey Santos',
+  'Benjamin Sesko',
+  'Amad Diallo'
+]);
+assert.equal(cleanRoster.some(player => player.name === 'Michael Carrick'), false);
+assert.equal(cleanRoster.find(player => player.name === 'Andrey Santos')?.group, 'MID');
+assert.equal(cleanRoster.filter(player => player.name === 'Andrey Santos').length, 1);
+assert.deepEqual(
+  cleanRoster.map(player => rosterGroupOrder(player.group)),
+  [...cleanRoster.map(player => rosterGroupOrder(player.group))].sort((a, b) => a - b)
+);
+
 console.log(JSON.stringify({
   ok: true,
   coachSeparated: parsed.coach.name,
   players: parsed.players.length,
   andreyGroup: 'MID',
   andreyRating: 80,
-  youriRating: 85
+  youriRating: 85,
+  sanitizedPlayers: cleanRoster.length,
+  sanitizedOrder: cleanRoster.map(player => player.group)
 }, null, 2));
