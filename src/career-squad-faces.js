@@ -9,14 +9,14 @@ let queued = false;
 
 function loadManifest() {
   if (manifestPromise) return manifestPromise;
-  manifestPromise = fetch(`${MANIFEST_URL}?v=2`, { cache: 'no-store' })
+  manifestPromise = fetch(`${MANIFEST_URL}?v=3`, { cache: 'no-store' })
     .then(response => {
       if (!response.ok) throw new Error(`manifest HTTP ${response.status}`);
       return response.json();
     })
     .then(manifest => {
-      if (manifest.source !== 'fotmob-playerimages-exact' || manifest.coverage !== 1) {
-        throw new Error('pacote FotMob incompleto');
+      if (manifest.source !== 'fotmob-official-full-squads' || manifest.coverage !== 1) {
+        throw new Error('pacote FotMob integral incompleto');
       }
       return manifest;
     })
@@ -51,9 +51,7 @@ function createPortrait(player, source) {
     image.dataset.fotmobPortrait = 'failed';
   }, { once: true });
 
-  const number = document.createElement('small');
-  number.textContent = String(player.number);
-  portrait.append(image, number);
+  portrait.append(image);
   return portrait;
 }
 
