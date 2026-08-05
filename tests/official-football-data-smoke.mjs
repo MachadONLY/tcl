@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {
   matchEaRating,
-  parseEaRatingsHtml,
   parseFotMobSquadHtml
 } from '../scripts/official-football-data.mjs';
+import { parseOfficialEaRatingsHtml } from '../scripts/official-ea-ratings.mjs';
 
 const fotmobHtml = `
 <table>
@@ -47,7 +47,7 @@ const eaHtml = `
   <span>CM</span><span>OVR 85</span><span>PAC 54</span>
 </div>`;
 
-const ratings = parseEaRatingsHtml(eaHtml);
+const ratings = parseOfficialEaRatingsHtml(eaHtml);
 assert.equal(ratings.length, 2);
 assert.equal(matchEaRating({ name: 'Andrey Santos', group: 'MID' }, ratings)?.overall, 80);
 assert.equal(matchEaRating({ name: 'Youri Tielemans', group: 'MID' }, ratings)?.overall, 85);
