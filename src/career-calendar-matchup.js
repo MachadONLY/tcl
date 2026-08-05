@@ -6,6 +6,7 @@ import { CareerRepository, legacyClubSelection } from './career-core/career-repo
 const SCREEN_ID = 'touchline-career-calendar';
 let patchPending = false;
 let patchGeneration = 0;
+let requestedFixtureId = null;
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -32,33 +33,70 @@ function installImageFallbacks(root) {
   });
 }
 
-function scoreForControlledClub(fixture, result, controlledCode) {
-  if (!result) return null;
-  const controlledAtHome = fixture.home === controlledCode;
-  return {
-    controlled: controlledAtHome ? result.homeGoals : result.awayGoals,
-    opponent: controlledAtHome ? result.awayGoals : result.homeGoals
-  };
+function formatFullDate(value) {
+  const [year, month, day] = String(value).split('-').map(Number);
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+}
+
+function goalEvents(result, side) {
+  return (Array.isArray(result?.events) ? result.events : [])
+    .filter(event => event?.type === 'goal' && event.side === side)
+    .sort((left, right) => Number(left.minute || 0) - Number(right.minute || 0));
+}
+
+function goalListMarkup(result, side) {
+  const events = goalEvents(result, side);
+  if (!events.length) return '<span class="tcc-goals-empty" aria-hidden="true">—</span>';
+
+  return events.map(event => `
+    <div class="tcc-goal-event">
+      <span title="${escapeHtml(event.playerName || 'Goal')}">${escapeHtml(event.playerName || 'Goal')}</span>
+      <time>${escapeHtml(event.minute)}′</time>
+    </div>
+  `).join('');
+}
+
+function goalsMarkup(result) {
+  if (!result) return '';
+  const homeEvents = goalEvents(result, 'home');
+  const awayEvents = goalEvents(result, 'away');
+  const hasEventData = homeEvents.length + awayEvents.length > 0;
+  const scoreHasGoals = Number(result.homeGoals || 0) + Number(result.awayGoals || 0) > 0;
+
+  if (!hasEventData && scoreHasGoals) {
+    return '<div class="tcc-goals-unavailable">Goal details unavailable for this saved result.</div>';
+  }
+
+  if (!scoreHasGoals) {
+    return '<div class="tcc-goals-goalless">No goals</div>';
+  }
+
+  return `
+    <div class="tcc-matchup-goals" aria-label="Goal scorers">
+      <div class="tcc-goals-side is-home">${goalListMarkup(result, 'home')}</div>
+      <span class="tcc-goals-divider" aria-hidden="true"></span>
+      <div class="tcc-goals-side is-away">${goalListMarkup(result, 'away')}</div>
+    </div>
+  `;
 }
 
 function matchupMarkup(career, fixture) {
-  const controlled = clubFor(career.clubCode);
-  const controlledAtHome = fixture.home === career.clubCode;
-  const opponentCode = controlledAtHome ? fixture.away : fixture.home;
-  const opponent = clubFor(opponentCode);
+  const homeClub = clubFor(fixture.home);
+  const awayClub = clubFor(fixture.away);
   const result = career.results?.[fixture.id] || null;
-  const score = scoreForControlledClub(fixture, result, career.clubCode);
-  const venue = controlledAtHome ? controlled?.stadium : opponent?.stadium;
-  const status = result ? 'Full time' : (fixture.time || '15:00');
-  const center = score
-    ? `<strong class="tcc-matchup-score" aria-label="${score.controlled} to ${score.opponent}"><span>${score.controlled}</span><i>–</i><span>${score.opponent}</span></strong>`
+  const venue = homeClub?.stadium || '';
+  const center = result
+    ? `<strong class="tcc-matchup-score" aria-label="${result.homeGoals} to ${result.awayGoals}"><span>${result.homeGoals}</span><i>–</i><span>${result.awayGoals}</span></strong>`
     : '<strong class="tcc-matchup-versus" aria-label="versus">×</strong>';
 
   return `
     <div class="tcc-matchup-row">
-      <div class="tcc-matchup-club is-controlled">
-        <div class="tcc-matchup-crest-shell">${crestMarkup(controlled.code, 'tcc-matchup-crest')}</div>
-        <h3>${escapeHtml(controlled.shortName || controlled.name)}</h3>
+      <div class="tcc-matchup-club ${fixture.home === career.clubCode ? 'is-controlled' : ''}">
+        <small>HOME</small>
+        <div class="tcc-matchup-crest-shell">${crestMarkup(homeClub.code, 'tcc-matchup-crest')}</div>
+        <h3>${escapeHtml(homeClub.shortName || homeClub.name)}</h3>
       </div>
 
       <div class="tcc-matchup-center">
@@ -66,27 +104,43 @@ function matchupMarkup(career, fixture) {
         <small>${result ? 'FT' : escapeHtml(fixture.time || '15:00')}</small>
       </div>
 
-      <div class="tcc-matchup-club">
-        <div class="tcc-matchup-crest-shell">${crestMarkup(opponent.code, 'tcc-matchup-crest')}</div>
-        <h3>${escapeHtml(opponent.shortName || opponent.name)}</h3>
+      <div class="tcc-matchup-club ${fixture.away === career.clubCode ? 'is-controlled' : ''}">
+        <small>AWAY</small>
+        <div class="tcc-matchup-crest-shell">${crestMarkup(awayClub.code, 'tcc-matchup-crest')}</div>
+        <h3>${escapeHtml(awayClub.shortName || awayClub.name)}</h3>
       </div>
     </div>
 
+    ${goalsMarkup(result)}
+
     <div class="tcc-matchup-context">
-      <span>${controlledAtHome ? 'Home' : 'Away'} · ${escapeHtml(venue || '')}</span>
-      <b>${status}</b>
+      <span>${escapeHtml(venue)}</span>
+      <b>${result ? 'Full time' : escapeHtml(fixture.time || '15:00')}</b>
     </div>
   `;
 }
 
-async function patchMatchup() {
+function fixtureIdFromScreen(screen) {
+  return requestedFixtureId
+    || screen.querySelector('.tcc-fixture.is-selected[data-calendar-fixture]')?.dataset.calendarFixture
+    || null;
+}
+
+function markSelectedFixture(screen, fixtureId) {
+  screen.querySelectorAll('[data-calendar-fixture]').forEach(button => {
+    const selected = button.dataset.calendarFixture === fixtureId;
+    button.classList.toggle('is-selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+}
+
+async function patchMatchup(explicitFixtureId = null) {
   const screen = document.getElementById(SCREEN_ID);
   if (!screen || location.hash !== '#calendar') return;
 
-  const selectedButton = screen.querySelector('.tcc-fixture.is-selected[data-calendar-fixture]');
   const panel = screen.querySelector('.tcc-opponent');
-  const fixtureId = selectedButton?.dataset.calendarFixture;
-  if (!panel || !fixtureId || panel.dataset.matchupFixtureId === fixtureId) return;
+  const fixtureId = explicitFixtureId || fixtureIdFromScreen(screen);
+  if (!panel || !fixtureId) return;
 
   const generation = ++patchGeneration;
   const selectedClub = legacyClubSelection();
@@ -97,6 +151,15 @@ async function patchMatchup() {
 
   const fixture = userFixtures(career).find(item => item.id === fixtureId);
   if (!fixture) return;
+
+  requestedFixtureId = fixtureId;
+  markSelectedFixture(screen, fixtureId);
+
+  const date = screen.querySelector('.tcc-selected-date');
+  if (date) {
+    date.dateTime = fixture.date;
+    date.textContent = formatFullDate(fixture.date);
+  }
 
   panel.dataset.matchupFixtureId = fixtureId;
   panel.classList.add('tcc-matchup');
@@ -109,15 +172,39 @@ function schedulePatch() {
   patchPending = true;
   requestAnimationFrame(() => {
     patchPending = false;
+    const screen = document.getElementById(SCREEN_ID);
+    if (!screen) return;
+
+    const requestedStillVisible = requestedFixtureId
+      && screen.querySelector(`[data-calendar-fixture="${CSS.escape(requestedFixtureId)}"]`);
+    if (!requestedStillVisible) requestedFixtureId = null;
+
     patchMatchup();
   });
 }
 
+function selectFixtureFromGrid(event) {
+  const button = event.target.closest(`#${SCREEN_ID} [data-calendar-fixture]`);
+  if (!button) return;
+
+  // The base calendar only accepts fixtures from the anchor month. Intercepting
+  // in capture phase lets overflow-day fixtures remain selectable without
+  // changing the month currently being viewed.
+  event.preventDefault();
+  event.stopImmediatePropagation();
+
+  requestedFixtureId = button.dataset.calendarFixture;
+  const screen = document.getElementById(SCREEN_ID);
+  if (screen) markSelectedFixture(screen, requestedFixtureId);
+  patchMatchup(requestedFixtureId);
+}
+
 const observer = new MutationObserver(schedulePatch);
 observer.observe(document.body, { childList: true, subtree: true });
-window.addEventListener('hashchange', schedulePatch);
-document.addEventListener('click', event => {
-  if (event.target.closest('[data-calendar-fixture]')) setTimeout(schedulePatch, 0);
+window.addEventListener('hashchange', () => {
+  requestedFixtureId = null;
+  schedulePatch();
 });
+document.addEventListener('click', selectFixtureFromGrid, true);
 
 schedulePatch();
