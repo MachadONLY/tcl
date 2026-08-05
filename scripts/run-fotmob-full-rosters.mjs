@@ -17,10 +17,11 @@ if (helperPatched === helperSource) {
 
 const syncSource = await readFile(syncUrl, 'utf8');
 const syncPatched = syncSource
-  .replace("from './official-football-data.mjs';", "from './.official-football-data.runtime.mjs';")
+  .replace("from './official-football-data.mjs';", "from './.official-football-data.runtime.mjs';\nimport { parseOfficialEaRatingsHtml } from './official-ea-ratings.mjs';")
+  .replaceAll('parseEaRatingsHtml(', 'parseOfficialEaRatingsHtml(')
   .replace('if (parsed.players.length < 24)', 'if (parsed.players.length < 20)');
-if (syncPatched === syncSource) {
-  throw new Error('Não foi possível aplicar as validações atualizadas do elenco oficial.');
+if (syncPatched === syncSource || !syncPatched.includes('parseOfficialEaRatingsHtml')) {
+  throw new Error('Não foi possível aplicar as validações atualizadas do elenco e dos ratings oficiais.');
 }
 
 await writeFile(helperRuntimeUrl, helperPatched, 'utf8');
