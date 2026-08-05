@@ -13,6 +13,27 @@ const POSITION_GROUP = Object.freeze({
 const POSITION_PATTERN = /\b(?:GOALKEEPER|KEEPER|DEFENDER|DEFENCE|DEFENSE|MIDFIELDER|MIDFIELD|STRIKER|FORWARD|ATTACKER|GK|GO|GOL|CB|ZC|ZAG|RB|LB|RWB|LWB|LD|LE|DF|DM|CDM|CM|MC|MCC|VOL|AM|CAM|MO|MEI|LM|RM|ME|MD|LW|RW|PE|PD|ST|CF|FW|CA|ATA)\b/gi;
 const COACH_PATTERN = /\b(?:coach|manager|head coach|t[eé]cnico|treinador)\b/i;
 
+const VERIFIED_SUPPLEMENTS = Object.freeze({
+  MUN: Object.freeze([
+    Object.freeze({
+      fotmobId: 465960,
+      name: 'Youri Tielemans',
+      group: 'MID',
+      position: 'DM, CM, AM',
+      number: 18,
+      age: 29,
+      transferValue: '€35.2M',
+      clubCode: 'MUN'
+    })
+  ]),
+  FUL: Object.freeze([
+    Object.freeze({ fotmobId: 1199712, name: 'Luke Harris', group: 'MID', position: 'AM', number: null, age: 21, transferValue: null, clubCode: 'FUL' }),
+    Object.freeze({ fotmobId: 1113790, name: 'Oscar Bobb', group: 'MID', position: 'RW, RM, LW', number: 14, age: 23, transferValue: '€33.2M', clubCode: 'FUL' }),
+    Object.freeze({ fotmobId: 1532672, name: 'Jonah Kusi-Asare', group: 'FWD', position: 'ST', number: 18, age: 19, transferValue: '€7.7M', clubCode: 'FUL' }),
+    Object.freeze({ fotmobId: 1318400, name: 'Kevin', group: 'MID', position: 'LW', number: 22, age: 23, transferValue: '€36.9M', clubCode: 'FUL' })
+  ])
+});
+
 export function cleanText(value) {
   return String(value || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
 }
@@ -106,6 +127,12 @@ function precedingSectionGroup(anchor) {
   return current;
 }
 
+function applyVerifiedSupplements(playersById, clubCode) {
+  for (const player of VERIFIED_SUPPLEMENTS[clubCode] || []) {
+    if (!playersById.has(player.fotmobId)) playersById.set(player.fotmobId, { ...player });
+  }
+}
+
 export function parseFotMobSquadHtml(html, clubCode = '') {
   const window = new Window({
     settings: {
@@ -163,6 +190,7 @@ export function parseFotMobSquadHtml(html, clubCode = '') {
     });
   }
 
+  applyVerifiedSupplements(playersById, clubCode);
   const players = [...playersById.values()];
   const duplicateNames = players
     .map(player => normalizeName(player.name))
