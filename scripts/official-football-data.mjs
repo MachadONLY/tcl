@@ -129,7 +129,7 @@ function precedingSectionGroup(anchor) {
 
 function applyVerifiedSupplements(playersById, clubCode) {
   for (const player of VERIFIED_SUPPLEMENTS[clubCode] || []) {
-    if (!playersById.has(player.fotmobId)) playersById.set(player.fotmobId, { ...player });
+    playersById.set(player.fotmobId, { ...(playersById.get(player.fotmobId) || {}), ...player });
   }
 }
 
@@ -171,11 +171,8 @@ export function parseFotMobSquadHtml(html, clubCode = '') {
     }
 
     const explicitPositions = positionTokens(positionText);
-    let group = groupFromPositions(positionText);
-    if (!group) {
-      const section = precedingSectionGroup(anchor);
-      group = section && section !== 'COACH' ? section : null;
-    }
+    const section = precedingSectionGroup(anchor);
+    const group = section && section !== 'COACH' ? section : groupFromPositions(positionText);
     if (!group) continue;
 
     playersById.set(fotmobId, {
