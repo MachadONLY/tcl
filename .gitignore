@@ -7,10 +7,5 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Generated locally from the official FotMob squad pages and EA SPORTS FC ratings pages.
-src/career-core/fotmob-rosters.local.json
-src/career-core/ea-fc26-ratings.local.json
-public/assets/players/2026-27/*.png
-public/assets/players/2026-27/manifest.json
-public/assets/players/2026-27/rosters.json
-public/assets/players/2026-27/fotmob-sync-report.json
+# The current Premier League roster, ratings, manifests and player portraits
+# are intentionally versioned so a GitHub ZIP reproduces the same game build.
