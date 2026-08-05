@@ -64,6 +64,7 @@ function normalizedAliases(values) {
 
 function teamMatches(code, value) {
   const normalized = normalizeName(value);
+  if (!normalized) return false;
   return (CLUB_ALIASES[code] || []).some(alias => {
     const target = normalizeName(alias);
     return normalized === target || normalized.includes(target) || target.includes(normalized);
