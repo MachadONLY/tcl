@@ -6,3 +6,10 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# Generated locally from the official FotMob squad pages.
+src/career-core/fotmob-rosters.local.json
+public/assets/players/2026-27/*.png
+public/assets/players/2026-27/manifest.json
+public/assets/players/2026-27/rosters.json
+public/assets/players/2026-27/fotmob-sync-report.json
