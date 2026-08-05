@@ -12,7 +12,7 @@ const clubCodes = [
 ];
 
 assert.equal(Object.keys(STADIUM_EXTENSION_BY_CLUB).length, 20);
-assert.equal(canonicalStadiumAsset('HUL'), '/assets/clubs/2026-27/hul/stadium-custom.svg');
+assert.equal(canonicalStadiumAsset('HUL'), '/assets/clubs/2026-27/hul/stadium.png');
 assert.equal(canonicalStadiumAsset('ARS'), '/assets/clubs/2026-27/ars/stadium.jpg');
 
 for (const code of clubCodes) {
@@ -22,11 +22,9 @@ for (const code of clubCodes) {
   await access(localPath);
 }
 
-const [index, controller, onboardingMedia, hullSvg, imageFix] = await Promise.all([
+const [index, controller, imageFix] = await Promise.all([
   readFile(new URL('../index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-home-stadium-media.js', import.meta.url), 'utf8'),
-  readFile(new URL('../src/onboarding/offline-media.js', import.meta.url), 'utf8'),
-  readFile(new URL('../public/assets/clubs/2026-27/hul/stadium-custom.svg', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-home-image-fix.css', import.meta.url), 'utf8')
 ]);
 
@@ -36,14 +34,8 @@ assert.match(controller, /data-stadium-candidates/);
 assert.match(controller, /window\.addEventListener\('error'/);
 assert.match(controller, /CareerRepository\.load/);
 assert.match(controller, /nextUserFixture/);
-assert.match(controller, /stadium-custom\.svg/);
-assert.match(controller, /career-home-image-fix\.css/);
-assert.match(onboardingMedia, /hullStadiumObjectUrl/);
-assert.match(onboardingMedia, /club\.code === "HUL"/);
-assert.match(onboardingMedia, /role === "stadium"/);
-assert.match(onboardingMedia, /\["backdrop", hullStadium \|\| entry\.stadium/);
-assert.match(hullSvg, /data:image\/webp;base64,/);
-assert.match(hullSvg, /viewBox="0 0 1024 576"/);
+assert.doesNotMatch(controller, /stadium-custom\.svg/);
+assert.doesNotMatch(controller, /hullStadiumObjectUrl/);
 assert.match(imageFix, /filter:none!important/);
 assert.match(imageFix, /backdrop-filter:none!important/);
 assert.match(imageFix, /object-fit:cover!important/);
@@ -52,8 +44,6 @@ console.log(JSON.stringify({
   ok: true,
   clubs: clubCodes.length,
   hullStadium: canonicalStadiumAsset('HUL'),
-  directImage: true,
-  sharpBackground: true,
-  selectorUsesSameAsset: true,
+  customBlurPathRemoved: true,
   source: 'home-club fixture'
 }, null, 2));
