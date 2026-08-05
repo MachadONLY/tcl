@@ -5,10 +5,11 @@ import { fileURLToPath } from 'node:url';
 import {
   matchEaRating,
   normalizeName,
-  parseEaRatingsHtml,
   parseFotMobSquadHtml,
   primaryPosition
 } from './official-football-data.mjs';
+import { parseOfficialEaRatingsHtml } from './official-ea-ratings.mjs';
+import { sanitizeRosterRows } from '../src/career-core/roster-integrity.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public', 'assets', 'players', '2026-27');
@@ -19,7 +20,12 @@ const REPORT_PATH = path.join(PUBLIC_DIR, 'fotmob-sync-report.json');
 const EA_CACHE_PATH = path.join(ROOT, 'src', 'career-core', 'ea-fc26-ratings.local.json');
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/150 Safari/537.36';
 const PHOTO_URL = id => `https://images.fotmob.com/image_resources/playerimages/${id}.png`;
-const EA_URL = page => `https://www.ea.com/games/ea-sports-fc/ratings?gender=0&page=${page}`;
+const EA_RATINGS_ID = 'EASFC_PLAYER_RATINGS_PITCH_NOTES_URL';
+const EA_URLS = page => [
+  `https://www.ea.com/games/ea-sports-fc/ratings?id=${EA_RATINGS_ID}&gender=0&page=${page}`,
+  `https://careers.ea.com/games/ea-sports-fc/ratings?id=${EA_RATINGS_ID}&gender=0&page=${page}`,
+  `https://www.privacyappendix.ea.com/games/ea-sports-fc/ratings?id=${EA_RATINGS_ID}&gender=0&page=${page}`
+];
 
 const TEAMS = Object.freeze({
   ARS: { id: 9825, slug: 'arsenal' }, AVL: { id: 10252, slug: 'aston-villa' },
@@ -152,9 +158,26 @@ function pageCountFromEaHtml(html) {
   return Math.max(1, ...pages.filter(Number.isFinite));
 }
 
+async function fetchEaRatingsPage(page) {
+  let lastError;
+  for (const url of EA_URLS(page)) {
+    try {
+      const response = await fetchWithRetry(url, { headers: { accept: 'text/html,application/xhtml+xml' } }, 2);
+      const html = await response.text();
+      const players = parseOfficialEaRatingsHtml(html);
+      if (players.length) return { html, players, url: response.url || url };
+      lastError = new Error(`página ${page} sem jogadores em ${new URL(url).hostname}`);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error(`EA: página ${page} indisponível`);
+}
+
 async function scanOfficialEaRatings() {
   const cached = await loadCachedEaRatings();
-  if (cached && !process.argv.includes('--refresh-ea')) {
+  const refreshRequested = process.argv.includes('--refresh-ea');
+  if (cached && !refreshRequested) {
     console.log(`✓ Base oficial EA SPORTS FC 26 em cache: ${cached.players.length} atletas.`);
     return cached;
   }
@@ -164,36 +187,66 @@ async function scanOfficialEaRatings() {
   }
 
   console.log('Lendo a base oficial de ratings do EA SPORTS FC 26...');
-  const firstResponse = await fetchWithRetry(EA_URL(1), { headers: { accept: 'text/html,application/xhtml+xml' } });
-  const firstHtml = await firstResponse.text();
-  const byId = new Map(parseEaRatingsHtml(firstHtml).map(player => [player.eaPlayerId, player]));
-  let maximumPage = pageCountFromEaHtml(firstHtml);
-  if (maximumPage < 20) maximumPage = 190;
+  let firstPage;
+  try {
+    firstPage = await fetchEaRatingsPage(1);
+  } catch (error) {
+    if (cached) {
+      console.warn(`EA indisponível (${error.message}); mantendo cache oficial com ${cached.players.length} atletas.`);
+      return cached;
+    }
+    console.warn(`EA indisponível (${error.message}); o elenco será sincronizado e ratings sem correspondência ficarão marcados como estimativa.`);
+    return { source: 'EA_SPORTS_FC_26_OFFICIAL', generatedAt: null, players: [], unavailable: true };
+  }
+
+  const byId = new Map(firstPage.players.map(player => [player.eaPlayerId, player]));
+  let maximumPage = pageCountFromEaHtml(firstPage.html);
+  if (maximumPage < 20) maximumPage = 180;
   let emptyBatches = 0;
 
-  for (let firstPage = 2; firstPage <= maximumPage && emptyBatches < 3; firstPage += 5) {
-    const pageNumbers = Array.from({ length: Math.min(5, maximumPage - firstPage + 1) }, (_, index) => firstPage + index);
+  for (let firstPageNumber = 2; firstPageNumber <= maximumPage && emptyBatches < 3; firstPageNumber += 5) {
+    const pageNumbers = Array.from(
+      { length: Math.min(5, maximumPage - firstPageNumber + 1) },
+      (_, index) => firstPageNumber + index
+    );
     let newRows = 0;
     await Promise.all(pageNumbers.map(async page => {
-      const response = await fetchWithRetry(EA_URL(page), { headers: { accept: 'text/html,application/xhtml+xml' } });
-      const rows = parseEaRatingsHtml(await response.text());
-      for (const row of rows) {
-        if (!byId.has(row.eaPlayerId)) newRows += 1;
-        byId.set(row.eaPlayerId, row);
+      try {
+        const result = await fetchEaRatingsPage(page);
+        for (const row of result.players) {
+          if (!byId.has(row.eaPlayerId)) newRows += 1;
+          byId.set(row.eaPlayerId, row);
+        }
+      } catch (error) {
+        console.warn(`  EA página ${page}: ${error.message}`);
       }
     }));
     emptyBatches = newRows === 0 ? emptyBatches + 1 : 0;
-    if ((firstPage - 2) % 25 === 0) console.log(`  EA: páginas ${firstPage}-${pageNumbers.at(-1)} · ${byId.size} atletas`);
+    if ((firstPageNumber - 2) % 25 === 0) {
+      console.log(`  EA: páginas ${firstPageNumber}-${pageNumbers.at(-1)} · ${byId.size} atletas`);
+    }
     await sleep(90);
   }
 
   const players = [...byId.values()];
   if (players.length < 10000) {
-    throw new Error(`A base oficial da EA retornou apenas ${players.length} atletas; sincronização cancelada para não inventar ratings.`);
+    if (cached) {
+      console.warn(`A leitura atual da EA retornou ${players.length} atletas; mantendo o cache oficial anterior com ${cached.players.length}.`);
+      return cached;
+    }
+    console.warn(`A EA retornou apenas ${players.length} atletas. O sync continuará sem inventar overalls; apenas correspondências oficiais encontradas serão usadas.`);
+    return {
+      source: 'EA_SPORTS_FC_26_OFFICIAL',
+      sourceUrl: firstPage.url,
+      generatedAt: new Date().toISOString(),
+      players,
+      partial: true
+    };
   }
+
   const cache = {
     source: 'EA_SPORTS_FC_26_OFFICIAL',
-    sourceUrl: 'https://www.ea.com/games/ea-sports-fc/ratings',
+    sourceUrl: firstPage.url,
     generatedAt: new Date().toISOString(),
     players
   };
@@ -206,7 +259,7 @@ async function validExistingPack() {
   try {
     const manifest = JSON.parse(await readFile(MANIFEST_PATH, 'utf8'));
     const rosterPayload = JSON.parse(await readFile(LOCAL_ROSTER_PATH, 'utf8'));
-    if (manifest.schemaVersion < 7 || manifest.source !== 'fotmob-official-full-squads') return false;
+    if (manifest.schemaVersion < 8 || manifest.source !== 'fotmob-official-full-squads') return false;
     if (manifest.coverage !== 1 || manifest.playerCount < 600 || Object.keys(manifest.teams || {}).length !== 20) return false;
     if (rosterPayload?.meta?.playerCount !== manifest.playerCount) return false;
     const united = rosterPayload.rosters?.MUN || [];
@@ -242,12 +295,13 @@ async function main() {
     try {
       const response = await fetchWithRetry(url, { headers: { accept: 'text/html,application/xhtml+xml' } });
       const parsed = parseFotMobSquadHtml(await response.text(), clubCode);
-      if (parsed.players.length < 24) throw new Error(`apenas ${parsed.players.length} jogadores encontrados`);
-      if (parsed.players.some(player => normalizeName(player.name) === normalizeName(parsed.coach?.name))) {
+      const players = sanitizeRosterRows(parsed.players, { managerNames: [parsed.coach?.name] });
+      if (players.length < 20) throw new Error(`apenas ${players.length} jogadores encontrados`);
+      if (players.some(player => normalizeName(player.name) === normalizeName(parsed.coach?.name))) {
         throw new Error(`o técnico ${parsed.coach?.name} foi incluído como jogador`);
       }
-      teams[clubCode] = { ...team, url, coach: parsed.coach, players: parsed.players };
-      console.log(`✓ [${clubCode}] técnico separado + ${parsed.players.length} jogadores`);
+      teams[clubCode] = { ...team, url, coach: parsed.coach, players };
+      console.log(`✓ [${clubCode}] técnico separado + ${players.length} jogadores`);
     } catch (error) {
       failures.push({ clubCode, url, error: error.message });
       console.error(`✗ [${clubCode}] ${error.message}`);
@@ -300,7 +354,7 @@ async function main() {
         ratingSource: ea ? 'EA_SPORTS_FC_26_OFFICIAL' : 'TOUCHLINE_ESTIMATE_NO_EA_MATCH',
         eaPlayerId: ea?.eaPlayerId ?? null
       };
-      (rosterRows[player.clubCode] ||= []).push(row);
+      (rosterRows[player.clubCode] ||= [])[player.index] = row;
       manifestPlayers[playerId] = {
         playerId, ...row, clubCode: player.clubCode,
         localPath: `/assets/players/2026-27/${image.fileName}`,
@@ -329,12 +383,14 @@ async function main() {
       positionSource: 'FOTMOB_OFFICIAL',
       ratingSource: 'EA_SPORTS_FC_26_OFFICIAL_WHEN_AVAILABLE',
       generatedAt, teamCount: 20, playerCount: allPlayers.length,
-      officialRatingCount, teams: Object.fromEntries(Object.entries(metaTeams).map(([code, team]) => [code, team.playerCount]))
+      officialRatingCount,
+      teams: Object.fromEntries(Object.entries(metaTeams).map(([code, team]) => [code, team.playerCount])),
+      coaches: Object.fromEntries(Object.entries(metaTeams).map(([code, team]) => [code, team.coach]))
     },
     rosters: rosterRows
   };
   const manifest = {
-    schemaVersion: 7,
+    schemaVersion: 8,
     source: 'fotmob-official-full-squads',
     positionSource: 'FOTMOB_OFFICIAL',
     ratingSource: 'EA_SPORTS_FC_26_OFFICIAL_WHEN_AVAILABLE',
