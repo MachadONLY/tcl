@@ -7,33 +7,54 @@ const app = document.querySelector('#app');
 let manifestPromise = null;
 let queued = false;
 
-function normalize(value) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[.'’`-]/g, ' ')
-    .replace(/\b(jr|junior|sr|ii|iii|iv)\b/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 function loadManifest() {
   if (manifestPromise) return manifestPromise;
-  manifestPromise = fetch(MANIFEST_URL, { cache: 'no-cache' })
-    .then(response => response.ok ? response.json() : { players: {} })
-    .catch(() => ({ players: {} }));
+  manifestPromise = fetch(`${MANIFEST_URL}?v=2`, { cache: 'no-store' })
+    .then(response => {
+      if (!response.ok) throw new Error(`manifest HTTP ${response.status}`);
+      return response.json();
+    })
+    .then(manifest => {
+      if (manifest.source !== 'fotmob-playerimages-exact' || manifest.coverage !== 1) {
+        throw new Error('pacote FotMob incompleto');
+      }
+      return manifest;
+    })
+    .catch(error => {
+      console.error('Touchline player faces:', error.message);
+      return { players: {} };
+    });
   return manifestPromise;
 }
 
-function findPortrait(manifest, player) {
-  const exact = manifest.players?.[player.id];
-  if (exact?.localPath) return exact.localPath;
+function exactPortrait(manifest, player) {
+  const record = manifest.players?.[player.id];
+  if (!record) return null;
+  if (record.playerId !== player.id || record.clubCode !== player.clubCode) return null;
+  if (!record.fotmobId || !record.localPath) return null;
+  if (record.remoteUrl !== `https://images.fotmob.com/image_resources/playerimages/${record.fotmobId}.png`) return null;
+  return record.localPath;
+}
 
-  const normalized = normalize(player.name);
-  const clubRows = Object.values(manifest.players || {}).filter(row => row.clubCode === player.clubCode);
-  const matched = clubRows.find(row => normalize(row.name) === normalized);
-  return matched?.localPath || FALLBACK_URL;
+function createPortrait(player, source) {
+  const portrait = document.createElement('span');
+  portrait.className = 'cp-player-photo';
+
+  const image = document.createElement('img');
+  image.src = source || FALLBACK_URL;
+  image.alt = player.name;
+  image.loading = 'lazy';
+  image.decoding = 'async';
+  image.dataset.fotmobPortrait = source ? 'exact' : 'missing';
+  image.addEventListener('error', () => {
+    image.src = FALLBACK_URL;
+    image.dataset.fotmobPortrait = 'failed';
+  }, { once: true });
+
+  const number = document.createElement('small');
+  number.textContent = String(player.number);
+  portrait.append(image, number);
+  return portrait;
 }
 
 async function enhanceSquad() {
@@ -49,14 +70,7 @@ async function enhanceSquad() {
     if (!player || !playerCell) continue;
 
     const oldNumber = playerCell.querySelector(':scope > i');
-    const portrait = document.createElement('span');
-    portrait.className = 'cp-player-photo';
-    portrait.innerHTML = `<img src="${findPortrait(manifest, player)}" alt="${player.name}" loading="lazy" decoding="async"><small>${player.number}</small>`;
-    portrait.querySelector('img').addEventListener('error', event => {
-      if (!event.currentTarget.src.endsWith('player-placeholder.svg')) event.currentTarget.src = FALLBACK_URL;
-    }, { once: true });
-
-    oldNumber?.replaceWith(portrait);
+    oldNumber?.replaceWith(createPortrait(player, exactPortrait(manifest, player)));
     row.dataset.faceReady = 'true';
   }
 }
