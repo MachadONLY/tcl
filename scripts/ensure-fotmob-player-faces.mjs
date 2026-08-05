@@ -10,7 +10,7 @@ const MANIFEST_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 
 const ROSTER_PATH = path.join(ROOT, 'src', 'career-core', 'fotmob-rosters.local.json');
 const REPORT_PATH = path.join(ROOT, 'public', 'assets', 'players', '2026-27', 'fotmob-sync-report.json');
 const SYNC_SCRIPT = 'scripts/run-fotmob-full-rosters.mjs';
-const RATINGS_SCRIPT = 'scripts/sync-fc26-ratings.mjs';
+const RATINGS_SCRIPT = 'scripts/run-fc26-ratings.mjs';
 
 function normalize(value) {
   return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
