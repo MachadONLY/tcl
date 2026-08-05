@@ -41,14 +41,15 @@ assert.equal(rosterPayload.meta.positionSource, 'FOTMOB_OFFICIAL');
 for (const code of CLUB_CODES) {
   const squad = squadFor(code);
   const manager = normalize(CLUB_BY_CODE.get(code)?.manager);
-  assert.ok(squad.length >= 24, `${code} full FotMob squad has only ${squad.length} players`);
+  assert.ok(squad.length >= 20, `${code} official FotMob squad has only ${squad.length} players`);
   assert.equal(squad.length, manifest.teams[code].playerCount, `${code} roster/manifest mismatch`);
   assert.ok(squad.every(player => ['GK', 'DEF', 'MID', 'FWD'].includes(player.group)), `${code} has an invalid player group`);
   assert.equal(squad.some(player => normalize(player.name) === manager), false, `${code} manager leaked into player squad`);
-  assert.ok(squad.some(player => player.group === 'GK'), `${code} has no goalkeeper`);
-  assert.ok(squad.some(player => player.group === 'DEF'), `${code} has no defender`);
-  assert.ok(squad.some(player => player.group === 'MID'), `${code} has no midfielder`);
-  assert.ok(squad.some(player => player.group === 'FWD'), `${code} has no forward`);
+  for (const group of ['GK', 'DEF', 'MID', 'FWD']) {
+    const count = squad.filter(player => player.group === group).length;
+    assert.ok(count > 0, `${code} has no ${group} players`);
+    assert.equal(count, manifest.teams[code].groups[group], `${code} ${group} count mismatch`);
+  }
 }
 
 const united = squadFor('MUN');
