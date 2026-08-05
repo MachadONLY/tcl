@@ -6,13 +6,28 @@ const helperRuntimeUrl = new URL('./.official-football-data.runtime.mjs', import
 const syncUrl = new URL('./sync-fotmob-full-rosters.mjs', import.meta.url);
 const syncRuntimeUrl = new URL('./.sync-fotmob-full-rosters.runtime.mjs', import.meta.url);
 
+const sourcePositionGrouping = `const explicitPositions = positionTokens(positionText);
+    let group = groupFromPositions(positionText);
+    if (!group) {
+      const section = precedingSectionGroup(anchor);
+      group = section && section !== 'COACH' ? section : null;
+    }`;
+const sectionFirstGrouping = `const explicitPositions = positionTokens(positionText);
+    const section = precedingSectionGroup(anchor);
+    let group = section && section !== 'COACH' ? section : groupFromPositions(positionText);`;
+
 const helperSource = await readFile(helperUrl, 'utf8');
-const helperPatched = helperSource.replace(
-  "if (!playersById.has(player.fotmobId)) playersById.set(player.fotmobId, { ...player });",
-  "playersById.set(player.fotmobId, { ...(playersById.get(player.fotmobId) || {}), ...player });"
-);
-if (helperPatched === helperSource) {
-  throw new Error('Não foi possível ativar a recuperação verificada de jogadores do FotMob.');
+const helperPatched = helperSource
+  .replace(
+    "if (!playersById.has(player.fotmobId)) playersById.set(player.fotmobId, { ...player });",
+    "playersById.set(player.fotmobId, { ...(playersById.get(player.fotmobId) || {}), ...player });"
+  )
+  .replace(sourcePositionGrouping, sectionFirstGrouping);
+if (
+  helperPatched === helperSource ||
+  !helperPatched.includes(sectionFirstGrouping)
+) {
+  throw new Error('Não foi possível ativar a recuperação e a classificação oficial dos jogadores do FotMob.');
 }
 
 const sourceTeamAssignment = "teams[clubCode] = { ...team, url, coach: parsed.coach, players: parsed.players };\n      console.log(`✓ [${clubCode}] técnico separado + ${parsed.players.length} jogadores`);";
