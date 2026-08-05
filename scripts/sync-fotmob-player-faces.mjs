@@ -2,7 +2,6 @@ import { createHash } from 'node:crypto';
 import { mkdir, readdir, rm, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CLUB_BY_CODE } from '../src/career-core/season-2026-27.js';
 import { squadFor } from '../src/career-core/career-core.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -10,23 +9,34 @@ const OUTPUT_DIR = path.join(ROOT, 'public', 'assets', 'players', '2026-27');
 const MANIFEST_PATH = path.join(OUTPUT_DIR, 'manifest.json');
 const TEMP_MANIFEST_PATH = path.join(OUTPUT_DIR, 'manifest.next.json');
 const REPORT_PATH = path.join(OUTPUT_DIR, 'fotmob-sync-report.json');
-const SEARCH_API = term => `https://apigw.fotmob.com/searchapi/suggest?term=${encodeURIComponent(term)}&lang=en`;
 const FACE_URL = id => `https://images.fotmob.com/image_resources/playerimages/${id}.png`;
-const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Touchline/0.3';
-const CLUB_CODES = Object.freeze([
-  'ARS', 'AVL', 'BOU', 'BRE', 'BHA', 'CHE', 'COV', 'CRY', 'EVE', 'FUL',
-  'HUL', 'IPS', 'LEE', 'LIV', 'MCI', 'MUN', 'NEW', 'NFO', 'SUN', 'TOT'
-]);
-const CLUB_SEARCH_NAMES = Object.freeze({
-  ARS: ['Arsenal'], AVL: ['Aston Villa'], BOU: ['Bournemouth'], BRE: ['Brentford'],
-  BHA: ['Brighton'], CHE: ['Chelsea'], COV: ['Coventry'], CRY: ['Crystal Palace'],
-  EVE: ['Everton'], FUL: ['Fulham'], HUL: ['Hull City'], IPS: ['Ipswich'],
-  LEE: ['Leeds United', 'Leeds'], LIV: ['Liverpool'], MCI: ['Manchester City', 'Man City'],
-  MUN: ['Manchester United', 'Man United'], NEW: ['Newcastle United', 'Newcastle'],
-  NFO: ['Nottingham Forest', 'Nottm Forest'], SUN: ['Sunderland'], TOT: ['Tottenham', 'Spurs']
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/150 Safari/537.36';
+const TEAMS = Object.freeze({
+  ARS: { id: 9825, slug: 'arsenal' },
+  AVL: { id: 10252, slug: 'aston-villa' },
+  BOU: { id: 8678, slug: 'bournemouth' },
+  BRE: { id: 9937, slug: 'brentford' },
+  BHA: { id: 10204, slug: 'brighton-and-hove-albion' },
+  CHE: { id: 8455, slug: 'chelsea' },
+  COV: { id: 8669, slug: 'coventry-city' },
+  CRY: { id: 9826, slug: 'crystal-palace' },
+  EVE: { id: 8668, slug: 'everton' },
+  FUL: { id: 9879, slug: 'fulham' },
+  HUL: { id: 8667, slug: 'hull-city' },
+  IPS: { id: 9902, slug: 'ipswich-town' },
+  LEE: { id: 8463, slug: 'leeds-united' },
+  LIV: { id: 8650, slug: 'liverpool' },
+  MCI: { id: 8456, slug: 'manchester-city' },
+  MUN: { id: 10260, slug: 'manchester-united' },
+  NEW: { id: 10261, slug: 'newcastle-united' },
+  NFO: { id: 10203, slug: 'nottingham-forest' },
+  SUN: { id: 8472, slug: 'sunderland' },
+  TOT: { id: 8586, slug: 'tottenham-hotspur' }
 });
+const SQUAD_URL = team => `https://www.fotmob.com/teams/${team.id}/squad/${team.slug}`;
 const NAME_ALIASES = Object.freeze({
   'Đorđe Petrović': ['Djordje Petrovic'],
+  'Benjamin Šeško': ['Benjamin Sesko'],
   'João Gomes': ['Joao Gomes'],
   'João Pedro': ['Joao Pedro'],
   'Joël Piroe': ['Joel Piroe'],
@@ -38,14 +48,14 @@ const NAME_ALIASES = Object.freeze({
   'Viktor Gyökeres': ['Viktor Gyokeres'],
   'Yéremy Pino': ['Yeremy Pino']
 });
-const searchCache = new Map();
 
 function normalize(value) {
   return String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
-    .replace(/[.'’`-]/g, ' ')
+    .replace(/&amp;/g, ' and ')
+    .replace(/[.'’`_-]/g, ' ')
     .replace(/\b(jr|junior|sr|ii|iii|iv)\b/g, '')
     .replace(/\s+/g, ' ')
     .trim();
@@ -53,6 +63,26 @@ function normalize(value) {
 
 function compact(value) {
   return normalize(value).replace(/\s+/g, '');
+}
+
+function titleFromSlug(slug) {
+  return decodeURIComponent(String(slug || ''))
+    .replace(/\?.*$/, '')
+    .replace(/[-_]+/g, ' ')
+    .trim();
+}
+
+function decodeHtml(value) {
+  return String(value || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&Oslash;/g, 'Ø')
+    .replace(/&oslash;/g, 'ø')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function sleep(milliseconds) {
@@ -64,10 +94,12 @@ async function fetchWithRetry(url, options = {}, attempts = 5) {
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       const response = await fetch(url, {
+        redirect: 'follow',
         ...options,
         headers: {
           'user-agent': USER_AGENT,
           accept: '*/*',
+          'accept-language': 'en-GB,en;q=0.9',
           ...(options.headers || {})
         }
       });
@@ -82,121 +114,125 @@ async function fetchWithRetry(url, options = {}, attempts = 5) {
   throw lastError || new Error(`Falha ao acessar ${url}`);
 }
 
-async function getJson(url) {
-  const response = await fetchWithRetry(url, {
-    headers: { accept: 'application/json,text/plain,*/*' }
+function addCandidate(map, id, slug, visibleName, clubCode) {
+  const numericId = Number(id);
+  if (!numericId) return;
+  const slugName = titleFromSlug(slug);
+  const names = [...new Set([visibleName, slugName].filter(Boolean))];
+  const existing = map.get(numericId);
+  if (existing) {
+    existing.names = [...new Set([...existing.names, ...names])];
+    existing.clubCodes.add(clubCode);
+    return;
+  }
+  map.set(numericId, {
+    id: numericId,
+    slug: String(slug || ''),
+    names,
+    clubCodes: new Set([clubCode])
   });
-  return response.json();
 }
 
-function collectPlayerRows(value, found = []) {
-  if (!value || typeof value !== 'object') return found;
-  if (Array.isArray(value)) {
-    for (const item of value) collectPlayerRows(item, found);
-    return found;
+function extractPlayersFromHtml(rawHtml, clubCode) {
+  const html = String(rawHtml || '')
+    .replace(/\\u002F/gi, '/')
+    .replace(/\\\//g, '/');
+  const players = new Map();
+
+  const anchorPattern = /<a\b[^>]*href=["'](?:https?:\/\/www\.fotmob\.com)?\/?(?:[a-z]{2}(?:-[A-Z]{2})?\/)?players\/(\d+)\/([^"'?#\\]+)[^"']*["'][^>]*>([\s\S]*?)<\/a>/gi;
+  for (const match of html.matchAll(anchorPattern)) {
+    addCandidate(players, match[1], match[2], decodeHtml(match[3]), clubCode);
   }
 
-  const id = Number(value.id ?? value.playerId);
-  const name = value.name || value.fullName || value.playerName;
-  const teamName = value.teamName || value.team?.name || value.clubName || '';
-  const type = normalize(value.type || value.entityType || value.suggestType || '');
-  if (id && name && !type.includes('team') && !type.includes('match')) {
-    found.push({ id, name: String(name), teamName: String(teamName) });
+  const linkPattern = /(?:https?:\/\/www\.fotmob\.com)?\/?(?:[a-z]{2}(?:-[A-Z]{2})?\/)?players\/(\d+)\/([a-zA-Z0-9%._-]+)/g;
+  for (const match of html.matchAll(linkPattern)) {
+    addCandidate(players, match[1], match[2], '', clubCode);
   }
-  for (const child of Object.values(value)) collectPlayerRows(child, found);
-  return found;
+
+  const jsonPattern = /["'](?:playerId|id)["']\s*:\s*(\d+)[\s\S]{0,260}?["'](?:playerName|fullName|name)["']\s*:\s*["']([^"']+)["']/gi;
+  for (const match of html.matchAll(jsonPattern)) {
+    addCandidate(players, match[1], normalize(match[2]).replace(/\s+/g, '-'), match[2], clubCode);
+  }
+
+  return [...players.values()];
 }
 
-function uniquePlayers(rows) {
-  const byId = new Map();
-  for (const row of rows) {
-    if (!byId.has(row.id)) byId.set(row.id, row);
+async function loadOfficialFotMobSquads() {
+  const allCandidates = new Map();
+  const counts = {};
+
+  for (const [clubCode, team] of Object.entries(TEAMS)) {
+    const url = SQUAD_URL(team);
+    const response = await fetchWithRetry(url, {
+      headers: { accept: 'text/html,application/xhtml+xml' }
+    });
+    const html = await response.text();
+    const candidates = extractPlayersFromHtml(html, clubCode);
+    counts[clubCode] = candidates.length;
+    if (candidates.length < 15) {
+      throw new Error(`A página oficial do FotMob retornou apenas ${candidates.length} jogadores para ${clubCode}: ${url}`);
+    }
+    for (const candidate of candidates) {
+      const existing = allCandidates.get(candidate.id);
+      if (existing) {
+        existing.names = [...new Set([...existing.names, ...candidate.names])];
+        for (const code of candidate.clubCodes) existing.clubCodes.add(code);
+      } else {
+        allCandidates.set(candidate.id, candidate);
+      }
+    }
+    console.log(`✓ [${clubCode}] ${candidates.length} IDs oficiais encontrados`);
+    await sleep(120);
   }
-  return [...byId.values()];
+
+  return { candidates: [...allCandidates.values()], counts };
 }
 
-function extractSearchPlayers(payload) {
-  const rows = [];
-  for (const section of payload?.squadMemberSuggest || []) {
-    for (const option of section?.options || []) {
-      const item = option?.payload || option;
-      const id = Number(item?.id ?? item?.playerId);
-      const name = item?.name || item?.fullName || item?.playerName;
-      if (id && name) rows.push({
-        id,
-        name: String(name),
-        teamName: String(item?.teamName || item?.team?.name || '')
-      });
+function candidateScore(player, clubCode, candidate) {
+  const targets = [player.name, ...(NAME_ALIASES[player.name] || [])];
+  let bestNameScore = -Infinity;
+
+  for (const targetValue of targets) {
+    const target = normalize(targetValue);
+    for (const remoteValue of candidate.names) {
+      const remote = normalize(remoteValue);
+      let score = 0;
+      if (remote === target) score += 2000;
+      if (compact(remote) === compact(target)) score += 1700;
+      if (remote.endsWith(target) || target.endsWith(remote)) score += 350;
+
+      const targetParts = new Set(target.split(' ').filter(Boolean));
+      const remoteParts = new Set(remote.split(' ').filter(Boolean));
+      let overlap = 0;
+      for (const part of targetParts) if (remoteParts.has(part)) overlap += 1;
+      score += overlap * 80;
+      score -= Math.abs(targetParts.size - remoteParts.size) * 25;
+      bestNameScore = Math.max(bestNameScore, score);
     }
   }
-  return uniquePlayers(rows.length ? rows : collectPlayerRows(payload));
+
+  if (candidate.clubCodes.has(clubCode)) bestNameScore += 260;
+  return bestNameScore;
 }
 
-async function searchFotMob(term) {
-  const key = normalize(term);
-  if (!searchCache.has(key)) {
-    searchCache.set(key, getJson(SEARCH_API(term)).then(extractSearchPlayers));
-  }
-  return searchCache.get(key);
-}
-
-function teamMatches(candidateTeamName, clubCode) {
-  const remote = normalize(candidateTeamName);
-  if (!remote) return false;
-  return (CLUB_SEARCH_NAMES[clubCode] || [])
-    .map(normalize)
-    .some(expected => remote.includes(expected) || expected.includes(remote));
-}
-
-function scoreCandidate(player, clubCode, candidate) {
-  const target = normalize(player.name);
-  const remote = normalize(candidate.name);
-  const aliases = (NAME_ALIASES[player.name] || []).map(normalize);
-  let score = 0;
-
-  if (remote === target || aliases.includes(remote)) score += 1000;
-  if (compact(remote) === compact(target)) score += 850;
-
-  const targetParts = new Set(target.split(' ').filter(Boolean));
-  const remoteParts = new Set(remote.split(' ').filter(Boolean));
-  let overlap = 0;
-  for (const part of targetParts) if (remoteParts.has(part)) overlap += 1;
-  score += overlap * 45;
-  score -= Math.abs(targetParts.size - remoteParts.size) * 12;
-  if (teamMatches(candidate.teamName, clubCode)) score += 160;
-  return score;
-}
-
-async function resolvePlayer(player, clubCode) {
-  const clubName = CLUB_BY_CODE.get(clubCode)?.name || clubCode;
-  const terms = [
-    `${player.name} ${clubName}`,
-    player.name,
-    ...(NAME_ALIASES[player.name] || []).flatMap(alias => [`${alias} ${clubName}`, alias])
-  ];
-  const candidates = [];
-
-  for (const term of terms) {
-    const found = await searchFotMob(term);
-    candidates.push(...found);
-    const exactForClub = found.find(candidate =>
-      normalize(candidate.name) === normalize(player.name) && teamMatches(candidate.teamName, clubCode)
-    );
-    if (exactForClub) return { ...exactForClub, resolvedBy: 'fotmob-search-team-exact' };
-    await sleep(55);
-  }
-
-  const ranked = uniquePlayers(candidates)
-    .map(candidate => ({ candidate, score: scoreCandidate(player, clubCode, candidate) }))
+function resolvePlayer(player, clubCode, candidates) {
+  const ranked = candidates
+    .map(candidate => ({ candidate, score: candidateScore(player, clubCode, candidate) }))
     .sort((left, right) => right.score - left.score);
   const best = ranked[0];
   const runnerUp = ranked[1];
 
-  if (!best || best.score < 900) return null;
+  if (!best || best.score < 1500) return null;
   if (runnerUp && best.score === runnerUp.score && best.candidate.id !== runnerUp.candidate.id) return null;
-  return { ...best.candidate, resolvedBy: teamMatches(best.candidate.teamName, clubCode)
-    ? 'fotmob-search-team-ranked'
-    : 'fotmob-search-name-ranked' };
+  return {
+    ...best.candidate,
+    matchedName: best.candidate.names
+      .slice()
+      .sort((left, right) => candidateScore(player, clubCode, { ...best.candidate, names: [right] }) - candidateScore(player, clubCode, { ...best.candidate, names: [left] }))[0],
+    resolvedBy: best.candidate.clubCodes.has(clubCode)
+      ? 'official-fotmob-squad-page-exact'
+      : 'official-fotmob-cross-squad-exact'
+  };
 }
 
 function isPng(bytes) {
@@ -229,84 +265,91 @@ async function removeOldPortraits() {
 }
 
 async function mapLimit(items, concurrency, worker) {
-  const results = new Array(items.length);
   let cursor = 0;
   async function run() {
     while (cursor < items.length) {
       const index = cursor++;
-      results[index] = await worker(items[index], index);
+      await worker(items[index], index);
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, run));
-  return results;
 }
 
 async function main() {
   await mkdir(OUTPUT_DIR, { recursive: true });
-  const jobs = CLUB_CODES.flatMap(clubCode => squadFor(clubCode).map(player => ({ clubCode, player })));
+  const jobs = Object.keys(TEAMS).flatMap(clubCode => squadFor(clubCode).map(player => ({ clubCode, player })));
+  const official = await loadOfficialFotMobSquads();
   const manifest = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     source: 'fotmob-playerimages-exact',
+    idSource: 'official-fotmob-squad-pages',
     sourceHost: 'images.fotmob.com',
     generatedAt: new Date().toISOString(),
     expectedPlayerCount: jobs.length,
     playerCount: 0,
     coverage: 0,
-    teams: Object.fromEntries(CLUB_CODES.map(code => [code, {
+    officialSquadCounts: official.counts,
+    teams: Object.fromEntries(Object.keys(TEAMS).map(code => [code, {
+      fotmobTeamId: TEAMS[code].id,
       expected: squadFor(code).length,
       resolved: 0
     }])),
     players: {}
   };
   const unresolved = [];
-  const pendingFiles = [];
+  const assignments = [];
 
-  console.log(`Sincronizando ${jobs.length} jogadores com as fotos exatas do FotMob...`);
-  await mapLimit(jobs, 4, async ({ clubCode, player }, index) => {
-    try {
-      const match = await resolvePlayer(player, clubCode);
-      if (!match) throw new Error('ID exato do FotMob não encontrado sem ambiguidade');
-      const fileName = `${clubCode.toLowerCase()}-${match.id}.png`;
-      const temporaryPath = path.join(OUTPUT_DIR, `${fileName}.next`);
-      const localPath = `/assets/players/2026-27/${fileName}`;
-      const image = await downloadExactFotMobPortrait(match.id, temporaryPath);
-      pendingFiles.push({ temporaryPath, finalPath: path.join(OUTPUT_DIR, fileName) });
-      manifest.players[player.id] = {
-        playerId: player.id,
-        fotmobId: match.id,
-        clubCode,
-        name: player.name,
-        fotmobName: match.name,
-        fotmobTeamName: match.teamName || null,
-        resolvedBy: match.resolvedBy,
-        localPath,
-        remoteUrl: image.remoteUrl,
-        bytes: image.bytes,
-        sha256: image.sha256
-      };
-      manifest.playerCount += 1;
-      manifest.teams[clubCode].resolved += 1;
-      console.log(`${String(index + 1).padStart(3, '0')}/${jobs.length} ✓ [${clubCode}] ${player.name} → ${match.id}`);
-    } catch (error) {
-      unresolved.push({ playerId: player.id, clubCode, name: player.name, error: error.message });
-      console.error(`${String(index + 1).padStart(3, '0')}/${jobs.length} ✗ [${clubCode}] ${player.name}: ${error.message}`);
+  for (const { clubCode, player } of jobs) {
+    const match = resolvePlayer(player, clubCode, official.candidates);
+    if (!match) {
+      unresolved.push({ playerId: player.id, clubCode, name: player.name, error: 'ID oficial do FotMob não encontrado sem ambiguidade' });
+      continue;
     }
-  });
-
-  manifest.coverage = manifest.expectedPlayerCount
-    ? Number((manifest.playerCount / manifest.expectedPlayerCount).toFixed(4))
-    : 0;
+    assignments.push({ clubCode, player, match });
+  }
 
   await writeFile(REPORT_PATH, `${JSON.stringify({
     generatedAt: new Date().toISOString(),
-    expected: manifest.expectedPlayerCount,
-    resolved: manifest.playerCount,
+    officialCandidateCount: official.candidates.length,
+    expected: jobs.length,
+    resolved: assignments.length,
     unresolved
   }, null, 2)}\n`, 'utf8');
 
-  if (unresolved.length || manifest.playerCount !== manifest.expectedPlayerCount) {
+  if (unresolved.length) {
+    throw new Error(`Mapeamento incompleto: ${assignments.length}/${jobs.length}. Veja ${path.relative(ROOT, REPORT_PATH)}`);
+  }
+
+  const pendingFiles = [];
+  console.log(`Baixando ${assignments.length} PNGs originais do CDN do FotMob...`);
+  await mapLimit(assignments, 6, async ({ clubCode, player, match }, index) => {
+    const fileName = `${clubCode.toLowerCase()}-${match.id}.png`;
+    const temporaryPath = path.join(OUTPUT_DIR, `${fileName}.next`);
+    const localPath = `/assets/players/2026-27/${fileName}`;
+    const image = await downloadExactFotMobPortrait(match.id, temporaryPath);
+    pendingFiles.push({ temporaryPath, finalPath: path.join(OUTPUT_DIR, fileName) });
+    manifest.players[player.id] = {
+      playerId: player.id,
+      fotmobId: match.id,
+      clubCode,
+      name: player.name,
+      fotmobName: match.matchedName || match.names[0],
+      fotmobSquadCodes: [...match.clubCodes],
+      resolvedBy: match.resolvedBy,
+      localPath,
+      remoteUrl: image.remoteUrl,
+      bytes: image.bytes,
+      sha256: image.sha256
+    };
+    manifest.playerCount += 1;
+    manifest.teams[clubCode].resolved += 1;
+    console.log(`${String(index + 1).padStart(3, '0')}/${assignments.length} ✓ [${clubCode}] ${player.name} → ${match.id}`);
+  });
+
+  manifest.coverage = Number((manifest.playerCount / manifest.expectedPlayerCount).toFixed(4));
+  if (manifest.coverage !== 1) {
     await Promise.all(pendingFiles.map(file => rm(file.temporaryPath, { force: true })));
-    throw new Error(`Cobertura incompleta: ${manifest.playerCount}/${manifest.expectedPlayerCount}. Veja ${path.relative(ROOT, REPORT_PATH)}`);
+    throw new Error(`Cobertura incompleta: ${manifest.playerCount}/${manifest.expectedPlayerCount}`);
   }
 
   await removeOldPortraits();
@@ -317,7 +360,7 @@ async function main() {
   const manifestStat = await stat(MANIFEST_PATH);
   console.log(`\n✓ ${manifest.playerCount}/${manifest.expectedPlayerCount} fotos exatas do FotMob salvas localmente.`);
   console.log(`✓ Manifesto: ${path.relative(ROOT, MANIFEST_PATH)} (${manifestStat.size} bytes)`);
-  console.log('✓ Depois desta sincronização, a tela de elenco usa os arquivos locais e funciona offline.');
+  console.log('✓ A tela de elenco agora usa os mesmos PNGs do FotMob e funciona offline.');
 }
 
 main().catch(error => {
