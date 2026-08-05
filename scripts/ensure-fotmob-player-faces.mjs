@@ -26,9 +26,12 @@ async function validPack() {
 
     for (const [clubCode, team] of Object.entries(manifest.teams)) {
       const rows = rosterPayload.rosters?.[clubCode];
-      if (!Array.isArray(rows) || rows.length !== team.playerCount || rows.length < 24) return false;
+      if (!Array.isArray(rows) || rows.length !== team.playerCount || rows.length < 20) return false;
       if (rows.some(row => !row?.name || !['GK', 'DEF', 'MID', 'FWD'].includes(row.group))) return false;
       if (rows.some(row => ['COACH', 'MANAGER'].includes(String(row.group).toUpperCase()))) return false;
+      const groupCounts = Object.fromEntries(['GK', 'DEF', 'MID', 'FWD'].map(group => [group, rows.filter(row => row.group === group).length]));
+      if (Object.values(groupCounts).some(count => count < 1)) return false;
+      if (team.groups && Object.entries(team.groups).some(([group, count]) => groupCounts[group] !== count)) return false;
     }
 
     const united = rosterPayload.rosters.MUN;
