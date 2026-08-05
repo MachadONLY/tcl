@@ -37,7 +37,7 @@ async function validPack() {
       if (strictRoleValidation) {
         if (rows.some(row => resolveRosterGroup(row) !== row.group)) return false;
         const coachName = normalize(rosterPayload.meta.coaches?.[clubCode]?.name);
-        if (!coachName || rows.some(row => normalize(row.name) === coachName)) return false;
+        if (coachName && rows.some(row => normalize(row.name) === coachName)) return false;
         const order = rows.map(row => rosterGroupOrder(row.group));
         if (order.some((value, index) => index > 0 && value < order[index - 1])) return false;
       }
