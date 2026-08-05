@@ -54,15 +54,6 @@
   filter: blur(2px);
 }
 
-.tcc-matchup-club.is-controlled .tcc-matchup-crest-shell::before {
-  content: '';
-  position: absolute;
-  inset: -5px;
-  border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--tcc-club) 55%, transparent);
-  opacity: .7;
-}
-
 .tcc-matchup-crest {
   position: relative;
   z-index: 1;
