@@ -53,10 +53,23 @@ for (const file of ["logo-purple.svg", "logo-white.svg"]) {
   assert.match(svg, /Premier League/);
 }
 
+const brandingRuntime = readFileSync(resolve(root, "src/career-branding.js"), "utf8");
+const brandingCss = readFileSync(resolve(root, "src/career-branding.css"), "utf8");
+assert.match(brandingRuntime, /cp-league-title/, "League page must receive a dedicated title layout");
+assert.match(brandingRuntime, /COMPETIÇÃO/, "Legacy competition eyebrow must be identified for removal");
+assert.match(brandingRuntime, /eyebrow\?\.remove\(\)/, "Legacy competition eyebrow must be removed");
+assert.match(brandingRuntime, /title\.prepend\(mark\)/, "Premier League mark must sit before the title copy");
+assert.match(brandingCss, /\.cp-league-title \.cp-pl-page-logo\{width:54px/, "Competition mark must be prominent beside the title");
+assert.match(brandingCss, /\.cp-league-grid \.cp-table img\{width:28px/, "Standings crests must be larger");
+assert.match(brandingCss, /font-size:11\.5px;font-weight:700/, "Standings club names must be larger and clearer");
+
 console.log(JSON.stringify({
   ok: true,
   competition: "Premier League",
   season: "2026/27",
   officialClubCrests: hashes.size,
-  competitionMarks: 2
+  competitionMarks: 2,
+  pageTitleLayout: "mark-left-title-and-subtitle-right",
+  standingsCrests: "28px",
+  competitionEyebrow: false
 }, null, 2));
