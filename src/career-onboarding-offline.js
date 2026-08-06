@@ -1,8 +1,10 @@
 import "./career-onboarding.css";
 import "./career-club-selector.css";
+import "./career-game-home.css";
 import { CLUBS, CLUB_BY_CODE, SEASON } from "./onboarding/offline-data.js";
 import { loadManifest, prewarm, stageClubMedia } from "./onboarding/offline-media.js";
-import { commitClub, renderWelcome, selectorMarkup, setOnboardingMode, updateRail } from "./onboarding/offline-view.js";
+import { commitClub, selectorMarkup, setOnboardingMode, updateRail } from "./onboarding/offline-view.js";
+import { renderGameHome as renderWelcome } from "./career-game-home-view.js";
 
 const CAREER_STORAGE_KEY = "touchline.career.mode.v1";
 let stage = "welcome";
