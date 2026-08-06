@@ -22,6 +22,7 @@ const app = document.querySelector('#app');
 let activeView = 'lineup';
 let currentRoot = null;
 let enhanceQueued = false;
+let enhanceVersion = 0;
 let responsibilities = {};
 let responsibilitiesClubCode = null;
 let latestCareer = null;
@@ -110,11 +111,11 @@ function placeNavigation(root) {
   if (!host) return null;
   let navigation = root.querySelector('[data-tactics-view-nav]');
   if (!navigation) {
-    host.insertAdjacentHTML('afterbegin', viewNavigation());
-    navigation = host.querySelector('[data-tactics-view-nav]');
-  } else if (navigation.parentElement !== host) {
+    const template = document.createElement('template');
+    template.innerHTML = viewNavigation().trim();
+    navigation = template.content.firstElementChild;
     host.prepend(navigation);
-  } else if (host.firstElementChild !== navigation) {
+  } else if (navigation.parentElement !== host || host.firstElementChild !== navigation) {
     host.prepend(navigation);
   }
   return navigation;
@@ -129,6 +130,7 @@ function syncNavigation(root) {
 }
 
 function syncModelContext(root) {
+  if (activeView !== 'tactics') return;
   const controls = root.querySelector('.tl-tactic-controls');
   if (!controls) return;
   let context = controls.querySelector('[data-model-context]');
@@ -142,11 +144,20 @@ function syncModelContext(root) {
 
   const nativeSelect = root.querySelector('.tl-command-bar [data-tl-formation]');
   const selectedFormation = nativeSelect?.value || latestCareer?.formation || '4-2-3-1';
-  const options = nativeSelect?.innerHTML || `<option>${esc(selectedFormation)}</option>`;
+  const options = nativeSelect?.innerHTML || `<option value="${esc(selectedFormation)}">${esc(selectedFormation)}</option>`;
   const activePlan = latestCareer?.tactics?.activePlan || root.querySelector('.tl-plan-tabs .active b')?.textContent || 'A';
+  const signature = JSON.stringify([activePlan, selectedFormation, options]);
+  if (context.dataset.signature === signature) {
+    const select = context.querySelector('select');
+    if (select && select.value !== selectedFormation) select.value = selectedFormation;
+    return;
+  }
+
+  context.dataset.signature = signature;
   context.innerHTML = `<div class="tl-model-context-copy"><span>Plano ativo</span><strong>Plano ${esc(activePlan)}</strong><small>${esc(PLAN_COPY[activePlan] || 'Modelo principal')}</small></div>
     <label data-field-formation-control><span>Formação</span><select aria-label="Formação do modelo de jogo">${options}</select></label>`;
-  context.querySelector('select').value = selectedFormation;
+  const select = context.querySelector('select');
+  if (select) select.value = selectedFormation;
 }
 
 function playerOptions(career, selectedId) {
@@ -232,7 +243,10 @@ function renderRoles(root, career, force = false) {
 function setView(view) {
   if (!VIEWS.some(item => item.id === view) || view === activeView) return;
   activeView = view;
-  if (currentRoot) currentRoot.dataset.tacticsView = activeView;
+  if (currentRoot) {
+    currentRoot.dataset.tacticsView = activeView;
+    syncNavigation(currentRoot);
+  }
   scheduleEnhance();
 }
 
@@ -246,6 +260,7 @@ function bindViewEvents(root) {
   });
   root.querySelectorAll('[data-responsibility]').forEach(select => {
     select.onchange = () => {
+      if (!latestCareer) return;
       responsibilities = { ...responsibilities, [select.dataset.responsibility]: select.value };
       writeResponsibilities(latestCareer.clubCode, responsibilities);
       renderRoles(root, latestCareer, true);
@@ -257,34 +272,47 @@ function bindViewEvents(root) {
   });
 }
 
-async function loadCareerForView(root) {
-  if (activeView !== 'roles' && latestCareer) return latestCareer;
+async function loadCareerForRoles(root, version) {
+  if (latestCareer) return latestCareer;
   const career = await CareerRepository.load();
-  if (!career || !isTacticsRoute() || currentRoot !== root) return null;
+  if (!career || !isTacticsRoute() || currentRoot !== root || version !== enhanceVersion) return null;
   latestCareer = career;
+  return career;
+}
+
+function prepareResponsibilities(career) {
+  if (!career) return;
   if (responsibilitiesClubCode !== career.clubCode) {
     responsibilitiesClubCode = career.clubCode;
     responsibilities = readResponsibilities(career.clubCode);
   }
   responsibilities = normalizedResponsibilities(career);
   writeResponsibilities(career.clubCode, responsibilities);
-  return career;
 }
 
 async function enhance() {
   enhanceQueued = false;
+  const version = ++enhanceVersion;
   if (!isTacticsRoute()) return;
   const root = document.querySelector('.tl-tactics-studio');
   if (!root) return;
   currentRoot = root;
   root.dataset.tacticsView = activeView;
 
-  const career = await loadCareerForView(root);
-  if (!isTacticsRoute() || currentRoot !== root) return;
   placeNavigation(root);
   syncNavigation(root);
-  syncModelContext(root);
-  renderRoles(root, career || latestCareer);
+  bindViewEvents(root);
+
+  if (activeView !== 'roles') {
+    clearRoles(root);
+    if (activeView === 'tactics') syncModelContext(root);
+    return;
+  }
+
+  const career = await loadCareerForRoles(root, version);
+  if (!career || version !== enhanceVersion || currentRoot !== root || activeView !== 'roles') return;
+  prepareResponsibilities(career);
+  renderRoles(root, career);
   placeNavigation(root);
   syncNavigation(root);
   bindViewEvents(root);
@@ -293,7 +321,12 @@ async function enhance() {
 function scheduleEnhance() {
   if (enhanceQueued) return;
   enhanceQueued = true;
-  queueMicrotask(enhance);
+  requestAnimationFrame(() => {
+    enhance().catch(error => {
+      enhanceQueued = false;
+      console.error('Falha ao montar as views da central tática:', error);
+    });
+  });
 }
 
 new MutationObserver(scheduleEnhance).observe(app, { childList: true, subtree: true });
