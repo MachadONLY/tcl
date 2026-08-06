@@ -1,0 +1,95 @@
+#touchline-fifa-mailbox,
+#touchline-fifa-mailbox *{box-sizing:border-box}
+#touchline-fifa-mailbox{--fmb-blue:#154e72;--fmb-blue-2:#0c3550;--fmb-blue-3:#071f31;--fmb-line:rgba(189,223,242,.22);--fmb-text:#f4fbff;--fmb-muted:#a8c0cf;--fmb-accent:#71d7ff;position:fixed;inset:0 0 0 250px;z-index:1200;overflow:hidden;color:var(--fmb-text);font-family:Arial,Helvetica,sans-serif;background:#061725}
+#touchline-fifa-mailbox button{font:inherit}
+#touchline-fifa-mailbox .fmb-bg{position:absolute;inset:0;background-image:linear-gradient(180deg,rgba(2,19,31,.48),rgba(3,18,29,.84)),var(--fmb-stadium);background-size:cover;background-position:center;filter:saturate(.78)}
+#touchline-fifa-mailbox .fmb-bg:after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(6,27,43,.95) 0%,rgba(9,39,59,.86) 45%,rgba(15,62,88,.7) 100%);backdrop-filter:blur(2px)}
+#touchline-fifa-mailbox .fmb-top,#touchline-fifa-mailbox .fmb-tabs,#touchline-fifa-mailbox .fmb-window,#touchline-fifa-mailbox .fmb-toast{position:relative;z-index:1}
+#touchline-fifa-mailbox .fmb-top{height:92px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 clamp(26px,3.2vw,54px);border-bottom:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,rgba(8,32,49,.68),rgba(7,29,45,.48))}
+#touchline-fifa-mailbox .fmb-club{display:flex;align-items:center;gap:12px;min-width:0}
+#touchline-fifa-mailbox .fmb-club img{width:42px;height:42px;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.25))}
+#touchline-fifa-mailbox .fmb-club span{display:grid;gap:3px}
+#touchline-fifa-mailbox .fmb-club b{font-size:15px;letter-spacing:.04em}
+#touchline-fifa-mailbox .fmb-club small{font-size:11px;color:var(--fmb-muted)}
+#touchline-fifa-mailbox .fmb-title{text-align:center}
+#touchline-fifa-mailbox .fmb-title small{display:block;margin-bottom:3px;font-size:10px;font-weight:700;letter-spacing:.14em;color:#9bb4c4}
+#touchline-fifa-mailbox .fmb-title h1{margin:0;font-size:30px;font-weight:600;letter-spacing:-.02em}
+#touchline-fifa-mailbox .fmb-summary{display:flex;align-items:center;justify-content:flex-end;gap:18px;color:var(--fmb-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+#touchline-fifa-mailbox .fmb-summary span{white-space:nowrap}
+#touchline-fifa-mailbox .fmb-summary b{margin-right:4px;color:#fff;font-size:17px}
+#touchline-fifa-mailbox .fmb-summary button{height:36px;padding:0 13px;border:1px solid rgba(171,218,242,.24);display:flex;align-items:center;gap:7px;color:#d8eaf4;background:rgba(12,54,80,.5);cursor:pointer;transition:.16s ease}
+#touchline-fifa-mailbox .fmb-summary button:hover{background:rgba(40,115,155,.56);border-color:rgba(113,215,255,.58)}
+#touchline-fifa-mailbox .fmb-icon{display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center;flex:0 0 16px}
+#touchline-fifa-mailbox .fmb-icon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#touchline-fifa-mailbox .fmb-tabs{height:48px;display:flex;align-items:end;gap:2px;width:min(1220px,calc(100% - 56px));margin:0 auto;padding-left:0;border-bottom:1px solid rgba(255,255,255,.2)}
+#touchline-fifa-mailbox .fmb-tabs button{position:relative;height:47px;padding:0 26px;border:0;color:#a9bdc9;background:rgba(9,34,51,.36);font-size:13px;cursor:pointer;transition:color .16s ease,background .16s ease}
+#touchline-fifa-mailbox .fmb-tabs button:hover{color:#fff;background:rgba(31,87,119,.36)}
+#touchline-fifa-mailbox .fmb-tabs button.is-active{color:#fff;background:linear-gradient(180deg,rgba(51,126,165,.68),rgba(25,75,103,.78))}
+#touchline-fifa-mailbox .fmb-tabs button.is-active:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:#8adfff}
+#touchline-fifa-mailbox .fmb-tabs b{margin-left:8px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:inline-grid;place-items:center;background:rgba(255,255,255,.14);font-size:9px}
+#touchline-fifa-mailbox .fmb-window{width:min(1220px,calc(100% - 56px));height:calc(100vh - 176px);margin:16px auto 0;display:grid;grid-template-columns:minmax(330px,39%) minmax(0,61%);border:1px solid rgba(205,232,246,.26);box-shadow:0 18px 46px rgba(0,0,0,.28);background:rgba(7,31,47,.66);overflow:hidden}
+#touchline-fifa-mailbox .fmb-list-pane{min-width:0;border-right:1px solid rgba(210,236,249,.22);background:linear-gradient(180deg,rgba(224,239,248,.94),rgba(205,225,237,.9));color:#123246}
+#touchline-fifa-mailbox .fmb-list-head{height:36px;padding:0 14px 0 44px;display:grid;grid-template-columns:1fr 72px;align-items:center;color:#456579;background:rgba(244,250,253,.8);border-bottom:1px solid rgba(52,91,114,.25);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+#touchline-fifa-mailbox .fmb-list-head span:last-child{text-align:right}
+#touchline-fifa-mailbox .fmb-list{height:calc(100% - 36px);overflow:auto;scrollbar-width:thin;scrollbar-color:#55798e rgba(255,255,255,.18)}
+#touchline-fifa-mailbox .fmb-row{width:100%;min-height:62px;padding:8px 12px;display:grid;grid-template-columns:23px minmax(0,1fr);gap:9px;text-align:left;border:0;border-bottom:1px solid rgba(51,83,102,.16);color:#29495c;background:rgba(240,247,251,.72);cursor:pointer;transition:background .14s ease,color .14s ease}
+#touchline-fifa-mailbox .fmb-row:hover{background:rgba(226,241,249,.96)}
+#touchline-fifa-mailbox .fmb-row.is-selected{color:#fff;background:linear-gradient(90deg,#163d59,#1f5879)}
+#touchline-fifa-mailbox .fmb-row.is-read:not(.is-selected){opacity:.62}
+#touchline-fifa-mailbox .fmb-row.is-unread:not(.is-selected) strong,#touchline-fifa-mailbox .fmb-row.is-unread:not(.is-selected) b{color:#0c2d43}
+#touchline-fifa-mailbox .fmb-envelope{padding-top:3px;color:#66879b}
+#touchline-fifa-mailbox .fmb-row.is-selected .fmb-envelope{color:#fff}
+#touchline-fifa-mailbox .fmb-row-copy{display:grid;gap:3px;min-width:0}
+#touchline-fifa-mailbox .fmb-row-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+#touchline-fifa-mailbox .fmb-row-top b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.02em}
+#touchline-fifa-mailbox .fmb-row-top time{flex:0 0 auto;font-size:9px;font-weight:600}
+#touchline-fifa-mailbox .fmb-row-copy>strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600}
+#touchline-fifa-mailbox .fmb-row-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+#touchline-fifa-mailbox .fmb-row-bottom em{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;font-style:normal}
+#touchline-fifa-mailbox .fmb-row-bottom small{display:inline-flex;align-items:center;gap:4px;font-size:8px;font-weight:700;letter-spacing:.06em}
+#touchline-fifa-mailbox .fmb-row-bottom .is-task{color:#d66b4a}
+#touchline-fifa-mailbox .fmb-row.is-selected .fmb-row-bottom .is-task{color:#ffd2c3}
+#touchline-fifa-mailbox .fmb-row-bottom .is-done{color:#4f8b67}
+#touchline-fifa-mailbox .fmb-row.is-selected .fmb-row-bottom .is-done{color:#c8f7d6}
+#touchline-fifa-mailbox .fmb-reader{min-width:0;background:linear-gradient(180deg,rgba(28,91,123,.9),rgba(13,58,83,.92));color:#eef9ff;overflow:hidden}
+#touchline-fifa-mailbox .fmb-reader-card{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;animation:none}
+#touchline-fifa-mailbox .fmb-reader-card.is-entering{animation:fmb-reader-in .16s ease}
+#touchline-fifa-mailbox .fmb-fields{min-height:112px;padding:13px 18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;border-bottom:1px solid rgba(227,244,252,.24);background:rgba(15,69,98,.58)}
+#touchline-fifa-mailbox .fmb-fields dl{margin:0;display:grid;gap:4px}
+#touchline-fifa-mailbox .fmb-fields dl div{display:grid;grid-template-columns:58px minmax(0,1fr);align-items:baseline;gap:8px}
+#touchline-fifa-mailbox .fmb-fields dt{font-size:10px;color:#b8d3e2}
+#touchline-fifa-mailbox .fmb-fields dd{margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;color:#fff}
+#touchline-fifa-mailbox .fmb-reader-tools{display:flex;align-items:start;gap:7px}
+#touchline-fifa-mailbox .fmb-reader-tools button{height:31px;padding:0 10px;border:1px solid rgba(205,235,250,.24);display:flex;align-items:center;gap:6px;color:#d6e9f4;background:rgba(5,39,59,.38);font-size:9px;cursor:pointer;transition:.15s ease}
+#touchline-fifa-mailbox .fmb-reader-tools button:hover{background:rgba(79,150,187,.4)}
+#touchline-fifa-mailbox .fmb-reader-tools button.is-delete:hover,#touchline-fifa-mailbox .fmb-reader-tools button.is-confirming{border-color:#d78372;color:#ffe5df;background:rgba(135,47,33,.45)}
+#touchline-fifa-mailbox .fmb-letter{min-height:0;overflow:auto;padding:26px clamp(24px,3vw,42px) 28px;scrollbar-width:thin;scrollbar-color:#6e9bb5 transparent}
+#touchline-fifa-mailbox .fmb-letter>p{max-width:760px;margin:0;color:#f1f8fc;font-size:14px;line-height:1.58}
+#touchline-fifa-mailbox .fmb-letter .fmb-greeting{margin-bottom:15px;font-weight:600}
+#touchline-fifa-mailbox .fmb-letter .fmb-signature{margin-top:24px;color:#dcebf3}
+#touchline-fifa-mailbox .fmb-inline-context{max-width:780px;margin:24px 0 0;padding:13px 15px;display:flex;align-items:center;gap:22px;border-top:1px solid rgba(218,240,251,.28);border-bottom:1px solid rgba(218,240,251,.28);background:rgba(4,37,57,.22)}
+#touchline-fifa-mailbox .fmb-inline-context>span{display:grid;gap:3px;min-width:0}
+#touchline-fifa-mailbox .fmb-inline-context b{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#bfe8ff}
+#touchline-fifa-mailbox .fmb-inline-context small{font-size:10px;line-height:1.45;color:#e7f3f9}
+#touchline-fifa-mailbox .fmb-inline-player{grid-template-columns:38px auto;grid-template-rows:auto auto;column-gap:10px;align-items:center}
+#touchline-fifa-mailbox .fmb-inline-player img{grid-row:1/3;width:38px;height:38px;object-fit:contain;background:rgba(255,255,255,.08)}
+#touchline-fifa-mailbox .fmb-actions{min-height:58px;padding:10px 18px;display:flex;align-items:center;justify-content:flex-end;gap:8px;border-top:1px solid rgba(223,242,251,.24);background:rgba(8,40,60,.62)}
+#touchline-fifa-mailbox .fmb-action{min-width:122px;height:36px;padding:0 15px;border:1px solid rgba(219,241,251,.28);display:inline-flex;align-items:center;justify-content:center;gap:7px;color:#e8f5fb;background:rgba(6,38,57,.48);font-size:10px;font-weight:600;cursor:pointer;transition:.15s ease}
+#touchline-fifa-mailbox .fmb-action:hover{transform:translateY(-1px);border-color:rgba(127,218,255,.76)}
+#touchline-fifa-mailbox .fmb-action.is-primary{color:#072033;background:linear-gradient(180deg,#90e6ff,#43b9eb);border-color:#b5efff}
+#touchline-fifa-mailbox .fmb-action.is-danger{color:#ffd9d2;border-color:rgba(224,121,101,.5)}
+#touchline-fifa-mailbox .fmb-action.is-confirming{background:#9e4939;color:#fff}
+#touchline-fifa-mailbox .fmb-decision{display:inline-flex;align-items:center;gap:8px;color:#d8f7e2;font-size:11px}
+#touchline-fifa-mailbox .fmb-decision.is-muted{color:#b3c7d2}
+#touchline-fifa-mailbox .fmb-empty,#touchline-fifa-mailbox .fmb-list-empty{height:100%;display:grid;place-content:center;justify-items:center;text-align:center;color:#b8cfdb;padding:24px}
+#touchline-fifa-mailbox .fmb-empty .fmb-icon{width:42px;height:42px;margin-bottom:12px}
+#touchline-fifa-mailbox .fmb-empty h2{margin:0 0 6px;font-size:20px;color:#fff}
+#touchline-fifa-mailbox .fmb-empty p{margin:0;max-width:320px;font-size:11px;line-height:1.55}
+#touchline-fifa-mailbox .fmb-list-empty{color:#58798c;font-size:11px}
+#touchline-fifa-mailbox .fmb-toast{position:absolute;right:34px;bottom:22px;padding:10px 14px;color:#062033;background:#8fe4ff;border:1px solid #c8f4ff;font-size:10px;font-weight:700;opacity:0;transform:translateY(8px);pointer-events:none;transition:.18s ease}
+#touchline-fifa-mailbox .fmb-toast.is-visible{opacity:1;transform:none}
+@keyframes fmb-reader-in{from{opacity:.45;transform:translateX(7px)}to{opacity:1;transform:none}}
+@media(max-width:1120px){#touchline-fifa-mailbox{inset-left:210px}#touchline-fifa-mailbox .fmb-window,#touchline-fifa-mailbox .fmb-tabs{width:calc(100% - 32px)}#touchline-fifa-mailbox .fmb-window{grid-template-columns:340px minmax(0,1fr)}#touchline-fifa-mailbox .fmb-summary span{display:none}}
+@media(max-height:780px){#touchline-fifa-mailbox .fmb-top{height:76px}#touchline-fifa-mailbox .fmb-title h1{font-size:25px}#touchline-fifa-mailbox .fmb-tabs{height:42px}#touchline-fifa-mailbox .fmb-tabs button{height:41px}#touchline-fifa-mailbox .fmb-window{height:calc(100vh - 142px);margin-top:10px}#touchline-fifa-mailbox .fmb-row{min-height:56px}#touchline-fifa-mailbox .fmb-letter{padding-top:20px}#touchline-fifa-mailbox .fmb-letter>p{font-size:13px}}
+@media(max-width:860px){#touchline-fifa-mailbox{inset:0}#touchline-fifa-mailbox .fmb-top{grid-template-columns:1fr auto}#touchline-fifa-mailbox .fmb-title{display:none}#touchline-fifa-mailbox .fmb-window{grid-template-columns:1fr}#touchline-fifa-mailbox .fmb-list-pane{display:none}#touchline-fifa-mailbox .fmb-tabs{overflow:auto}#touchline-fifa-mailbox .fmb-tabs button{white-space:nowrap}}
+@media(prefers-reduced-motion:reduce){#touchline-fifa-mailbox *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
