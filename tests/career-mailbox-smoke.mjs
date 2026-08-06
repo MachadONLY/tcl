@@ -91,11 +91,15 @@ assert.ok(careerInboxItems(career, { query: 'proposta' }).every(message =>
   `${message.sender} ${message.subject} ${message.body}`.toLocaleLowerCase('pt-BR').includes('proposta')
 ));
 
-const archivedCandidate = careerInboxItems(career).find(message => !message.requiresResponse);
+const archivedCandidateId = careerInboxItems(career).find(message => !message.requiresResponse)?.id;
+assert.ok(archivedCandidateId, 'The archive test needs a non-task message');
 const visibleBeforeArchive = careerInboxItems(career).length;
+const archivedCandidate = career.inbox.find(message => message.id === archivedCandidateId);
+assert.ok(archivedCandidate, 'The archived message must exist in the canonical inbox array');
 archivedCandidate.archived = true;
 archivedCandidate.read = true;
 assert.equal(careerInboxItems(career).length, visibleBeforeArchive - 1, 'Archived messages must disappear from the active mailbox');
+assert.equal(career.inbox.find(message => message.id === archivedCandidateId)?.archived, true, 'Archived state must remain on the canonical saved message');
 
 const [mailboxSource, mailboxCss, indexSource] = await Promise.all([
   readFile(new URL('../src/career-mailbox.js', import.meta.url), 'utf8'),
