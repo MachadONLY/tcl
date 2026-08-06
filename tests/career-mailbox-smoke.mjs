@@ -94,18 +94,20 @@ const [mailboxSource, mailboxCss, indexSource] = await Promise.all([
   readFile(new URL('../src/career-mailbox.css', import.meta.url), 'utf8'),
   readFile(new URL('../index.html', import.meta.url), 'utf8')
 ]);
-assert.ok(mailboxSource.includes('tl-mailbox-shell'), 'Full inbox must use a split operational view');
+assert.ok(mailboxSource.includes("const SCREEN_ID = 'touchline-career-mailbox'"), 'Mailbox must render as a dedicated career screen');
 assert.ok(mailboxSource.includes('<h1>Mailbox</h1>'), 'Mailbox must use the compact product title');
+assert.ok(mailboxSource.includes('tcm-bg'), 'Mailbox must use the club stadium background system');
 assert.ok(mailboxSource.includes('data-mail-action'), 'Mailbox decisions must be interactive');
-assert.ok(mailboxSource.includes('renderMessageDetail'), 'Message selection must update only the detail pane');
+assert.ok(mailboxSource.includes('selectMessage'), 'Message selection must update only the selected detail');
 assert.ok(mailboxSource.includes('renderListAndDetail'), 'Filters must preserve the fixed mailbox shell');
 assert.ok(mailboxSource.includes('dataset.mailConfirming'), 'Destructive choices must use inline confirmation');
 assert.equal(mailboxSource.includes('window.confirm'), false, 'Native confirmation dialogs must not interrupt the game UI');
 assert.ok(mailboxSource.includes('enhanceHomeMailbox'), 'Home mailbox preview must use the same persisted messages');
 assert.ok(mailboxSource.includes('window.__touchlineMailboxSelection'), 'Home message selection must open the same message in the full inbox');
-assert.ok(mailboxCss.includes('.tl-mail-required-banner'), 'Required decisions must have a prominent visual state');
-assert.ok(mailboxCss.includes('grid-template-columns:minmax(330px,410px) minmax(0,1fr)'), 'Desktop inbox must preserve list and detail panes');
-assert.ok(mailboxCss.includes('@keyframes tlMailDetailIn'), 'Detail changes must use a short contained transition');
+assert.ok(mailboxCss.includes('.tcm-screen'), 'Mailbox must have its own dark full-screen surface');
+assert.ok(mailboxCss.includes('inset: 0 0 0 236px'), 'Desktop mailbox must align with the career sidebar like Calendar');
+assert.ok(mailboxCss.includes('grid-template-columns: clamp(320px,29vw,430px) minmax(0,1fr)'), 'Desktop mailbox must preserve list and reading panes');
+assert.ok(mailboxCss.includes('@keyframes tcm-detail-in'), 'Detail changes must use a short contained transition');
 assert.ok(mailboxCss.includes('prefers-reduced-motion'), 'Mailbox motion must respect reduced-motion preferences');
 assert.ok(indexSource.includes('/src/career-mailbox.js'), 'Mailbox enhancer must load in the game runtime');
 
@@ -117,6 +119,7 @@ console.log(JSON.stringify({
   transferAccepted: true,
   injuryCreated: true,
   medicalClearanceCreated: true,
+  calendarVisualLanguage: true,
   partialDomUpdates: true,
   nativeDialogRemoved: true,
   reducedMotionSupported: true,
