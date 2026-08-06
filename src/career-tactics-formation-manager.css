@@ -1,0 +1,188 @@
+/* Complete formation selector and final layout behavior. */
+
+.tl-field-hud>div:first-child{
+  min-width:0;
+  flex-wrap:wrap;
+}
+
+.tl-field-hud>div:first-child>strong{
+  display:none;
+}
+
+.tl-field-formation-control{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-left:2px;
+}
+
+.tl-field-formation-control>span{
+  color:#77838f;
+  font-size:8px;
+  font-weight:850;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+
+.tl-field-formation-control select{
+  min-width:118px;
+  height:31px;
+  border:1px solid rgba(255,255,255,.105);
+  border-radius:9px;
+  background:#0b1117;
+  padding:0 30px 0 10px;
+  color:#f3f6f8;
+  font:inherit;
+  font-size:10px;
+  font-weight:850;
+  outline:none;
+  cursor:pointer;
+  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;
+}
+
+.tl-field-formation-control select:hover{
+  border-color:rgba(255,255,255,.2);
+  background:#101820;
+}
+
+.tl-field-formation-control select:focus{
+  border-color:var(--tl-accent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--tl-accent) 14%,transparent);
+}
+
+/* Every unselected player stays reachable. The final spacer prevents the last card from being clipped. */
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-roster-grid{
+  width:100%;
+  min-width:0;
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scroll-padding-inline:2px 18px;
+  overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-roster-grid>.tl-squad-card{
+  flex:0 0 205px!important;
+  width:205px!important;
+  min-width:205px!important;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-roster-grid:after{
+  content:"";
+  flex:0 0 18px;
+  height:1px;
+}
+
+/* Modelo de jogo is instruction-first: the duplicate pitch is removed. */
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-pitch-stage{
+  display:none!important;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-shape-switch{
+  display:none!important;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-war-room{
+  grid-template-columns:minmax(660px,1fr) minmax(300px,340px)!important;
+  gap:14px;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-tactic-controls{
+  grid-column:1;
+  min-width:0;
+  min-height:0;
+  height:100%;
+  padding:20px 22px;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-panel-heading{
+  margin-bottom:16px;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-panel-heading>span{
+  font-size:15px;
+  letter-spacing:.02em;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-plan-tabs{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+  margin-bottom:16px;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-plan-tabs button{
+  min-height:68px;
+  padding:11px 13px;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-phase-tabs{
+  max-width:620px;
+  margin:0 0 17px;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll{
+  min-height:0;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-content:start;
+  gap:13px 18px;
+  padding:2px 8px 12px 0;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll>.tl-select-setting,
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll>.tl-setting-block,
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll>.tl-switch{
+  margin:0;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll>.tl-explainer{
+  grid-column:1/-1;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-command-bar{
+  grid-template-columns:minmax(260px,1fr) auto;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-command-actions{
+  grid-column:2;
+}
+
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-side-rail{
+  grid-column:2;
+}
+
+@media (max-width:1320px){
+  .tl-tactics-studio[data-tactics-view="tactics"] .tl-war-room{
+    grid-template-columns:minmax(560px,1fr) 292px!important;
+  }
+
+  .tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll{
+    gap:11px 13px;
+  }
+}
+
+@media (max-width:1080px){
+  .tl-tactics-studio[data-tactics-view="tactics"] .tl-war-room{
+    grid-template-columns:1fr!important;
+  }
+
+  .tl-tactics-studio[data-tactics-view="tactics"] .tl-side-rail{
+    grid-column:1;
+  }
+
+  .tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll{
+    grid-template-columns:1fr;
+  }
+
+  .tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll>.tl-explainer{
+    grid-column:1;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .tl-field-formation-control select{
+    transition:none!important;
+  }
+}
