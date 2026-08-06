@@ -17,6 +17,7 @@ const RESPONSIBILITIES = Object.freeze([
   { id: 'rightCorners', group: 'Escanteios', label: 'Escanteio direito', hint: 'Responsável pelas cobranças do lado direito.' }
 ]);
 
+const PLAN_COPY = Object.freeze({ A: 'Plano principal', B: 'Buscar o jogo', C: 'Controlar resultado' });
 const app = document.querySelector('#app');
 let activeView = 'lineup';
 let currentRoot = null;
@@ -101,8 +102,7 @@ function viewNavigation() {
 }
 
 function navigationHost(root) {
-  if (activeView === 'roles') return root.querySelector('.tl-responsibilities-head');
-  return root.querySelector('.tl-side-rail') || root.querySelector('.tl-command-bar');
+  return root.querySelector('.tl-side-rail');
 }
 
 function placeNavigation(root) {
@@ -110,11 +110,12 @@ function placeNavigation(root) {
   if (!host) return null;
   let navigation = root.querySelector('[data-tactics-view-nav]');
   if (!navigation) {
-    host.insertAdjacentHTML(activeView === 'roles' ? 'beforeend' : 'afterbegin', viewNavigation());
+    host.insertAdjacentHTML('afterbegin', viewNavigation());
     navigation = host.querySelector('[data-tactics-view-nav]');
   } else if (navigation.parentElement !== host) {
-    if (activeView === 'roles') host.append(navigation);
-    else host.prepend(navigation);
+    host.prepend(navigation);
+  } else if (host.firstElementChild !== navigation) {
+    host.prepend(navigation);
   }
   return navigation;
 }
@@ -125,6 +126,27 @@ function syncNavigation(root) {
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
   });
+}
+
+function syncModelContext(root) {
+  const controls = root.querySelector('.tl-tactic-controls');
+  if (!controls) return;
+  let context = controls.querySelector('[data-model-context]');
+  if (!context) {
+    context = document.createElement('div');
+    context.className = 'tl-model-context';
+    context.dataset.modelContext = '';
+    const heading = controls.querySelector('.tl-panel-heading');
+    heading?.insertAdjacentElement('afterend', context);
+  }
+
+  const nativeSelect = root.querySelector('.tl-command-bar [data-tl-formation]');
+  const selectedFormation = nativeSelect?.value || latestCareer?.formation || '4-2-3-1';
+  const options = nativeSelect?.innerHTML || `<option>${esc(selectedFormation)}</option>`;
+  const activePlan = latestCareer?.tactics?.activePlan || root.querySelector('.tl-plan-tabs .active b')?.textContent || 'A';
+  context.innerHTML = `<div class="tl-model-context-copy"><span>Plano ativo</span><strong>Plano ${esc(activePlan)}</strong><small>${esc(PLAN_COPY[activePlan] || 'Modelo principal')}</small></div>
+    <label data-field-formation-control><span>Formação</span><select aria-label="Formação do modelo de jogo">${options}</select></label>`;
+  context.querySelector('select').value = selectedFormation;
 }
 
 function playerOptions(career, selectedId) {
@@ -155,21 +177,22 @@ function lineupRoleCard(career, player) {
   </button>`;
 }
 
-function rolesPanel(career) {
-  const starters = career.lineup.map(id => PLAYER_BY_ID.get(id)).filter(Boolean);
-  return `<section class="tl-responsibilities-view" data-responsibilities-view>
+function rolesMain(career) {
+  return `<section class="tl-responsibilities-main" data-responsibilities-main>
     <header class="tl-responsibilities-head">
       <div class="tl-responsibilities-copy"><span>Responsabilidades da equipe</span><h2>Funções e bolas paradas</h2><p>Defina a hierarquia do vestiário e quem assume cada momento decisivo.</p></div>
       <div class="tl-responsibilities-save"><i></i><span>Salvo automaticamente</span></div>
     </header>
-    <div class="tl-responsibilities-layout">
-      <div class="tl-responsibility-grid">${RESPONSIBILITIES.map(item => responsibilityCard(career, item)).join('')}</div>
-      <aside class="tl-role-lineup-panel">
-        <header><div><span>XI inicial</span><small>Funções individuais</small></div><button data-go-to-tactics type="button">Ajustar no campo →</button></header>
-        <div>${starters.map(player => lineupRoleCard(career, player)).join('')}</div>
-        <footer><i></i><p>As funções individuais são ajustadas no Modelo de jogo. Capitão e bolas paradas ficam salvos para este clube.</p></footer>
-      </aside>
-    </div>
+    <div class="tl-responsibility-grid">${RESPONSIBILITIES.map(item => responsibilityCard(career, item)).join('')}</div>
+  </section>`;
+}
+
+function rolesSide(career) {
+  const starters = career.lineup.map(id => PLAYER_BY_ID.get(id)).filter(Boolean);
+  return `<section class="tl-role-lineup-panel" data-role-lineup-panel>
+    <header><div><span>XI inicial</span><small>Funções individuais</small></div><button data-go-to-tactics type="button">Ajustar →</button></header>
+    <div>${starters.map(player => lineupRoleCard(career, player)).join('')}</div>
+    <footer><i></i><p>Funções individuais ficam no Modelo de jogo. Capitão e bolas paradas permanecem salvos para este clube.</p></footer>
   </section>`;
 }
 
@@ -187,10 +210,30 @@ function announce(message) {
   toastTimer = setTimeout(() => toast.classList.remove('visible'), 1900);
 }
 
+function clearRoles(root) {
+  root.querySelector('[data-responsibilities-main]')?.remove();
+  root.querySelector('[data-role-lineup-panel]')?.remove();
+}
+
+function renderRoles(root, career, force = false) {
+  if (activeView !== 'roles') {
+    clearRoles(root);
+    return;
+  }
+  const warRoom = root.querySelector('.tl-war-room');
+  const rail = root.querySelector('.tl-side-rail');
+  if (!warRoom || !rail || !career) return;
+  if (!force && warRoom.querySelector('[data-responsibilities-main]') && rail.querySelector('[data-role-lineup-panel]')) return;
+  clearRoles(root);
+  warRoom.insertAdjacentHTML('beforeend', rolesMain(career));
+  rail.insertAdjacentHTML('beforeend', rolesSide(career));
+}
+
 function setView(view) {
-  if (!VIEWS.some(item => item.id === view)) return;
+  if (!VIEWS.some(item => item.id === view) || view === activeView) return;
   activeView = view;
-  enhance();
+  if (currentRoot) currentRoot.dataset.tacticsView = activeView;
+  scheduleEnhance();
 }
 
 function bindViewEvents(root) {
@@ -205,26 +248,27 @@ function bindViewEvents(root) {
     select.onchange = () => {
       responsibilities = { ...responsibilities, [select.dataset.responsibility]: select.value };
       writeResponsibilities(latestCareer.clubCode, responsibilities);
-      renderResponsibilities(root, latestCareer, true);
+      renderRoles(root, latestCareer, true);
+      placeNavigation(root);
+      syncNavigation(root);
+      bindViewEvents(root);
       announce('Responsabilidade atualizada');
     };
   });
 }
 
-function renderResponsibilities(root, career, force = false) {
-  const existing = root.querySelector('[data-responsibilities-view]');
-  if (activeView !== 'roles') {
-    existing?.remove();
-    return;
+async function loadCareerForView(root) {
+  if (activeView !== 'roles' && latestCareer) return latestCareer;
+  const career = await CareerRepository.load();
+  if (!career || !isTacticsRoute() || currentRoot !== root) return null;
+  latestCareer = career;
+  if (responsibilitiesClubCode !== career.clubCode) {
+    responsibilitiesClubCode = career.clubCode;
+    responsibilities = readResponsibilities(career.clubCode);
   }
-  if (existing && !force) return;
-  existing?.remove();
-  const commandBar = root.querySelector('.tl-command-bar');
-  if (!commandBar || !career) return;
-  commandBar.insertAdjacentHTML('afterend', rolesPanel(career));
-  placeNavigation(root);
-  syncNavigation(root);
-  bindViewEvents(root);
+  responsibilities = normalizedResponsibilities(career);
+  writeResponsibilities(career.clubCode, responsibilities);
+  return career;
 }
 
 async function enhance() {
@@ -235,24 +279,15 @@ async function enhance() {
   currentRoot = root;
   root.dataset.tacticsView = activeView;
 
-  if (activeView !== 'roles') {
-    renderResponsibilities(root, latestCareer);
-    placeNavigation(root);
-    syncNavigation(root);
-    bindViewEvents(root);
-    return;
-  }
-
-  const career = await CareerRepository.load();
-  if (!career || !isTacticsRoute() || currentRoot !== root) return;
-  latestCareer = career;
-  if (responsibilitiesClubCode !== career.clubCode) {
-    responsibilitiesClubCode = career.clubCode;
-    responsibilities = readResponsibilities(career.clubCode);
-  }
-  responsibilities = normalizedResponsibilities(career);
-  writeResponsibilities(career.clubCode, responsibilities);
-  renderResponsibilities(root, career);
+  const career = await loadCareerForView(root);
+  if (!isTacticsRoute() || currentRoot !== root) return;
+  placeNavigation(root);
+  syncNavigation(root);
+  syncModelContext(root);
+  renderRoles(root, career || latestCareer);
+  placeNavigation(root);
+  syncNavigation(root);
+  bindViewEvents(root);
 }
 
 function scheduleEnhance() {
