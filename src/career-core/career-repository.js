@@ -1,4 +1,5 @@
 import { reconcileCareerData } from './result-integrity.js';
+import { reconcileMailbox } from './mailbox-core.js';
 
 const DB_NAME = "touchline-career";
 const DB_VERSION = 1;
@@ -86,7 +87,10 @@ function mergeFormationDraft(save) {
 
 function reconcileStoredCareer(save) {
   if (!save) return save;
-  return reconcileCareerData(structuredClone(save));
+  const snapshot = structuredClone(save);
+  reconcileCareerData(snapshot);
+  reconcileMailbox(snapshot);
+  return snapshot;
 }
 
 export const CareerRepository = Object.freeze({
