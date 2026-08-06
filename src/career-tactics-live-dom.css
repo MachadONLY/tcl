@@ -1,10 +1,39 @@
-/* Zero-flash tactics updates and fully reachable reserve carousel. */
+/* Zero-flash tactics updates, fixed geometry and fully reachable reserve carousel. */
+html.touchline-tactics-mode,
+html.touchline-tactics-mode body,
+html.touchline-tactics-mode .cp-work,
+html.touchline-tactics-mode .cp-content,
+.tl-tactics-studio[data-live-dom="true"],
+.tl-tactics-studio[data-live-dom="true"] .tl-war-room,
+.tl-tactics-studio[data-live-dom="true"] .tl-pitch-stage,
+.tl-tactics-studio[data-live-dom="true"] .tl-side-rail,
+.tl-tactics-studio[data-live-dom="true"] .tl-squad-manager,
+.tl-tactics-studio[data-live-dom="true"] .tl-roster-grid{
+  overflow-anchor:none!important;
+}
+
 .tl-tactics-studio[data-live-dom="true"] .tl-command-bar,
+.tl-tactics-studio[data-live-dom="true"] .tl-war-room,
 .tl-tactics-studio[data-live-dom="true"] .tl-tactic-controls,
 .tl-tactics-studio[data-live-dom="true"] .tl-pitch-stage,
 .tl-tactics-studio[data-live-dom="true"] .tl-side-rail,
 .tl-tactics-studio[data-live-dom="true"] .tl-squad-manager{
   animation:none!important;
+}
+
+.tl-tactics-studio[data-live-dom="true"] .tl-pitch-stage{
+  contain:layout paint;
+  transform:translateZ(0);
+}
+
+.tl-tactics-studio[data-live-dom="true"][data-tactics-view="lineup"] .tl-side-rail{
+  grid-template-rows:68px minmax(0,1fr)!important;
+}
+
+.tl-tactics-studio[data-live-dom="true"][data-tactics-view="lineup"] .tl-side-rail>.tl-primary-view-switch{
+  height:68px!important;
+  min-height:68px!important;
+  max-height:68px!important;
 }
 
 .tl-tactics-studio[data-live-dom="true"] .tl-player-node{
@@ -13,9 +42,16 @@
   transform:translate3d(-50%,-50%,0);
 }
 
-.tl-tactics-studio[data-live-dom="true"] .tl-player-node:hover,
+.tl-tactics-studio[data-live-dom="true"] .tl-player-node:hover{
+  transform:translate3d(-50%,-50%,0) scale(1.05);
+}
+
 .tl-tactics-studio[data-live-dom="true"] .tl-player-node.selected{
-  transform:translate3d(-50%,-50%,0) scale(1.07);
+  transform:translate3d(-50%,-50%,0)!important;
+}
+
+.tl-tactics-studio[data-live-dom="true"] .tl-squad-card.selected{
+  transform:none!important;
 }
 
 .tl-squad-manager{
@@ -46,10 +82,10 @@
   overflow-x:auto!important;
   overflow-y:hidden!important;
   box-sizing:border-box;
-  padding:3px 26px 13px 18px!important;
-  scroll-padding-inline:18px 42px;
-  scroll-snap-type:x proximity;
-  scrollbar-gutter:stable;
+  padding:3px 78px 13px 18px!important;
+  scroll-padding-inline:18px 78px;
+  scroll-snap-type:none!important;
+  scrollbar-gutter:stable both-edges;
   overscroll-behavior-inline:contain;
   -webkit-overflow-scrolling:touch;
 }
@@ -62,14 +98,14 @@
 }
 
 .tl-tactics-studio .tl-roster-grid.reserves::after{
-  flex-basis:34px;
+  flex-basis:72px;
 }
 
 .tl-tactics-studio .tl-roster-grid.reserves>.tl-squad-card{
   flex:0 0 220px!important;
   width:220px!important;
   min-width:220px!important;
-  scroll-snap-align:start;
+  scroll-snap-align:none!important;
 }
 
 .tl-roster-scroll-tools{
@@ -95,13 +131,12 @@
   font-size:18px!important;
   font-weight:700!important;
   line-height:1!important;
-  transition:background .16s ease,border-color .16s ease,transform .16s ease,opacity .16s ease!important;
+  transition:background .16s ease,border-color .16s ease,opacity .16s ease!important;
 }
 
 .tl-roster-scroll-tools button:hover:not(:disabled){
   border-color:rgba(255,255,255,.2)!important;
   background:#171f28!important;
-  transform:translateY(-1px);
 }
 
 .tl-roster-scroll-tools button:disabled{
