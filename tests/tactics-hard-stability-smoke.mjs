@@ -7,7 +7,9 @@ const [source, css, index] = await Promise.all([
   readFile(new URL('../index.html', import.meta.url), 'utf8')
 ]);
 
-assert.ok(source.includes("event.preventDefault()"), 'pointer interaction must prevent native focus scrolling');
+assert.ok(source.includes("document.addEventListener('pointerdown'"), 'pointer interactions must still be observed');
+assert.ok(!source.includes('event.preventDefault();'), 'stability must not cancel pointerdown or block dragging');
+assert.ok(source.includes('setPointerCapture'), 'the original pointer-capture drag contract must remain preserved');
 assert.ok(source.includes('interactionPatch(root, text)'), 'player interactions must bypass the full tactics renderer');
 assert.ok(source.includes('!pointerInteraction.moved && sameSquadComposition'), 'simple player selection must use a selection-only patch');
 assert.ok(source.includes('pointerInteraction.moved && sameSquadComposition'), 'free pitch movement must patch player coordinates only');
@@ -32,6 +34,9 @@ console.log(JSON.stringify({
   ok: true,
   playerSelectionRender: false,
   freePitchMoveRender: false,
+  dragEnabled: true,
+  pointerDownCancelled: false,
+  pointerCapturePreserved: true,
   lineupGeometry: 'pixel-locked',
   nativeFocusScroll: false,
   fieldHeightShift: false,
