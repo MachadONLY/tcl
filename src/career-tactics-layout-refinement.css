@@ -1,158 +1,52 @@
 /* Stable desktop shell shared by Escalação, Modelo de jogo and Funções. */
 
-html.touchline-tactics-mode *::-webkit-scrollbar-button{
-  display:none!important;
-  width:0!important;
-  height:0!important;
-}
-
-.tl-tactics-studio .tl-roster-grid{
-  scrollbar-width:thin;
-  scrollbar-color:#5a6570 transparent;
-}
-
+html.touchline-tactics-mode *::-webkit-scrollbar-button{display:none!important;width:0!important;height:0!important}
+.tl-tactics-studio .tl-roster-grid{scrollbar-width:thin;scrollbar-color:#5a6570 transparent}
 .tl-tactics-studio .tl-roster-grid::-webkit-scrollbar{height:8px}
 .tl-tactics-studio .tl-roster-grid::-webkit-scrollbar-track{border-radius:999px;background:rgba(255,255,255,.045)}
 .tl-tactics-studio .tl-roster-grid::-webkit-scrollbar-thumb{min-width:72px;border:2px solid transparent;border-radius:999px;background:#66717c;background-clip:padding-box}
 .tl-tactics-studio .tl-roster-grid::-webkit-scrollbar-thumb:hover{background:#7b8792;background-clip:padding-box}
 
-.tl-tactics-studio[data-tactics-view]{
-  height:calc(100vh - 76px);
-  min-height:0;
-  display:grid;
-  grid-template-rows:minmax(0,1fr) auto!important;
-  gap:10px;
-  padding:12px 18px 14px;
-  overflow:hidden;
-}
+.tl-tactics-studio[data-tactics-view]{height:calc(100vh - 76px);min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto!important;gap:10px;padding:12px 18px 14px;overflow:hidden}
+.tl-tactics-studio[data-tactics-view="tactics"],
+.tl-tactics-studio[data-tactics-view="roles"]{grid-template-rows:minmax(0,1fr)!important}
 
 /* The former full-width command strip is hidden in every view so the content origin never changes. */
-.tl-tactics-studio[data-tactics-view] .tl-command-bar{
-  display:none!important;
-}
+.tl-tactics-studio[data-tactics-view] .tl-command-bar{display:none!important}
 
-.tl-tactics-studio[data-tactics-view] .tl-war-room{
-  width:100%;
-  max-width:1680px;
-  height:100%;
-  min-height:0;
-  margin:0 auto;
-  display:grid!important;
-  grid-template-columns:minmax(700px,1fr) minmax(292px,324px)!important;
-  grid-template-rows:minmax(0,1fr);
-  gap:12px;
-  animation:none!important;
-}
+.tl-tactics-studio[data-tactics-view] .tl-war-room{width:100%;max-width:1680px;height:100%;min-height:0;margin:0 auto;display:grid!important;grid-template-columns:minmax(700px,1fr) minmax(292px,324px)!important;grid-template-rows:minmax(0,1fr);gap:12px;animation:none!important}
 
 /* The right rail is the permanent navigation anchor in all three views. */
-.tl-tactics-studio[data-tactics-view] .tl-side-rail{
-  grid-column:2;
-  grid-row:1;
-  min-width:0;
-  min-height:0;
-  height:100%;
-  display:grid!important;
-  grid-template-rows:68px minmax(0,1fr)!important;
-  gap:10px;
-  overflow:hidden!important;
-  border:0!important;
-  border-radius:0!important;
-  background:transparent!important;
-  box-shadow:none!important;
-  backdrop-filter:none!important;
-}
+.tl-tactics-studio[data-tactics-view] .tl-side-rail{grid-column:2;grid-row:1;min-width:0;min-height:0;height:100%;display:grid!important;grid-template-rows:68px minmax(0,1fr)!important;gap:10px;overflow:hidden!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
+.tl-tactics-studio[data-tactics-view] .tl-side-rail>.tl-primary-view-switch{grid-row:1;width:100%;height:68px;min-height:68px;max-height:68px;align-self:start}
 
-.tl-tactics-studio[data-tactics-view] .tl-side-rail>.tl-primary-view-switch{
-  grid-row:1;
-  width:100%;
-  height:68px;
-  min-height:68px;
-  max-height:68px;
-  align-self:start;
-}
-
-/* The lower squad strip remains in the same place and keeps the total geometry constant. */
-.tl-tactics-studio[data-tactics-view] .tl-squad-manager{
-  display:block!important;
-  min-height:0;
-  height:clamp(132px,16vh,158px);
-  margin:0 auto;
-  padding:10px 13px 9px;
-  overflow:hidden;
-  animation:none!important;
-}
-
+/* Squad management belongs only to Escalação. */
+.tl-tactics-studio[data-tactics-view] .tl-squad-manager{min-height:0;margin:0 auto;padding:10px 13px 9px;overflow:hidden;animation:none!important}
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-squad-manager{display:block!important;height:clamp(132px,16vh,158px)}
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-squad-manager,
+.tl-tactics-studio[data-tactics-view="roles"] .tl-squad-manager{display:none!important}
 .tl-tactics-studio[data-tactics-view] .tl-squad-manager>header{margin-bottom:7px}
 
 /* View 01 — field on the left, bench below the permanent switch. */
 .tl-tactics-studio[data-tactics-view="lineup"] .tl-tactic-controls,
 .tl-tactics-studio[data-tactics-view="lineup"] .tl-inspector,
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-model-summary,
 .tl-tactics-studio[data-tactics-view="lineup"] .tl-responsibilities-main,
-.tl-tactics-studio[data-tactics-view="lineup"] .tl-role-lineup-panel{
-  display:none!important;
-}
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-role-lineup-panel{display:none!important}
 
-.tl-tactics-studio[data-tactics-view="lineup"] .tl-pitch-stage{
-  grid-column:1;
-  grid-row:1;
-  min-width:0;
-  min-height:0;
-  height:100%;
-  display:flex!important;
-  flex-direction:column;
-  padding:10px 12px 12px;
-}
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-pitch-stage{grid-column:1;grid-row:1;min-width:0;min-height:0;height:100%;display:flex!important;flex-direction:column;padding:10px 12px 12px}
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-pitch{min-height:0;height:100%;flex:1 1 auto}
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-dock{grid-row:2;min-height:0;height:100%;display:grid!important;grid-template-rows:auto minmax(0,1fr);overflow:hidden;border:1px solid var(--tl-border);border-radius:18px;background:linear-gradient(180deg,rgba(20,27,35,.92),rgba(13,18,24,.94));box-shadow:0 22px 58px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.035);backdrop-filter:blur(18px)}
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list{min-height:0;max-height:none;overflow:auto;padding-bottom:10px}
 
-.tl-tactics-studio[data-tactics-view="lineup"] .tl-pitch{
-  min-height:0;
-  height:100%;
-  flex:1 1 auto;
-}
-
-.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-dock{
-  grid-row:2;
-  min-height:0;
-  height:100%;
-  display:grid!important;
-  grid-template-rows:auto minmax(0,1fr);
-  overflow:hidden;
-  border:1px solid var(--tl-border);
-  border-radius:18px;
-  background:linear-gradient(180deg,rgba(20,27,35,.92),rgba(13,18,24,.94));
-  box-shadow:0 22px 58px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.035);
-  backdrop-filter:blur(18px);
-}
-
-.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list{
-  min-height:0;
-  max-height:none;
-  overflow:auto;
-  padding-bottom:10px;
-}
-
-/* View 02 — instructions occupy the same rectangle previously used by the field. */
+/* View 02 — instructions replace the field and a tactical reading replaces the player inspector. */
 .tl-tactics-studio[data-tactics-view="tactics"] .tl-pitch-stage,
 .tl-tactics-studio[data-tactics-view="tactics"] .tl-bench-dock,
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-inspector,
 .tl-tactics-studio[data-tactics-view="tactics"] .tl-responsibilities-main,
-.tl-tactics-studio[data-tactics-view="tactics"] .tl-role-lineup-panel{
-  display:none!important;
-}
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-role-lineup-panel{display:none!important}
 
-.tl-tactics-studio[data-tactics-view="tactics"] .tl-tactic-controls{
-  grid-column:1;
-  grid-row:1;
-  min-width:0;
-  min-height:0;
-  height:100%;
-  display:block!important;
-  overflow:hidden;
-  padding:18px 20px;
-  border:1px solid var(--tl-border);
-  border-radius:18px;
-  background:linear-gradient(145deg,rgba(19,26,34,.94),rgba(10,15,21,.96));
-  box-shadow:0 22px 58px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.04);
-}
-
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-tactic-controls{grid-column:1;grid-row:1;min-width:0;min-height:0;height:100%;display:block!important;overflow:hidden;padding:18px 20px;border:1px solid var(--tl-border);border-radius:18px;background:linear-gradient(145deg,rgba(19,26,34,.94),rgba(10,15,21,.96));box-shadow:0 22px 58px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.04)}
 .tl-tactics-studio[data-tactics-view="tactics"] .tl-panel-heading{margin-bottom:13px}
 .tl-tactics-studio[data-tactics-view="tactics"] .tl-panel-heading>span{font-size:15px;letter-spacing:.02em}
 .tl-tactics-studio[data-tactics-view="tactics"] .tl-plan-tabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:14px}
@@ -163,53 +57,29 @@ html.touchline-tactics-mode *::-webkit-scrollbar-button{
 .tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll>.tl-setting-block,
 .tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll>.tl-switch{margin:0}
 .tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll>.tl-explainer{grid-column:1/-1}
+.tl-tactics-studio[data-tactics-view="tactics"] .tl-model-summary{grid-row:2;min-height:0;height:100%;display:grid!important}
 
-.tl-tactics-studio[data-tactics-view="tactics"] .tl-inspector{
-  grid-row:2;
-  min-height:0!important;
-  height:100%;
-  display:block!important;
-  overflow:auto;
-  border:1px solid var(--tl-border);
-  border-radius:18px;
-  background:linear-gradient(180deg,rgba(20,27,35,.92),rgba(13,18,24,.94));
-  box-shadow:0 22px 58px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.035);
-}
-
-/* View 03 — responsibilities use the left rectangle, XI summary uses the same right rectangle. */
+/* View 03 — responsibilities replace the field and a compact assignment summary fills the rail. */
 .tl-tactics-studio[data-tactics-view="roles"] .tl-tactic-controls,
 .tl-tactics-studio[data-tactics-view="roles"] .tl-pitch-stage,
 .tl-tactics-studio[data-tactics-view="roles"] .tl-inspector,
-.tl-tactics-studio[data-tactics-view="roles"] .tl-bench-dock{
-  display:none!important;
-}
+.tl-tactics-studio[data-tactics-view="roles"] .tl-bench-dock,
+.tl-tactics-studio[data-tactics-view="roles"] .tl-model-summary{display:none!important}
+.tl-tactics-studio[data-tactics-view="roles"] .tl-responsibilities-main{grid-column:1;grid-row:1;display:grid!important}
+.tl-tactics-studio[data-tactics-view="roles"] .tl-role-lineup-panel{grid-row:2;display:grid!important}
 
-.tl-tactics-studio[data-tactics-view="roles"] .tl-responsibilities-main{
-  grid-column:1;
-  grid-row:1;
-  display:grid!important;
-}
-
-.tl-tactics-studio[data-tactics-view="roles"] .tl-role-lineup-panel{
-  grid-row:2;
-  display:grid!important;
-}
-
-/* No view transition may move the layout; only content opacity changes. */
+/* No view transition may move the navigation or grid; only content opacity changes. */
 .tl-tactics-studio[data-tactics-view] .tl-pitch-stage,
 .tl-tactics-studio[data-tactics-view] .tl-tactic-controls,
+.tl-tactics-studio[data-tactics-view] .tl-model-summary,
 .tl-tactics-studio[data-tactics-view] .tl-responsibilities-main,
 .tl-tactics-studio[data-tactics-view] .tl-bench-dock,
-.tl-tactics-studio[data-tactics-view] .tl-inspector,
-.tl-tactics-studio[data-tactics-view] .tl-role-lineup-panel{
-  animation:tlStableViewFade .16s ease both;
-}
-
+.tl-tactics-studio[data-tactics-view] .tl-role-lineup-panel{animation:tlStableViewFade .16s ease both}
 @keyframes tlStableViewFade{from{opacity:.55}to{opacity:1}}
 
 @media(max-height:820px){
   .tl-tactics-studio[data-tactics-view]{padding-top:9px;padding-bottom:9px;gap:8px}
-  .tl-tactics-studio[data-tactics-view] .tl-squad-manager{height:128px}
+  .tl-tactics-studio[data-tactics-view="lineup"] .tl-squad-manager{height:128px}
   .tl-tactics-studio[data-tactics-view] .tl-side-rail{grid-template-rows:60px minmax(0,1fr)!important;gap:8px}
   .tl-tactics-studio[data-tactics-view] .tl-side-rail>.tl-primary-view-switch{height:60px;min-height:60px;max-height:60px}
   .tl-primary-view-switch button{min-height:50px}
@@ -225,6 +95,8 @@ html.touchline-tactics-mode *::-webkit-scrollbar-button{
 
 @media(max-width:1080px){
   .tl-tactics-studio[data-tactics-view]{height:auto;min-height:calc(100vh - 76px);overflow:auto;grid-template-rows:auto auto!important}
+  .tl-tactics-studio[data-tactics-view="tactics"],
+  .tl-tactics-studio[data-tactics-view="roles"]{grid-template-rows:auto!important}
   .tl-tactics-studio[data-tactics-view] .tl-war-room{height:auto;grid-template-columns:1fr!important;grid-template-rows:auto auto}
   .tl-tactics-studio[data-tactics-view] .tl-side-rail{grid-column:1;grid-row:2;height:470px}
   .tl-tactics-studio[data-tactics-view="lineup"] .tl-pitch-stage{grid-column:1;grid-row:1;min-height:670px}
@@ -232,14 +104,14 @@ html.touchline-tactics-mode *::-webkit-scrollbar-button{
   .tl-tactics-studio[data-tactics-view="roles"] .tl-responsibilities-main{grid-column:1;grid-row:1;min-height:620px}
   .tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll{grid-template-columns:1fr;max-height:none}
   .tl-tactics-studio[data-tactics-view="tactics"] .tl-controls-scroll>.tl-explainer{grid-column:1}
-  .tl-tactics-studio[data-tactics-view] .tl-squad-manager{height:160px}
+  .tl-tactics-studio[data-tactics-view="lineup"] .tl-squad-manager{height:160px}
 }
 
 @media(prefers-reduced-motion:reduce){
   .tl-tactics-studio[data-tactics-view] .tl-pitch-stage,
   .tl-tactics-studio[data-tactics-view] .tl-tactic-controls,
+  .tl-tactics-studio[data-tactics-view] .tl-model-summary,
   .tl-tactics-studio[data-tactics-view] .tl-responsibilities-main,
   .tl-tactics-studio[data-tactics-view] .tl-bench-dock,
-  .tl-tactics-studio[data-tactics-view] .tl-inspector,
   .tl-tactics-studio[data-tactics-view] .tl-role-lineup-panel{animation:none!important}
 }
