@@ -1,0 +1,455 @@
+/* Final mailbox density pass: comfortable typography without sacrificing the fixed game shell. */
+#touchline-career-mailbox .tcm-layout {
+  grid-template-columns: clamp(390px, 31vw, 460px) minmax(0, 1fr);
+  grid-template-rows: 64px minmax(0, 1fr);
+  column-gap: 14px;
+  padding-inline: clamp(24px, 3.2vw, 48px);
+}
+
+#touchline-career-mailbox .tcm-page-head {
+  padding-bottom: 12px;
+}
+
+#touchline-career-mailbox .tcm-page-head > div:first-child small {
+  margin-bottom: 4px;
+  font-size: 10px;
+  letter-spacing: .12em;
+}
+
+#touchline-career-mailbox .tcm-page-head h1 {
+  font-size: clamp(29px, 2.1vw, 36px);
+  line-height: 1.04;
+}
+
+#touchline-career-mailbox .tcm-summary {
+  gap: 22px;
+  padding-bottom: 4px;
+}
+
+#touchline-career-mailbox .tcm-summary b {
+  font-size: 19px;
+}
+
+#touchline-career-mailbox .tcm-summary small {
+  font-size: 10px;
+  letter-spacing: .07em;
+}
+
+#touchline-career-mailbox .tcm-list-pane,
+#touchline-career-mailbox .tcm-detail-pane {
+  border: 1px solid rgba(111, 196, 239, .16);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .16);
+}
+
+#touchline-career-mailbox .tcm-tools {
+  padding: 14px 14px 12px;
+}
+
+#touchline-career-mailbox .tcm-tools > label {
+  height: 40px;
+  gap: 10px;
+  padding-inline: 13px;
+}
+
+#touchline-career-mailbox .tcm-tools input {
+  font-size: 12px;
+  font-weight: 560;
+}
+
+#touchline-career-mailbox .tcm-filter-line {
+  margin-top: 10px;
+}
+
+#touchline-career-mailbox .tcm-primary-filters {
+  gap: 5px;
+}
+
+#touchline-career-mailbox .tcm-primary-filters button {
+  height: 32px;
+  gap: 6px;
+  padding-inline: 9px;
+  font-size: 9.5px;
+  letter-spacing: .055em;
+}
+
+#touchline-career-mailbox .tcm-primary-filters button i {
+  min-width: 18px;
+  height: 18px;
+  font-size: 8.5px;
+}
+
+#touchline-career-mailbox .tcm-filter-menu summary {
+  height: 31px;
+  padding-inline: 10px;
+  font-size: 9px;
+  letter-spacing: .055em;
+}
+
+#touchline-career-mailbox .tcm-filter-menu > div {
+  top: 37px;
+  width: 158px;
+  padding: 7px;
+  border-radius: 6px;
+}
+
+#touchline-career-mailbox .tcm-filter-menu > div button {
+  height: 35px;
+  padding-inline: 11px;
+  font-size: 9px;
+}
+
+#touchline-career-mailbox .tcm-message-row {
+  min-height: 90px;
+  grid-template-columns: 6px 46px minmax(0, 1fr) 18px;
+  gap: 11px;
+  padding: 11px 13px 11px 10px;
+}
+
+#touchline-career-mailbox .tcm-message-row::before {
+  width: 4px;
+}
+
+#touchline-career-mailbox .tcm-avatar.is-compact {
+  width: 46px;
+  height: 46px;
+}
+
+#touchline-career-mailbox .tcm-avatar.is-compact b {
+  font-size: 11px;
+}
+
+#touchline-career-mailbox .tcm-message-meta {
+  gap: 10px;
+}
+
+#touchline-career-mailbox .tcm-message-meta b {
+  font-size: 9.5px;
+  font-weight: 680;
+}
+
+#touchline-career-mailbox .tcm-message-meta time {
+  font-size: 8.5px;
+  letter-spacing: .035em;
+}
+
+#touchline-career-mailbox .tcm-message-copy > strong {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.25;
+}
+
+#touchline-career-mailbox .tcm-message-copy > p {
+  margin: 4px 0 7px;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+#touchline-career-mailbox .tcm-message-foot > small,
+#touchline-career-mailbox .tcm-row-state {
+  font-size: 8.5px;
+  letter-spacing: .055em;
+}
+
+#touchline-career-mailbox .tcm-row-state {
+  min-height: 17px;
+  gap: 4px;
+}
+
+#touchline-career-mailbox .tcm-row-state .tcm-icon {
+  width: 12px;
+  height: 12px;
+}
+
+#touchline-career-mailbox .tcm-detail {
+  grid-template-rows: 70px minmax(0, 1fr) 68px;
+}
+
+#touchline-career-mailbox .tcm-detail-head {
+  gap: 20px;
+  padding: 11px clamp(20px, 2.2vw, 32px);
+}
+
+#touchline-career-mailbox .tcm-sender {
+  gap: 12px;
+}
+
+#touchline-career-mailbox .tcm-sender small {
+  font-size: 9.5px;
+  letter-spacing: .06em;
+}
+
+#touchline-career-mailbox .tcm-sender b {
+  margin-top: 3px;
+  font-size: 13.5px;
+}
+
+#touchline-career-mailbox .tcm-detail-head-right {
+  gap: 17px;
+}
+
+#touchline-career-mailbox .tcm-detail-meta span {
+  font-size: 8.5px;
+}
+
+#touchline-career-mailbox .tcm-detail-meta time {
+  font-size: 9px;
+}
+
+#touchline-career-mailbox .tcm-detail-tools {
+  gap: 7px;
+}
+
+#touchline-career-mailbox .tcm-detail-tools button {
+  height: 34px;
+  gap: 6px;
+  padding-inline: 10px;
+  font-size: 9.5px;
+}
+
+#touchline-career-mailbox .tcm-detail-grid {
+  grid-template-columns: minmax(0, 1fr) clamp(270px, 24vw, 330px);
+  gap: clamp(32px, 3.3vw, 52px);
+  padding: clamp(32px, 4vw, 52px) clamp(28px, 3.5vw, 48px) 36px;
+}
+
+#touchline-career-mailbox .tcm-letter {
+  max-width: 700px;
+  padding-top: 4px;
+}
+
+#touchline-career-mailbox .tcm-kicker {
+  min-height: 22px;
+  margin-bottom: 15px;
+  font-size: 9.5px;
+  letter-spacing: .085em;
+}
+
+#touchline-career-mailbox .tcm-letter h2 {
+  max-width: 680px;
+  font-size: clamp(30px, 2.5vw, 40px);
+  line-height: 1.12;
+  letter-spacing: -.025em;
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
+
+#touchline-career-mailbox .tcm-letter > p {
+  max-width: 650px;
+  margin-top: 22px;
+  font-size: clamp(14px, 1.05vw, 16px);
+  line-height: 1.72;
+  color: rgba(222, 240, 249, .72);
+  text-wrap: pretty;
+}
+
+#touchline-career-mailbox .tcm-context {
+  gap: 13px;
+}
+
+#touchline-career-mailbox .tcm-player-context,
+#touchline-career-mailbox .tcm-fact-panel {
+  border-radius: 8px;
+  background: rgba(7, 31, 49, .82);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .13);
+}
+
+#touchline-career-mailbox .tcm-player-context {
+  padding: 16px;
+}
+
+#touchline-career-mailbox .tcm-player-head {
+  gap: 13px;
+}
+
+#touchline-career-mailbox .tcm-player-photo {
+  width: 64px;
+  height: 64px;
+  flex-basis: 64px;
+  border-radius: 5px;
+}
+
+#touchline-career-mailbox .tcm-player-head small {
+  font-size: 8.5px;
+  letter-spacing: .075em;
+}
+
+#touchline-career-mailbox .tcm-player-head h3 {
+  margin: 5px 0 3px;
+  font-size: 16px;
+}
+
+#touchline-career-mailbox .tcm-player-head p {
+  font-size: 9.5px;
+}
+
+#touchline-career-mailbox .tcm-player-context dl {
+  margin-top: 14px;
+}
+
+#touchline-career-mailbox .tcm-player-context dl div {
+  padding: 11px 8px 1px;
+}
+
+#touchline-career-mailbox .tcm-player-context dt,
+#touchline-career-mailbox .tcm-fact-panel dt {
+  font-size: 7.5px;
+  letter-spacing: .06em;
+}
+
+#touchline-career-mailbox .tcm-player-context dd {
+  margin-top: 5px;
+  font-size: 11px;
+}
+
+#touchline-career-mailbox .tcm-fact-panel {
+  min-height: 132px;
+  padding: 18px 19px;
+}
+
+#touchline-career-mailbox .tcm-fact-panel > small {
+  font-size: 8.5px;
+  letter-spacing: .08em;
+}
+
+#touchline-career-mailbox .tcm-fact-panel > strong {
+  margin-top: 8px;
+  font-size: clamp(23px, 2vw, 30px);
+  line-height: 1.08;
+}
+
+#touchline-career-mailbox .tcm-fact-panel dl {
+  margin-top: 16px;
+}
+
+#touchline-career-mailbox .tcm-fact-panel dl div {
+  padding-top: 10px;
+}
+
+#touchline-career-mailbox .tcm-fact-panel dd {
+  margin-top: 5px;
+  font-size: 10px;
+}
+
+#touchline-career-mailbox .tcm-detail > footer {
+  min-height: 68px;
+  padding: 11px clamp(20px, 2.2vw, 32px);
+}
+
+#touchline-career-mailbox .tcm-actions {
+  gap: 9px;
+}
+
+#touchline-career-mailbox .tcm-actions button {
+  min-width: 132px;
+  height: 42px;
+  padding-inline: 17px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  letter-spacing: .01em;
+}
+
+@media (max-width: 1260px) {
+  #touchline-career-mailbox .tcm-layout {
+    grid-template-columns: 370px minmax(0, 1fr);
+    column-gap: 10px;
+    padding-inline: 22px;
+  }
+
+  #touchline-career-mailbox .tcm-detail-grid {
+    grid-template-columns: minmax(0, 1fr) 270px;
+    gap: 28px;
+    padding-inline: 28px;
+  }
+
+  #touchline-career-mailbox .tcm-letter h2 {
+    font-size: clamp(28px, 2.5vw, 35px);
+  }
+}
+
+@media (max-height: 800px) and (min-width: 761px) {
+  #touchline-career-mailbox .tcm-layout {
+    grid-template-rows: 56px minmax(0, 1fr);
+  }
+
+  #touchline-career-mailbox .tcm-message-row {
+    min-height: 82px;
+    padding-block: 8px;
+  }
+
+  #touchline-career-mailbox .tcm-detail {
+    grid-template-rows: 64px minmax(0, 1fr) 62px;
+  }
+
+  #touchline-career-mailbox .tcm-detail-grid {
+    padding-block: 27px 24px;
+  }
+
+  #touchline-career-mailbox .tcm-letter h2 {
+    font-size: clamp(27px, 2.35vw, 35px);
+  }
+
+  #touchline-career-mailbox .tcm-letter > p {
+    margin-top: 17px;
+    font-size: 14px;
+    line-height: 1.62;
+  }
+
+  #touchline-career-mailbox .tcm-player-photo {
+    width: 58px;
+    height: 58px;
+    flex-basis: 58px;
+  }
+
+  #touchline-career-mailbox .tcm-fact-panel {
+    min-height: 116px;
+    padding-block: 14px;
+  }
+}
+
+@media (max-width: 940px) {
+  #touchline-career-mailbox .tcm-layout {
+    grid-template-columns: 320px minmax(0, 1fr);
+    padding-inline: 16px;
+  }
+
+  #touchline-career-mailbox .tcm-detail-grid {
+    display: block;
+    padding: 24px;
+  }
+
+  #touchline-career-mailbox .tcm-context {
+    margin-top: 26px;
+  }
+}
+
+@media (max-width: 760px) {
+  #touchline-career-mailbox .tcm-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 54px minmax(250px, 42vh) minmax(0, 1fr);
+    column-gap: 0;
+    padding-inline: 10px;
+  }
+
+  #touchline-career-mailbox .tcm-list-pane,
+  #touchline-career-mailbox .tcm-detail-pane {
+    border-radius: 7px;
+  }
+
+  #touchline-career-mailbox .tcm-message-row {
+    min-height: 84px;
+  }
+
+  #touchline-career-mailbox .tcm-detail-grid {
+    padding: 22px 18px;
+  }
+
+  #touchline-career-mailbox .tcm-letter h2 {
+    font-size: 27px;
+  }
+
+  #touchline-career-mailbox .tcm-letter > p {
+    font-size: 14px;
+  }
+}
