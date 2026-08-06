@@ -16,7 +16,6 @@ const FORMATION_GROUPS = Object.freeze([
   }
 ]);
 
-// Slots follow the stable XI order used by the career screen: GK, DEF, MID, FWD.
 const FORMATION_SLOTS = Object.freeze({
   '4-2-3-1': [[50,91],[16,73],[38,77],[62,77],[84,73],[38,57],[62,57],[17,34],[50,39],[83,34],[50,15]],
   '4-3-3': [[50,91],[16,73],[38,77],[62,77],[84,73],[30,53],[50,59],[70,53],[17,27],[50,18],[83,27]],
@@ -37,10 +36,12 @@ const FORMATION_SLOTS = Object.freeze({
 
 const PHASES = Object.freeze(['base', 'possession', 'out']);
 const PLANS = Object.freeze(['A', 'B', 'C']);
-const MOTION_DURATION = 590;
+const MOTION_DURATION = 560;
 let enhancementQueued = false;
 let applyingFormation = false;
-let transitionSequence = 0;
+let pendingFormation = null;
+let cachedCareer = null;
+let saveChain = Promise.resolve();
 
 function allFormations() {
   return FORMATION_GROUPS.flatMap(group => group.formations);
@@ -115,20 +116,54 @@ function syncFormationSelects(root, formation) {
   });
 }
 
-function updateSaveState(root, state) {
-  const badge = root.querySelector('[data-tl-save]');
-  if (!badge) return;
-  badge.classList.toggle('saving', state === 'saving');
-  badge.classList.toggle('saved', state === 'saved');
-  badge.querySelector('span')?.replaceChildren(state === 'saving' ? 'Salvando…' : 'Salvo');
-}
-
 function prefersReducedMotion() {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 }
 
-function nextFrame() {
-  return new Promise(resolve => requestAnimationFrame(() => resolve()));
+function formationDraft(career) {
+  return {
+    saveId: career.saveId,
+    clubCode: career.clubCode,
+    formation: career.formation,
+    tacticalLayouts: structuredClone(career.tacticalLayouts)
+  };
+}
+
+function rememberFormation(career) {
+  cachedCareer = structuredClone(career);
+  globalThis.__touchlineFormationDraft = formationDraft(career);
+}
+
+function currentTargetPosition(career, playerId, index, phase) {
+  const plan = career.tactics?.activePlan || 'A';
+  const stored = career.tacticalLayouts?.[plan]?.[phase]?.[playerId];
+  if (stored && Number.isFinite(stored.x) && Number.isFinite(stored.y)) return stored;
+  const slots = FORMATION_SLOTS[career.formation] || FORMATION_SLOTS['4-2-3-1'];
+  return phasePosition(
+    slots[index] || slots.at(-1),
+    PLAYER_BY_ID.get(playerId),
+    phase,
+    planSettings(career, plan),
+    career.tactics?.roles?.[playerId]?.role || ''
+  );
+}
+
+function patchPitchInstantly(root, career) {
+  const pitch = root.querySelector('.tl-pitch');
+  const nodes = [...root.querySelectorAll('.tl-pitch .tl-player-node[data-drag-player]')];
+  if (!pitch || !nodes.length || !career) return;
+  const phase = visiblePhase(root);
+  root.classList.add('tl-formation-measuring');
+  nodes.forEach(node => {
+    const index = career.lineup.indexOf(node.dataset.dragPlayer);
+    if (index < 0) return;
+    const target = currentTargetPosition(career, node.dataset.dragPlayer, index, phase);
+    node.style.setProperty('--x', `${target.x}%`);
+    node.style.setProperty('--y', `${target.y}%`);
+  });
+  syncFormationSelects(root, career.formation);
+  void pitch.offsetWidth;
+  root.classList.remove('tl-formation-measuring');
 }
 
 async function animateFormation(root, career) {
@@ -137,24 +172,14 @@ async function animateFormation(root, career) {
   if (!pitch || !nodes.length) return;
 
   const phase = visiblePhase(root);
-  const plan = career.tactics?.activePlan || 'A';
-  const targets = new Map(career.lineup.map((playerId, index) => [
-    playerId,
-    career.tacticalLayouts?.[plan]?.[phase]?.[playerId] || phasePosition(
-      (FORMATION_SLOTS[career.formation] || FORMATION_SLOTS['4-2-3-1'])[index],
-      PLAYER_BY_ID.get(playerId),
-      phase,
-      planSettings(career, plan),
-      career.tactics?.roles?.[playerId]?.role || ''
-    )
-  ]));
-
   const firstRects = new Map(nodes.map(node => [node.dataset.dragPlayer, node.getBoundingClientRect()]));
   root.classList.add('tl-formation-measuring', 'tl-formation-busy');
   root.setAttribute('aria-busy', 'true');
+
   nodes.forEach(node => {
-    const target = targets.get(node.dataset.dragPlayer);
-    if (!target) return;
+    const index = career.lineup.indexOf(node.dataset.dragPlayer);
+    if (index < 0) return;
+    const target = currentTargetPosition(career, node.dataset.dragPlayer, index, phase);
     node.style.setProperty('--x', `${target.x}%`);
     node.style.setProperty('--y', `${target.y}%`);
     node.dataset.formationMoving = '';
@@ -170,16 +195,15 @@ async function animateFormation(root, career) {
     const deltaX = first.left - last.left;
     const deltaY = first.top - last.top;
     if (reduced || (Math.abs(deltaX) < .5 && Math.abs(deltaY) < .5)) return;
-    const delay = Math.min(72, index * 7);
     const animation = node.animate([
       {
         transform: `translate3d(${deltaX}px, ${deltaY}px, 0) translate(-50%, -50%) scale(1)`,
         filter: 'brightness(1)'
       },
       {
-        transform: 'translate3d(0, 0, 0) translate(-50%, -50%) scale(1.045)',
-        filter: 'brightness(1.08)',
-        offset: .58
+        transform: 'translate3d(0, 0, 0) translate(-50%, -50%) scale(1.04)',
+        filter: 'brightness(1.07)',
+        offset: .62
       },
       {
         transform: 'translate3d(0, 0, 0) translate(-50%, -50%) scale(1)',
@@ -187,7 +211,7 @@ async function animateFormation(root, career) {
       }
     ], {
       duration: MOTION_DURATION,
-      delay,
+      delay: Math.min(66, index * 6),
       easing: 'cubic-bezier(.16, 1, .3, 1)',
       fill: 'both'
     });
@@ -201,122 +225,53 @@ async function animateFormation(root, career) {
   root.removeAttribute('aria-busy');
 }
 
-function copyScrollPositions(source, clone) {
-  const selectors = ['.tl-roster-grid', '.tl-bench-list', '.tl-controls-scroll'];
-  selectors.forEach(selector => {
-    const sourceNodes = source.querySelectorAll(selector);
-    const cloneNodes = clone.querySelectorAll(selector);
-    sourceNodes.forEach((node, index) => {
-      if (!cloneNodes[index]) return;
-      cloneNodes[index].scrollLeft = node.scrollLeft;
-      cloneNodes[index].scrollTop = node.scrollTop;
-    });
+function queueFormationSave(career) {
+  saveChain = saveChain.catch(() => undefined).then(async () => {
+    const draft = globalThis.__touchlineFormationDraft;
+    const payload = structuredClone(career);
+    if (draft?.saveId === payload.saveId && draft?.clubCode === payload.clubCode) {
+      payload.formation = draft.formation;
+      payload.tacticalLayouts = structuredClone(draft.tacticalLayouts);
+    }
+    const saved = await CareerRepository.save(payload);
+    rememberFormation(saved);
+    return saved;
   });
-}
-
-function createVisualSnapshot(root) {
-  const bounds = root.getBoundingClientRect();
-  const snapshot = root.cloneNode(true);
-  const computed = getComputedStyle(root);
-  snapshot.classList.remove('tl-formation-busy', 'tl-formation-measuring');
-  snapshot.classList.add('tl-formation-snapshot');
-  snapshot.removeAttribute('aria-busy');
-  snapshot.style.left = `${bounds.left}px`;
-  snapshot.style.top = `${bounds.top}px`;
-  snapshot.style.width = `${bounds.width}px`;
-  snapshot.style.height = `${bounds.height}px`;
-  snapshot.style.setProperty('--club', computed.getPropertyValue('--club'));
-  snapshot.style.setProperty('--tl-accent', computed.getPropertyValue('--tl-accent'));
-  snapshot.querySelectorAll('select,button,input').forEach(element => element.tabIndex = -1);
-  document.body.append(snapshot);
-  copyScrollPositions(root, snapshot);
-  return snapshot;
-}
-
-function remountStudio() {
-  const content = document.querySelector('.cp-content');
-  const legacyPage = content?.querySelector('.tl-tactics-bridge .cp-page');
-  if (!content || !legacyPage) return false;
-  content.replaceChildren(legacyPage);
-  delete content.dataset.tacticsStudio;
-  return true;
-}
-
-async function waitForFreshStudio(previousRoot) {
-  for (let frame = 0; frame < 48; frame += 1) {
-    await nextFrame();
-    const root = document.querySelector('.tl-tactics-studio');
-    if (root && root !== previousRoot && root.querySelector('.tl-war-room')) return root;
-  }
-  return null;
-}
-
-async function fadeSnapshot(snapshot) {
-  if (!snapshot) return;
-  if (prefersReducedMotion()) {
-    snapshot.remove();
-    return;
-  }
-  try {
-    await snapshot.animate([
-      { opacity: 1 },
-      { opacity: 1, offset: .45 },
-      { opacity: 0 }
-    ], {
-      duration: 180,
-      easing: 'cubic-bezier(.2,.8,.2,1)',
-      fill: 'forwards'
-    }).finished;
-  } catch {
-    // Removal below is the visual fallback when Web Animations is interrupted.
-  }
-  snapshot.remove();
+  return saveChain;
 }
 
 async function applyFormation(formation, sourceSelect) {
-  if (applyingFormation || !FORMATION_SLOTS[formation]) return;
+  if (!FORMATION_SLOTS[formation]) return;
+  if (applyingFormation) {
+    pendingFormation = formation;
+    return;
+  }
+
   const root = sourceSelect?.closest('.tl-tactics-studio') || document.querySelector('.tl-tactics-studio');
   if (!root) return;
   applyingFormation = true;
-  const sequence = ++transitionSequence;
-  let snapshot = null;
   try {
     syncFormationSelects(root, formation);
-    updateSaveState(root, 'saving');
-    const career = await CareerRepository.load();
-    if (!career || sequence !== transitionSequence) return;
+    const sourceCareer = cachedCareer || await CareerRepository.load();
+    if (!sourceCareer) return;
+    const career = structuredClone(sourceCareer);
     career.formation = formation;
     resetLayoutsForFormation(career, formation);
-    globalThis.__touchlineCareerDraft = structuredClone(career);
+    rememberFormation(career);
 
-    const initialSave = CareerRepository.save(career);
-    await Promise.all([initialSave, animateFormation(root, career)]);
-
-    // A prior 120 ms debounced save from another control may finish while the animation runs.
-    // Merge the formation once more after motion so that the final persisted state always wins.
-    const latest = await CareerRepository.load();
-    const finalCareer = latest || career;
-    finalCareer.formation = formation;
-    finalCareer.tacticalLayouts = structuredClone(career.tacticalLayouts);
-    const saved = await CareerRepository.save(finalCareer);
-    globalThis.__touchlineCareerDraft = structuredClone(saved);
-    updateSaveState(root, 'saved');
-
-    snapshot = createVisualSnapshot(root);
-    if (remountStudio()) {
-      const freshRoot = await waitForFreshStudio(root);
-      if (freshRoot) {
-        syncFormationSelects(freshRoot, formation);
-        await nextFrame();
-      }
-    }
-    await fadeSnapshot(snapshot);
-    snapshot = null;
+    queueFormationSave(career).catch(() => undefined);
+    await animateFormation(root, career);
+    syncFormationSelects(root, formation);
   } finally {
-    snapshot?.remove();
-    delete globalThis.__touchlineCareerDraft;
     applyingFormation = false;
     scheduleEnhancement();
+    if (pendingFormation && pendingFormation !== formation) {
+      const queued = pendingFormation;
+      pendingFormation = null;
+      applyFormation(queued, document.querySelector('[data-field-formation-control] select, [data-tl-formation]'));
+    } else {
+      pendingFormation = null;
+    }
   }
 }
 
@@ -362,7 +317,7 @@ function enableFullRosterScroll(root) {
 }
 
 function formationSelectFromEvent(event) {
-  const select = event.target instanceof HTMLSelectElement ? event.target : null;
+  const select = event.target?.tagName === 'SELECT' ? event.target : null;
   if (!select) return null;
   if (select.matches('[data-tl-formation]')) return select;
   return select.closest('[data-field-formation-control]') ? select : null;
@@ -378,15 +333,18 @@ function interceptFormationChange(event) {
 
 async function enhance() {
   enhancementQueued = false;
-  if (location.hash !== '#tactics' || applyingFormation) return;
+  if (location.hash !== '#tactics') return;
   const root = document.querySelector('.tl-tactics-studio');
   if (!root) return;
+
   const career = await CareerRepository.load();
   if (!career || location.hash !== '#tactics') return;
+  rememberFormation(career);
   const selected = allFormations().includes(career.formation) ? career.formation : '4-2-3-1';
   enhanceNativeSelect(root, selected);
   if (root.dataset.tacticsView === 'lineup') fieldFormationControl(root, selected);
   enableFullRosterScroll(root);
+  if (!applyingFormation) patchPitchInstantly(root, career);
 }
 
 function scheduleEnhancement() {
@@ -395,7 +353,13 @@ function scheduleEnhancement() {
   requestAnimationFrame(enhance);
 }
 
+function handleStudioMutation() {
+  const root = document.querySelector('.tl-tactics-studio');
+  if (root && cachedCareer && !applyingFormation) patchPitchInstantly(root, cachedCareer);
+  scheduleEnhancement();
+}
+
 document.addEventListener('change', interceptFormationChange, true);
-new MutationObserver(scheduleEnhancement).observe(document.querySelector('#app'), { childList: true, subtree: true });
+new MutationObserver(handleStudioMutation).observe(document.querySelector('#app'), { childList: true, subtree: true });
 window.addEventListener('hashchange', scheduleEnhancement);
 scheduleEnhancement();
