@@ -1,0 +1,335 @@
+/* FIFA 18 home refinement.
+   Removes the outer frame and makes the left menu a single full-height column
+   aligned exactly with the four content tiles. */
+
+.tgh-shell {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.tgh-shell::before,
+.tgh-shell-brand {
+  display: none;
+}
+
+.tgh-layout {
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: clamp(158px, 12.5vw, 178px) minmax(0, 1fr);
+  gap: clamp(10px, .9vw, 14px);
+  align-items: stretch;
+}
+
+.tgh-sidebar {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  align-content: stretch;
+  border: 1px solid rgba(57, 101, 206, .58);
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgba(12, 31, 76, .98), rgba(4, 13, 37, .98));
+  box-shadow:
+    inset 0 0 34px rgba(40, 88, 207, .11),
+    0 15px 34px rgba(0, 0, 0, .34);
+}
+
+.tgh-profile,
+.tgh-nav,
+.tgh-side-panel {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.tgh-profile {
+  min-height: 84px;
+  padding: 10px 9px;
+  grid-template-columns: 35px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(86, 129, 225, .28);
+  background:
+    linear-gradient(90deg, rgba(19, 45, 99, .98), rgba(12, 31, 76, .98)),
+    radial-gradient(circle at 25% 20%, rgba(86, 129, 255, .18), transparent 45%);
+}
+
+.tgh-profile-avatar {
+  width: 35px;
+  height: 43px;
+  color: #c8d7f7;
+  border: 1px solid rgba(117, 154, 237, .42);
+  border-radius: 1px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(150, 178, 245, .3), transparent 42%),
+    linear-gradient(160deg, #1b3c7b, #09183d);
+}
+
+.tgh-profile-avatar svg {
+  width: 23px;
+  height: 23px;
+}
+
+.tgh-profile-copy {
+  gap: 3px;
+  line-height: 1;
+}
+
+.tgh-profile-copy strong {
+  color: #eef3ff;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: -.01em;
+}
+
+.tgh-profile-copy span {
+  color: #f3f6ff;
+  font-size: 8px;
+}
+
+.tgh-profile-copy span b {
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.tgh-profile-copy small {
+  color: #9fb1d6;
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.tgh-nav {
+  display: grid;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(75, 117, 211, .24);
+  background: #102d68;
+}
+
+.tgh-nav-item {
+  min-height: 39px;
+  padding: 0 9px 0 0;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 0;
+  border-bottom: 1px solid rgba(94, 136, 226, .22);
+  color: #dbe5fb;
+  background:
+    linear-gradient(90deg, rgba(8, 27, 68, .94) 0 36px, rgba(25, 59, 127, .96) 36px 100%);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025);
+  font-size: 9px;
+  font-weight: 780;
+  letter-spacing: .005em;
+}
+
+.tgh-nav-item:last-child {
+  border-bottom: 0;
+}
+
+.tgh-nav-item svg {
+  width: 17px;
+  height: 17px;
+  justify-self: center;
+  color: #90a8d7;
+}
+
+.tgh-nav-item span {
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  border-left: 1px solid rgba(92, 133, 218, .18);
+  white-space: nowrap;
+}
+
+.tgh-nav-item.is-active {
+  color: #061126;
+  background:
+    linear-gradient(90deg, #f0bd00 0 36px, #ffd21a 36px 100%);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .62),
+    inset 0 -1px rgba(113, 79, 0, .18),
+    0 0 21px rgba(255, 203, 12, .16);
+}
+
+.tgh-nav-item.is-active::before {
+  width: 3px;
+  background: #fff4a3;
+}
+
+.tgh-nav-item.is-active svg {
+  color: #182340;
+}
+
+.tgh-nav-item.is-active span {
+  border-left-color: rgba(112, 79, 0, .16);
+}
+
+.tgh-nav-item.is-disabled {
+  opacity: .76;
+}
+
+.tgh-side-panel {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-rows: 36px minmax(0, 1fr) 28px;
+  align-items: stretch;
+  gap: 0;
+  background: linear-gradient(180deg, rgba(12, 35, 80, .98), rgba(5, 17, 45, .99));
+}
+
+.tgh-side-panel-head {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  border-bottom: 1px solid rgba(90, 132, 221, .25);
+  color: #dfe8fb;
+  background:
+    linear-gradient(90deg, rgba(8, 27, 68, .96) 0 36px, rgba(24, 56, 121, .98) 36px 100%);
+}
+
+.tgh-side-panel-head > span {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-right: 1px solid rgba(92, 133, 218, .18);
+  color: #91a9da;
+}
+
+.tgh-side-panel-head svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tgh-side-panel-head strong {
+  overflow: hidden;
+  padding-left: 8px;
+  color: #e8eefc;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .015em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tgh-side-panel-head b {
+  margin-right: 7px;
+  padding: 3px 4px;
+  border-radius: 50%;
+  color: #0c1732;
+  background: #ffd21a;
+  font-size: 5px;
+  font-weight: 950;
+  letter-spacing: -.03em;
+}
+
+.tgh-goal-list {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+}
+
+.tgh-goal-row {
+  min-height: 0;
+  padding: 3px 7px 3px 6px;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid rgba(76, 116, 201, .16);
+  color: #cbd8f2;
+  background: rgba(13, 35, 78, .48);
+}
+
+.tgh-goal-row:nth-child(even) {
+  background: rgba(8, 25, 60, .52);
+}
+
+.tgh-goal-row i {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(104, 145, 231, .33);
+  border-radius: 50%;
+  color: #dfe8fc;
+  background: linear-gradient(145deg, #284e98, #0b204f);
+  font-size: 6px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.tgh-goal-row span {
+  overflow: hidden;
+  color: #c9d6ef;
+  font-size: 7px;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tgh-goal-row b {
+  color: #e9effc;
+  font-size: 7px;
+  font-weight: 850;
+}
+
+.tgh-side-panel-controls {
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(80, 120, 207, .22);
+  color: #91a6cf;
+  background: rgba(5, 18, 47, .9);
+}
+
+.tgh-side-panel-controls span {
+  min-width: 14px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.tgh-grid {
+  height: 100%;
+  align-self: stretch;
+}
+
+@media (max-height: 800px) {
+  .tgh-profile {
+    min-height: 69px;
+    padding-block: 7px;
+  }
+
+  .tgh-profile-avatar {
+    height: 38px;
+  }
+
+  .tgh-nav-item {
+    min-height: 34px;
+  }
+
+  .tgh-side-panel {
+    min-height: 0;
+    grid-template-rows: 32px minmax(0, 1fr) 24px;
+    padding: 0;
+  }
+
+  .tgh-goal-row i {
+    width: 21px;
+    height: 21px;
+  }
+}
