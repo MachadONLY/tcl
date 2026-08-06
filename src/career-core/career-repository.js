@@ -108,6 +108,9 @@ export const CareerRepository = Object.freeze({
   },
 
   async remove(saveId = "primary") {
+    if (globalThis.__touchlineFormationDraft?.saveId === saveId) {
+      delete globalThis.__touchlineFormationDraft;
+    }
     try {
       localStorage.removeItem(fallbackKey(saveId));
     } catch {}
