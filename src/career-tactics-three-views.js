@@ -100,6 +100,25 @@ function viewNavigation() {
   </nav>`;
 }
 
+function navigationHost(root) {
+  if (activeView === 'roles') return root.querySelector('.tl-responsibilities-head');
+  return root.querySelector('.tl-side-rail') || root.querySelector('.tl-command-bar');
+}
+
+function placeNavigation(root) {
+  const host = navigationHost(root);
+  if (!host) return null;
+  let navigation = root.querySelector('[data-tactics-view-nav]');
+  if (!navigation) {
+    host.insertAdjacentHTML(activeView === 'roles' ? 'beforeend' : 'afterbegin', viewNavigation());
+    navigation = host.querySelector('[data-tactics-view-nav]');
+  } else if (navigation.parentElement !== host) {
+    if (activeView === 'roles') host.append(navigation);
+    else host.prepend(navigation);
+  }
+  return navigation;
+}
+
 function syncNavigation(root) {
   root.querySelectorAll('[data-tactics-view-button]').forEach(button => {
     const active = button.dataset.tacticsViewButton === activeView;
@@ -140,8 +159,8 @@ function rolesPanel(career) {
   const starters = career.lineup.map(id => PLAYER_BY_ID.get(id)).filter(Boolean);
   return `<section class="tl-responsibilities-view" data-responsibilities-view>
     <header class="tl-responsibilities-head">
-      <div><span>Responsabilidades da equipe</span><h2>Funções e bolas paradas</h2><p>Defina a hierarquia do vestiário e quem assume cada momento decisivo.</p></div>
-      <div><i></i><span>Salvo automaticamente</span></div>
+      <div class="tl-responsibilities-copy"><span>Responsabilidades da equipe</span><h2>Funções e bolas paradas</h2><p>Defina a hierarquia do vestiário e quem assume cada momento decisivo.</p></div>
+      <div class="tl-responsibilities-save"><i></i><span>Salvo automaticamente</span></div>
     </header>
     <div class="tl-responsibilities-layout">
       <div class="tl-responsibility-grid">${RESPONSIBILITIES.map(item => responsibilityCard(career, item)).join('')}</div>
@@ -201,8 +220,10 @@ function renderResponsibilities(root, career, force = false) {
   if (existing && !force) return;
   existing?.remove();
   const commandBar = root.querySelector('.tl-command-bar');
-  if (!commandBar) return;
+  if (!commandBar || !career) return;
   commandBar.insertAdjacentHTML('afterend', rolesPanel(career));
+  placeNavigation(root);
+  syncNavigation(root);
   bindViewEvents(root);
 }
 
@@ -214,20 +235,11 @@ async function enhance() {
   currentRoot = root;
   root.dataset.tacticsView = activeView;
 
-  const commandBar = root.querySelector('.tl-command-bar');
-  if (!commandBar) return;
-  let navigation = commandBar.querySelector('[data-tactics-view-nav]');
-  if (!navigation) {
-    const shapeSwitch = commandBar.querySelector('.tl-shape-switch');
-    if (shapeSwitch) shapeSwitch.insertAdjacentHTML('beforebegin', viewNavigation());
-    else commandBar.querySelector('.tl-command-title')?.insertAdjacentHTML('afterend', viewNavigation());
-    navigation = commandBar.querySelector('[data-tactics-view-nav]');
-  }
-  syncNavigation(root);
-  bindViewEvents(root);
-
   if (activeView !== 'roles') {
     renderResponsibilities(root, latestCareer);
+    placeNavigation(root);
+    syncNavigation(root);
+    bindViewEvents(root);
     return;
   }
 
