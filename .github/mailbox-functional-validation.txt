@@ -1,0 +1,5 @@
+Touchline mailbox functional validation
+- persistent inbox source shared by home and full view
+- actionable player, medical and transfer messages
+- injury and medical-clearance lifecycle
+- branch-head CI validation
