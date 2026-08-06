@@ -2,4 +2,7 @@ Touchline mailbox functional validation
 - persistent inbox source shared by home and full view
 - actionable player, medical and transfer messages
 - injury and medical-clearance lifecycle
+- active, unread, read and resolved visual states
+- persistent message deletion and inline confirmation
+- restrained blue game UI with partial DOM updates
 - branch-head CI validation
