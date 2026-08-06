@@ -1,8 +1,8 @@
 import './career-league-hub.css';
-import { PLAYER_BY_ID, normalizeCareer } from './career-core/career-core.js';
+import { normalizeCareer } from './career-core/career-core.js';
 import { CLUB_BY_CODE } from './career-core/season-2026-27-live.js';
 import { CareerRepository, legacyClubSelection } from './career-core/career-repository.js';
-import { leagueLeaders, standingsRows } from './career-core/league-hub-data.js';
+import { leagueLeaders, leagueProgress, standingsRows } from './career-core/league-hub-data.js';
 
 const PLAYER_MANIFEST_URL = '/assets/players/2026-27/manifest.json';
 const PLAYER_FALLBACK_URL = '/assets/players/player-placeholder.svg';
@@ -61,12 +61,17 @@ function nextFixtureMarkup(row) {
   </span>`;
 }
 
+function progressMarkup(career) {
+  const progress = leagueProgress(career);
+  return `<span>${progress.clubPlayed}<b>/ ${progress.clubTotal} jogos do clube</b></span>`;
+}
+
 function tableMarkup(career) {
   const rows = standingsRows(career);
   return `<section class="cp-panel cp-league-board cp-league-table-panel" data-league-view-panel="table">
     <header class="cp-league-board-heading">
       <div><small>CLASSIFICAÇÃO GERAL</small><h2>Premier League 2026/27</h2></div>
-      <span>${Object.keys(career.results || {}).length}<b>/ 380 jogos</b></span>
+      ${progressMarkup(career)}
     </header>
     <div class="cp-league-table-scroll">
       <div class="cp-league-table">
@@ -140,7 +145,7 @@ function leadersMarkup(career, manifest, view) {
   return `<section class="cp-panel cp-league-board cp-league-leaders-panel" data-league-view-panel="${view}">
     <header class="cp-league-board-heading">
       <div><small>DESTAQUES INDIVIDUAIS</small><h2>${title}</h2><p>${description}</p></div>
-      <span>${Object.keys(career.results || {}).length}<b>jogos disputados</b></span>
+      ${progressMarkup(career)}
     </header>
     ${leaderRowsMarkup(career, manifest, metric)}
   </section>`;
@@ -191,6 +196,12 @@ function createTabs(page, title) {
   return tabs;
 }
 
+function updatePageProgress(title, career) {
+  const progress = leagueProgress(career);
+  const subtitle = title.querySelector('.cp-league-title-copy p');
+  if (subtitle) subtitle.textContent = `${progress.clubPlayed} de ${progress.clubTotal} partidas disputadas.`;
+}
+
 async function enhanceLeaguePage() {
   queued = false;
   const heading = [...document.querySelectorAll('.cp-title h1')]
@@ -215,6 +226,7 @@ async function enhanceLeaguePage() {
   if (!page.isConnected) return;
 
   const career = normalizeCareer(storedCareer, selectedClub);
+  updatePageProgress(title, career);
   contexts.set(page, { career, manifest, host, activeView: 'table' });
   renderView(page, 'table');
 }
