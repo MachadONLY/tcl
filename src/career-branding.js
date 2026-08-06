@@ -31,10 +31,22 @@ function decorateLeaguePage(root = document) {
   const heading = [...root.querySelectorAll(".cp-title h1")]
     .find(node => node.textContent?.trim() === "Premier League");
   const title = heading?.closest(".cp-title");
-  if (!title || title.querySelector("[data-premier-league-brand]")) return;
-  const mark = image(PL_PURPLE, "cp-pl-page-logo", "Premier League");
-  mark.dataset.premierLeagueBrand = "competition-page";
-  title.append(mark);
+  const copy = heading?.parentElement;
+  if (!title || !copy) return;
+
+  if (!title.classList.contains("cp-league-title")) title.classList.add("cp-league-title");
+  if (!copy.classList.contains("cp-league-title-copy")) copy.classList.add("cp-league-title-copy");
+
+  const eyebrow = [...copy.children]
+    .find(node => node.tagName === "SMALL" && node.textContent?.trim().toUpperCase() === "COMPETIÇÃO");
+  eyebrow?.remove();
+
+  let mark = title.querySelector('[data-premier-league-brand="competition-page"]');
+  if (!mark) {
+    mark = image(PL_PURPLE, "cp-pl-page-logo", "Premier League");
+    mark.dataset.premierLeagueBrand = "competition-page";
+  }
+  if (title.firstElementChild !== mark) title.prepend(mark);
 }
 
 function decorateMatchday(root = document) {
