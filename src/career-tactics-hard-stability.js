@@ -250,7 +250,9 @@ document.addEventListener('pointerdown', event => {
   if (!player || event.button !== 0) return;
   const root = player.closest('.tl-tactics-studio');
   if (!root) return;
-  event.preventDefault();
+
+  // Observe the same pointer sequence without cancelling it. The original
+  // tactics controller must remain free to call setPointerCapture and drag.
   pointerInteraction = {
     root,
     pointerId: event.pointerId,
