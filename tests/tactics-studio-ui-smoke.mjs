@@ -112,6 +112,7 @@ console.log(JSON.stringify({
   dragPreview: 'circular-player-avatar',
   dragRendering: 'request-animation-frame-gpu',
   formationMotion: 'live-flip-web-animations-gpu',
+  formationUpdate: 'same-dom-real-time',
   formationRemount: false,
   formationScreenClone: false,
   formationRemountFlash: false,
