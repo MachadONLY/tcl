@@ -38,41 +38,46 @@
 .cp-league-next{display:flex;align-items:center;justify-content:center;gap:6px}
 .cp-league-next img{width:30px;height:30px;object-fit:contain}
 .cp-league-next small{width:18px;height:18px;border-radius:6px;display:grid;place-items:center;background:#eef1ec;color:#72786f;font-size:8px;font-weight:850}
-.cp-league-leader-table{padding:4px 14px 14px;background:#fff}
-.cp-league-leader-head,.cp-league-leader-row{display:grid;grid-template-columns:52px minmax(280px,1.45fr) minmax(180px,.85fr) minmax(110px,.55fr) 74px 66px 92px;align-items:center;gap:12px}
-.cp-league-leader-head{min-height:42px;color:#8a9086;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
-.cp-league-leader-head>span:nth-child(n+4){text-align:center}
-.cp-league-leader-row{min-height:68px;border-top:1px solid #edf0eb;font-size:11px;transition:background .15s ease}
-.cp-league-leader-row:hover{background:#fafbf9}
-.cp-league-leader-rank{text-align:center;font-size:13px;font-variant-numeric:tabular-nums}
-.cp-league-leader-row.rank-1 .cp-league-leader-rank,.cp-league-leader-row.rank-2 .cp-league-leader-rank,.cp-league-leader-row.rank-3 .cp-league-leader-rank{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;margin:auto;background:#eef1ec}
-.cp-league-leader-row.rank-1 .cp-league-leader-rank{background:var(--ink);color:#fff}
-.cp-league-leader-player{min-width:0;display:flex;align-items:center;gap:13px}
-.cp-league-player-face{width:50px;height:50px;flex:0 0 50px;border-radius:14px;overflow:hidden;display:grid;place-items:end center;background:linear-gradient(145deg,#f2f4f0,#e5e9e2)}
+
+.cp-league-leader-list{padding:4px 14px 14px;background:#fff}
+.cp-league-leader-row-minimal{display:grid;grid-template-columns:48px minmax(0,1fr) 88px;align-items:center;gap:14px;min-height:76px;padding:8px 12px;border-top:1px solid #edf0eb;transition:background .16s ease}
+.cp-league-leader-row-minimal:first-child{border-top:0}
+.cp-league-leader-row-minimal:hover{background:#fafbf9}
+.cp-league-leader-rank{display:grid;place-items:center;width:30px;height:30px;margin:auto;border-radius:9px;color:#697067;font-size:12px;font-weight:850;font-variant-numeric:tabular-nums}
+.cp-league-leader-row-minimal.rank-1 .cp-league-leader-rank{background:var(--ink);color:#fff}
+.cp-league-leader-row-minimal.rank-2 .cp-league-leader-rank,.cp-league-leader-row-minimal.rank-3 .cp-league-leader-rank{background:#eef1ec;color:var(--ink)}
+.cp-league-leader-identity{display:flex;align-items:center;gap:14px;min-width:0}
+.cp-league-player-face-wrap{position:relative;width:52px;height:52px;flex:0 0 52px}
+.cp-league-player-face{width:52px;height:52px;border-radius:15px;overflow:hidden;display:grid;place-items:end center;background:linear-gradient(145deg,#f2f4f0,#e5e9e2)}
 .cp-league-player-face img{width:100%;height:100%;object-fit:contain;object-position:center bottom}
-.cp-league-leader-player>span:last-child{min-width:0}
-.cp-league-leader-player b,.cp-league-leader-player small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cp-league-leader-player b{font-size:12.5px;font-weight:780}
-.cp-league-leader-player small{margin-top:3px;color:#92988f;font-size:9px}
-.cp-league-leader-club{min-width:0;display:flex;align-items:center;gap:10px}
-.cp-league-leader-club img{width:28px;height:28px;flex:0 0 28px;object-fit:contain}
-.cp-league-leader-club b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px}
-.cp-league-leader-row>span:nth-child(n+4){text-align:center;color:#646a61}
-.cp-league-leader-value{text-align:center;font-size:19px;font-variant-numeric:tabular-nums}
+.cp-league-player-club-mark{position:absolute;right:-4px;bottom:-3px;width:21px;height:21px;border-radius:8px;display:grid;place-items:center;background:#fff;box-shadow:0 0 0 2px #fff,0 4px 10px rgba(23,25,21,.15)}
+.cp-league-player-club-mark img{width:17px;height:17px;object-fit:contain}
+.cp-league-leader-copy{display:grid;gap:5px;min-width:0}
+.cp-league-leader-copy b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-size:13px;font-weight:790;line-height:1.15}
+.cp-league-leader-copy small{display:flex;align-items:center;gap:7px;min-width:0;color:#8a9086;font-size:9.5px;font-weight:650}
+.cp-league-leader-copy small span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cp-league-leader-copy small i{color:#c3c7c1;font-style:normal}
+.cp-league-leader-total{display:grid;justify-items:end;align-content:center;gap:3px;color:var(--ink);font-variant-numeric:tabular-nums}
+.cp-league-leader-total>span{font-size:23px;font-weight:850;line-height:1}
+.cp-league-leader-total>small{color:#939990;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
 .cp-league-leaders-empty{min-height:420px;padding:60px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#fff}
 .cp-league-leaders-empty>span{width:72px;height:72px;border-radius:22px;display:grid;place-items:center;background:#f0f3ee;color:#9aa097;font-size:28px;font-weight:850}
 .cp-league-leaders-empty h3{margin:18px 0 7px;font-size:18px}
 .cp-league-leaders-empty p{max-width:420px;margin:0;color:var(--muted);font-size:11px;line-height:1.55}
+
 @media(max-width:1180px){
   .cp-league-page .cp-league-title{gap:13px}
   .cp-league-switch{width:100%;margin-left:0;order:3}
   .cp-league-switch button{flex:1}
   .cp-league-board>.cp-league-board-heading{padding:15px 17px}
   .cp-league-table{min-width:1080px}
-  .cp-league-leader-table{overflow-x:auto}
-  .cp-league-leader-head,.cp-league-leader-row{min-width:940px}
 }
 @media(max-width:760px){
   .cp-league-switch button{padding:0 10px}
   .cp-league-board-heading>span{font-size:16px}
+  .cp-league-leader-row-minimal{grid-template-columns:36px minmax(0,1fr) 70px;gap:10px;padding-inline:6px}
+  .cp-league-player-face-wrap,.cp-league-player-face{width:46px;height:46px}
+  .cp-league-player-face-wrap{flex-basis:46px}
+  .cp-league-leader-copy small{gap:5px}
+  .cp-league-leader-total>span{font-size:20px}
 }
