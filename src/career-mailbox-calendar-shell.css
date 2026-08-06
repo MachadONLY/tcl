@@ -151,12 +151,17 @@
   font-weight: 750;
 }
 
+/* Same horizontal content bounds used by .tcc-layout in Calendar. */
 #touchline-fifa-mailbox.fmb-calendar-shell .fmb-tabs {
-  margin-top: 0;
+  width: auto;
+  margin: 0 clamp(28px,4vw,64px);
 }
 
+/* Same lateral padding and bottom clearance used by Calendar. */
 #touchline-fifa-mailbox.fmb-calendar-shell .fmb-window {
-  height: calc(100vh - 156px);
+  width: auto;
+  height: calc(100vh - 154px);
+  margin: 16px clamp(28px,4vw,64px) 0;
 }
 
 @media (max-width: 900px) {
@@ -166,6 +171,11 @@
 
   #touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-topbar {
     padding-inline: 18px;
+  }
+
+  #touchline-fifa-mailbox.fmb-calendar-shell .fmb-tabs,
+  #touchline-fifa-mailbox.fmb-calendar-shell .fmb-window {
+    margin-inline: 18px;
   }
 
   #touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-club em {
