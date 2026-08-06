@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [source, css, hardSource, hardCss, index] = await Promise.all([
+const [source, css, hardSource, hardCss, cleanupSource, cleanupCss, index] = await Promise.all([
   readFile(new URL('../src/career-tactics-live-dom.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-live-dom.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-hard-stability.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-hard-stability.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-unselected-cleanup.js', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-unselected-cleanup.css', import.meta.url), 'utf8'),
   readFile(new URL('../index.html', import.meta.url), 'utf8')
 ]);
 
@@ -34,6 +36,17 @@ assert.ok(hardSource.includes('syncPitchPositions'), 'dragging within the pitch 
 assert.ok(hardSource.includes('syncSquadContainers'), 'cross-zone drops must reconcile only squad containers');
 assert.ok(hardSource.includes('data-hard-geometry'), 'lineup geometry must remain locked during interactions');
 
+assert.ok(cleanupSource.includes("const TITLE = 'Não relacionados'"), 'unselected squad must use the correct Portuguese title');
+assert.ok(cleanupSource.includes('header.replaceChildren(title)'), 'legacy title, count and positional filters must be removed from the DOM');
+assert.ok(cleanupSource.includes("root.querySelectorAll('[data-roster-filter]')"), 'positional filter buttons must be removed after every render');
+assert.ok(!cleanupSource.includes('Goleiros'), 'cleanup runtime must not recreate goalkeeper filters');
+assert.ok(!cleanupSource.includes('Defensores'), 'cleanup runtime must not recreate defender filters');
+assert.ok(!cleanupSource.includes('Meio-campo'), 'cleanup runtime must not recreate midfield filters');
+assert.ok(!cleanupSource.includes('Atacantes'), 'cleanup runtime must not recreate attacker filters');
+assert.ok(cleanupCss.includes('header > nav'), 'legacy positional navigation must be hidden before runtime cleanup');
+assert.ok(cleanupCss.includes('header small'), 'legacy unselected-player count must be hidden before runtime cleanup');
+assert.ok(cleanupCss.includes("content:'Não relacionados'"), 'correct title must be visible without a flash of legacy content');
+
 assert.ok(css.includes('[data-live-dom="true"]'), 'zero-flash state must disable entry animations after mount');
 assert.ok(css.includes('overflow-anchor:none!important'), 'browser scroll anchoring must be disabled in the tactics room');
 assert.ok(css.includes('contain:layout paint'), 'the pitch must be isolated from side-panel layout changes');
@@ -52,6 +65,8 @@ assert.ok(index.includes('career-tactics-live-dom.css'), 'live DOM CSS must load
 assert.ok(index.includes('career-tactics-live-dom.js'), 'live DOM runtime must load after the tactics controllers');
 assert.ok(index.includes('career-tactics-hard-stability.css'), 'hard stability CSS must be loaded');
 assert.ok(index.includes('career-tactics-hard-stability.js'), 'hard stability runtime must be loaded');
+assert.ok(index.includes('career-tactics-unselected-cleanup.css'), 'simplified unselected header CSS must be loaded');
+assert.ok(index.includes('career-tactics-unselected-cleanup.js'), 'simplified unselected header runtime must be loaded');
 
 console.log(JSON.stringify({
   ok: true,
@@ -68,6 +83,9 @@ console.log(JSON.stringify({
   pitchGeometry: 'captured-and-restored-same-frame',
   playerImagesReused: true,
   reserveCarousel: 'first-to-last-exact-reach',
+  unselectedHeader: 'Não relacionados',
+  unselectedCountVisible: false,
+  positionalFiltersVisible: false,
   scrollMethods: ['native-scrollbar', 'wheel', 'buttons', 'home-end'],
   trailingCarouselSpace: 72,
   cardWidth: 220
