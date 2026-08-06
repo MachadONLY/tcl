@@ -2,7 +2,7 @@ name: Touchline Quality
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/playable-career-v1]
   pull_request:
     branches: [main]
 
