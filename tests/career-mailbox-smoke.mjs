@@ -99,7 +99,7 @@ assert.ok(mailboxSource.includes('<h1>Mailbox</h1>'), 'Mailbox must use the comp
 assert.ok(mailboxSource.includes('data-mail-action'), 'Mailbox decisions must be interactive');
 assert.ok(mailboxSource.includes('renderMessageDetail'), 'Message selection must update only the detail pane');
 assert.ok(mailboxSource.includes('renderListAndDetail'), 'Filters must preserve the fixed mailbox shell');
-assert.ok(mailboxSource.includes('data-mail-confirming'), 'Destructive choices must use inline confirmation');
+assert.ok(mailboxSource.includes('dataset.mailConfirming'), 'Destructive choices must use inline confirmation');
 assert.equal(mailboxSource.includes('window.confirm'), false, 'Native confirmation dialogs must not interrupt the game UI');
 assert.ok(mailboxSource.includes('enhanceHomeMailbox'), 'Home mailbox preview must use the same persisted messages');
 assert.ok(mailboxSource.includes('window.__touchlineMailboxSelection'), 'Home message selection must open the same message in the full inbox');
