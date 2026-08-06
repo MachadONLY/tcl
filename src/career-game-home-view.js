@@ -1,3 +1,5 @@
+import "./career-game-home-refinement.css";
+
 const PLAYER_ASSETS = Object.freeze({
   bruno: "/assets/ui/home/bruno-fernandes-hero.webp",
   haaland: "/assets/players/2026-27/mci-737066.png",
@@ -69,9 +71,9 @@ export function renderGameHome() {
           <section class="tgh-profile">
             <div class="tgh-profile-avatar">${icon("user")}</div>
             <div class="tgh-profile-copy">
-              <small>MANAGER</small>
               <strong>GABRIEL MACHADO</strong>
-              <span>BRASIL · NÍVEL 1</span>
+              <span><b>NVL: 1</b></span>
+              <small>0 / 1.000 XP</small>
             </div>
           </section>
 
@@ -79,17 +81,25 @@ export function renderGameHome() {
             <div class="tgh-nav-item">${icon("home")}<span>INÍCIO</span></div>
             <div class="tgh-nav-item is-active">${icon("play")}<span>JOGAR</span></div>
             <div class="tgh-nav-item is-disabled">${icon("online")}<span>ONLINE</span></div>
-            <div class="tgh-nav-item is-disabled">${icon("calendar")}<span>TEMPORADA</span></div>
-            <div class="tgh-nav-item is-disabled">${icon("settings")}<span>CONFIGURAÇÕES</span></div>
+            <div class="tgh-nav-item is-disabled">${icon("calendar")}<span>DIA DE JOGO</span></div>
+            <div class="tgh-nav-item is-disabled">${icon("settings")}<span>PERSONALIZAR</span></div>
           </nav>
 
-          <section class="tgh-side-panel">
-            <span class="tgh-side-panel-icon">${icon("trophy")}</span>
-            <div>
-              <small>COMPETIÇÃO</small>
-              <strong>PREMIER LEAGUE</strong>
-              <span>20 CLUBES · 2026/27</span>
+          <section class="tgh-side-panel" aria-label="Últimos gols">
+            <header class="tgh-side-panel-head">
+              <span>${icon("trophy")}</span>
+              <strong>ÚLTIMOS GOLS</strong>
+              <b>NOVO</b>
+            </header>
+            <div class="tgh-goal-list">
+              <div class="tgh-goal-row"><i>BF</i><span>BRUNO FERNANDES</span><b>87'</b></div>
+              <div class="tgh-goal-row"><i>EH</i><span>ERLING HAALAND</span><b>74'</b></div>
+              <div class="tgh-goal-row"><i>BS</i><span>BUKAYO SAKA</span><b>61'</b></div>
+              <div class="tgh-goal-row"><i>CP</i><span>COLE PALMER</span><b>49'</b></div>
             </div>
+            <footer class="tgh-side-panel-controls" aria-hidden="true">
+              <span>×</span><span>◀</span><span>▶</span><span>Ⅱ</span><span>⌁</span>
+            </footer>
           </section>
         </aside>
 
