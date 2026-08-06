@@ -157,10 +157,10 @@
   margin: 0 clamp(28px,4vw,64px);
 }
 
-/* Same lateral padding and bottom clearance used by Calendar. */
+/* Same lateral padding as Calendar, with a little more bottom breathing room. */
 #touchline-fifa-mailbox.fmb-calendar-shell .fmb-window {
   width: auto;
-  height: calc(100vh - 154px);
+  height: calc(100vh - 170px);
   margin: 16px clamp(28px,4vw,64px) 0;
 }
 
