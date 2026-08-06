@@ -1,1 +1,31 @@
-.cp-top>div:first-child{position:relative;padding-left:42px;min-height:40px;display:flex;flex-direction:column;justify-content:center}.cp-pl-topbar-logo{position:absolute;left:0;top:50%;width:28px;height:28px;object-fit:contain;transform:translateY(-50%)}.cp-title{position:relative}.cp-pl-page-logo{width:42px;height:42px;object-fit:contain;margin-left:auto;margin-right:6px}.cp-match{position:relative}.cp-pl-match-logo{position:absolute;z-index:8;left:50%;top:16px;width:28px;height:28px;object-fit:contain;transform:translateX(-50%);pointer-events:none;opacity:.92}@media(max-width:1180px){.cp-top>div:first-child{padding-left:36px}.cp-pl-topbar-logo{width:24px;height:24px}.cp-pl-page-logo{width:36px;height:36px}}
+.cp-top>div:first-child{position:relative;padding-left:42px;min-height:40px;display:flex;flex-direction:column;justify-content:center}
+.cp-pl-topbar-logo{position:absolute;left:0;top:50%;width:28px;height:28px;object-fit:contain;transform:translateY(-50%)}
+.cp-title{position:relative}
+.cp-pl-page-logo{width:42px;height:42px;object-fit:contain;margin-left:auto;margin-right:6px}
+
+.cp-league-title{align-items:center;justify-content:flex-start;gap:16px;margin-bottom:20px}
+.cp-league-title .cp-pl-page-logo{width:54px;height:54px;flex:0 0 54px;margin:0;object-fit:contain}
+.cp-league-title-copy{min-width:0;display:grid;gap:4px}
+.cp-league-title-copy h1{margin:0;font-size:34px;line-height:1.02;letter-spacing:-.04em}
+.cp-league-title-copy p{margin:0;color:var(--muted);font-size:12px}
+
+.cp-league-grid .cp-table>header,
+.cp-league-grid .cp-table>div{min-height:39px;font-size:11px}
+.cp-league-grid .cp-table>header{font-size:8px}
+.cp-league-grid .cp-table>div>span{gap:11px;font-size:11.5px;font-weight:700}
+.cp-league-grid .cp-table img{width:28px;height:28px;flex:0 0 28px;object-fit:contain}
+.cp-league-grid .cp-table b,
+.cp-league-grid .cp-table strong{font-size:11px}
+
+.cp-match{position:relative}
+.cp-pl-match-logo{position:absolute;z-index:8;left:50%;top:16px;width:28px;height:28px;object-fit:contain;transform:translateX(-50%);pointer-events:none;opacity:.92}
+
+@media(max-width:1180px){
+  .cp-top>div:first-child{padding-left:36px}
+  .cp-pl-topbar-logo{width:24px;height:24px}
+  .cp-pl-page-logo{width:36px;height:36px}
+  .cp-league-title{gap:13px}
+  .cp-league-title .cp-pl-page-logo{width:48px;height:48px;flex-basis:48px}
+  .cp-league-title-copy h1{font-size:31px}
+  .cp-league-grid .cp-table img{width:26px;height:26px;flex-basis:26px}
+}
