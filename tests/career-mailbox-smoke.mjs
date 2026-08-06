@@ -84,10 +84,18 @@ const unreadMessage = careerInboxItems(career).find(message => !message.read);
 const unreadMessageId = unreadMessage.id;
 markMailboxRead(career, unreadMessageId, true);
 assert.equal(careerInboxItems(career).find(message => message.id === unreadMessageId).read, true);
+markMailboxRead(career, unreadMessageId, false);
+assert.equal(careerInboxItems(career).find(message => message.id === unreadMessageId).read, false, 'Messages must be markable as unread');
 assert.ok(careerInboxItems(career, { filter: 'transfer' }).every(message => message.category === 'transfer'));
 assert.ok(careerInboxItems(career, { query: 'proposta' }).every(message =>
   `${message.sender} ${message.subject} ${message.body}`.toLocaleLowerCase('pt-BR').includes('proposta')
 ));
+
+const archivedCandidate = careerInboxItems(career).find(message => !message.requiresResponse);
+const visibleBeforeArchive = careerInboxItems(career).length;
+archivedCandidate.archived = true;
+archivedCandidate.read = true;
+assert.equal(careerInboxItems(career).length, visibleBeforeArchive - 1, 'Archived messages must disappear from the active mailbox');
 
 const [mailboxSource, mailboxCss, indexSource] = await Promise.all([
   readFile(new URL('../src/career-mailbox.js', import.meta.url), 'utf8'),
@@ -98,15 +106,23 @@ assert.ok(mailboxSource.includes("const SCREEN_ID = 'touchline-career-mailbox'")
 assert.ok(mailboxSource.includes('<h1>Mailbox</h1>'), 'Mailbox must use the compact product title');
 assert.ok(mailboxSource.includes('tcm-bg'), 'Mailbox must use the club stadium background system');
 assert.ok(mailboxSource.includes('data-mail-action'), 'Mailbox decisions must be interactive');
+assert.ok(mailboxSource.includes('data-mail-toggle-read'), 'Selected messages must support read and unread control');
+assert.ok(mailboxSource.includes('data-mail-delete'), 'Selected messages must support deletion');
+assert.ok(mailboxSource.includes('message.archived = true'), 'Deleting a message must persist an archived state');
+assert.ok(mailboxSource.includes('message.status = \'dismissed\''), 'Deleting a task must clear its pending state');
 assert.ok(mailboxSource.includes('selectMessage'), 'Message selection must update only the selected detail');
 assert.ok(mailboxSource.includes('renderListAndDetail'), 'Filters must preserve the fixed mailbox shell');
 assert.ok(mailboxSource.includes('dataset.mailConfirming'), 'Destructive choices must use inline confirmation');
+assert.ok(mailboxSource.includes('<details class="tcm-filter-menu">'), 'Secondary categories must stay inside one compact filter menu');
 assert.equal(mailboxSource.includes('window.confirm'), false, 'Native confirmation dialogs must not interrupt the game UI');
 assert.ok(mailboxSource.includes('enhanceHomeMailbox'), 'Home mailbox preview must use the same persisted messages');
 assert.ok(mailboxSource.includes('window.__touchlineMailboxSelection'), 'Home message selection must open the same message in the full inbox');
-assert.ok(mailboxCss.includes('.tcm-screen'), 'Mailbox must have its own dark full-screen surface');
-assert.ok(mailboxCss.includes('inset: 0 0 0 236px'), 'Desktop mailbox must align with the career sidebar like Calendar');
-assert.ok(mailboxCss.includes('grid-template-columns: clamp(320px,29vw,430px) minmax(0,1fr)'), 'Desktop mailbox must preserve list and reading panes');
+assert.ok(mailboxCss.includes('--tcm-accent: #55c8ff'), 'Mailbox must use the restrained blue visual language');
+assert.ok(mailboxCss.includes('.tcm-message-row.is-read:not(.is-selected)'), 'Read messages must be visually quieter');
+assert.ok(mailboxCss.includes('.tcm-message-row.is-selected'), 'The active message must have an unmistakable selected state');
+assert.ok(mailboxCss.includes('linear-gradient(90deg, rgba(25, 132, 187, .6)'), 'The selected message must use a clear blue highlight');
+assert.ok(mailboxCss.includes('font-size: clamp(25px, 2.3vw, 32px)'), 'Message titles must remain contained at desktop sizes');
+assert.ok(mailboxCss.includes('grid-template-columns: clamp(330px, 28vw, 410px) minmax(0, 1fr)'), 'Desktop mailbox must preserve list and reading panes');
 assert.ok(mailboxCss.includes('@keyframes tcm-detail-in'), 'Detail changes must use a short contained transition');
 assert.ok(mailboxCss.includes('prefers-reduced-motion'), 'Mailbox motion must respect reduced-motion preferences');
 assert.ok(indexSource.includes('/src/career-mailbox.js'), 'Mailbox enhancer must load in the game runtime');
@@ -119,7 +135,10 @@ console.log(JSON.stringify({
   transferAccepted: true,
   injuryCreated: true,
   medicalClearanceCreated: true,
-  calendarVisualLanguage: true,
+  activeReadUnreadResolvedStates: true,
+  persistentDelete: true,
+  secondaryFiltersCollapsed: true,
+  blueVisualLanguage: true,
   partialDomUpdates: true,
   nativeDialogRemoved: true,
   reducedMotionSupported: true,
