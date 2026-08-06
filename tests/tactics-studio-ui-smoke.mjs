@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [source, css, dragCss, dragSource, threeViews, threeViewsCss, index] = await Promise.all([
+const [source, css, dragCss, dragSource, threeViews, threeViewsCss, refinementCss, index] = await Promise.all([
   readFile(new URL('../src/career-tactics-studio.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-studio.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-drag-polish.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-drag-polish.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-three-views.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-three-views.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-layout-refinement.css', import.meta.url), 'utf8'),
   readFile(new URL('../index.html', import.meta.url), 'utf8')
 ]);
 
@@ -47,6 +48,8 @@ assert.ok(threeViews.includes("let activeView = 'lineup'"), 'lineup must be the 
 assert.ok(threeViews.includes("id: 'lineup'"), 'lineup view must exist');
 assert.ok(threeViews.includes("id: 'tactics'"), 'game model view must exist');
 assert.ok(threeViews.includes("id: 'roles'"), 'roles view must exist');
+assert.ok(threeViews.includes('navigationHost'), 'view navigation must have a dedicated layout host');
+assert.ok(threeViews.includes("root.querySelector('.tl-side-rail')"), 'view navigation must dock in the right rail');
 assert.ok(threeViews.includes('Capitão'), 'captain responsibility must exist');
 assert.ok(threeViews.includes('Pênaltis'), 'penalty responsibility must exist');
 assert.ok(threeViews.includes('Faltas diretas'), 'direct free-kick responsibility must exist');
@@ -59,9 +62,16 @@ assert.ok(threeViewsCss.includes('[data-tactics-view="tactics"]'), 'tactics-spec
 assert.ok(threeViewsCss.includes('[data-tactics-view="roles"]'), 'roles-specific layout must be styled');
 assert.ok(threeViewsCss.includes('.tl-responsibilities-view'), 'responsibilities screen must be styled');
 assert.ok(threeViewsCss.includes('prefers-reduced-motion'), 'three-view transitions must respect reduced motion');
+assert.ok(refinementCss.includes('::-webkit-scrollbar-button'), 'native scrollbar arrow buttons must be suppressed');
+assert.ok(refinementCss.includes('scrollbar-width:thin'), 'horizontal roster scrolling must remain available');
+assert.ok(refinementCss.includes('.tl-side-rail>.tl-primary-view-switch'), 'view switch must sit above the bench rail');
+assert.ok(refinementCss.includes('[data-tactics-view="lineup"] .tl-command-bar'), 'lineup must remove the old full-width command strip');
+assert.ok(refinementCss.includes('grid-template-columns:minmax(700px,1fr)'), 'lineup field must receive the dominant left column');
+assert.ok(refinementCss.includes('height:clamp(132px,16vh,158px)'), 'unselected squad strip must stay compact to increase pitch height');
 assert.ok(index.includes('career-tactics-drag-polish.css'), 'polished drag CSS must be loaded');
 assert.ok(index.includes('career-tactics-drag-polish.js'), 'polished drag runtime must be loaded');
 assert.ok(index.includes('career-tactics-three-views.css'), 'three-view CSS must be loaded');
+assert.ok(index.includes('career-tactics-layout-refinement.css'), 'final tactics layout refinement must be loaded');
 assert.ok(index.includes('career-tactics-three-views.js'), 'three-view runtime must be loaded');
 
 console.log(JSON.stringify({
@@ -69,6 +79,10 @@ console.log(JSON.stringify({
   interface: 'three-view-premium-tactics-room',
   views: ['lineup', 'tactics', 'roles'],
   defaultView: 'lineup',
+  viewDock: 'above-bench-right-rail',
+  fieldPriority: true,
+  nativeScrollbarArrows: false,
+  horizontalRosterScroll: true,
   responsibilities: 7,
   dragPreview: 'circular-player-avatar',
   dragRendering: 'request-animation-frame-gpu',
