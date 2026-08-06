@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [source, css, dragCss, dragSource, threeViews, threeViewsCss, refinementCss, formationSource, formationCss, index] = await Promise.all([
+const [source, css, dragCss, dragSource, threeViews, threeViewsCss, refinementCss, formationManager, formationCss, index] = await Promise.all([
   readFile(new URL('../src/career-tactics-studio.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-studio.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-drag-polish.css', import.meta.url), 'utf8'),
@@ -70,27 +70,28 @@ assert.ok(refinementCss.includes('.tl-side-rail>.tl-primary-view-switch'), 'view
 assert.ok(refinementCss.includes('[data-tactics-view="lineup"] .tl-command-bar'), 'lineup must remove the old full-width command strip');
 assert.ok(refinementCss.includes('grid-template-columns:minmax(700px,1fr)'), 'lineup field must receive the dominant left column');
 assert.ok(refinementCss.includes('height:clamp(132px,16vh,158px)'), 'unselected squad strip must stay compact to increase pitch height');
-assert.equal((formationSource.match(/^  '[0-9-]+': \[/gm) || []).length, 15, 'fifteen complete formation slot maps must exist');
-assert.ok(formationSource.includes("'4-3-2-1'"), 'Christmas tree formation must exist');
-assert.ok(formationSource.includes("'4-2-2-2'"), 'box midfield formation must exist');
-assert.ok(formationSource.includes("'4-1-2-1-2'"), 'narrow diamond formation must exist');
-assert.ok(formationSource.includes("'3-1-4-2'"), 'three-at-the-back midfield formation must exist');
-assert.ok(formationSource.includes("'5-4-1'"), 'five-at-the-back formation must exist');
-assert.ok(formationSource.includes('resetLayoutsForFormation'), 'formation changes must create complete phase layouts');
-assert.ok(formationSource.includes('data-field-formation-control'), 'the pitch header must expose a formation selector');
-assert.ok(formationSource.includes("scrollBy({ left: event.deltaY, behavior: 'smooth' })"), 'mouse wheel must navigate the complete horizontal roster');
-assert.ok(formationCss.includes('.tl-roster-grid:after'), 'the last roster card must have trailing scroll space');
-assert.ok(formationCss.includes('flex:0 0 205px!important'), 'roster cards must never shrink out of the scroll range');
-assert.ok(formationCss.includes('[data-tactics-view="tactics"] .tl-pitch-stage'), 'game model must explicitly target the duplicate pitch');
-assert.ok(formationCss.includes('display:none!important'), 'the duplicate game-model pitch must be removed');
-assert.ok(formationCss.includes('grid-template-columns:repeat(2,minmax(0,1fr))'), 'team instructions must use the expanded two-column area');
+
+assert.ok(formationManager.includes("document.addEventListener('change', interceptFormationChange, true)"), 'formation select must be intercepted before legacy rerender handlers');
+assert.ok(formationManager.includes('event.stopImmediatePropagation()'), 'legacy formation rerender must be blocked');
+assert.ok(formationManager.includes('getBoundingClientRect()'), 'formation motion must measure first and last player positions');
+assert.ok(formationManager.includes('node.animate(['), 'formation motion must use the Web Animations API');
+assert.ok(formationManager.includes('translate3d('), 'formation motion must stay on the GPU transform path');
+assert.ok(formationManager.includes("easing: 'cubic-bezier(.16, 1, .3, 1)'"), 'formation motion must use controlled premium easing');
+assert.ok(formationManager.includes('createVisualSnapshot'), 'internal state remount must be visually masked');
+assert.ok(formationManager.includes('waitForFreshStudio'), 'visual mask must remain until the fresh studio is ready');
+assert.ok(!formationManager.includes('location.reload()'), 'formation changes must never reload the page');
+assert.ok(formationCss.includes('.tl-formation-snapshot'), 'seamless remount snapshot must be styled');
+assert.ok(formationCss.includes('.tl-formation-measuring .tl-player-node'), 'measurement phase must disable competing transitions');
+assert.ok(formationCss.includes('[data-formation-moving]'), 'moving players must receive explicit motion styling');
+assert.ok(formationCss.includes('prefers-reduced-motion'), 'formation motion must respect reduced-motion preferences');
+
 assert.ok(index.includes('career-tactics-drag-polish.css'), 'polished drag CSS must be loaded');
 assert.ok(index.includes('career-tactics-drag-polish.js'), 'polished drag runtime must be loaded');
 assert.ok(index.includes('career-tactics-three-views.css'), 'three-view CSS must be loaded');
 assert.ok(index.includes('career-tactics-layout-refinement.css'), 'final tactics layout refinement must be loaded');
+assert.ok(index.includes('career-tactics-formation-manager.css'), 'formation manager CSS must be loaded');
+assert.ok(index.includes('career-tactics-formation-manager.js'), 'formation manager runtime must be loaded');
 assert.ok(index.includes('career-tactics-three-views.js'), 'three-view runtime must be loaded');
-assert.ok(index.includes('career-tactics-formation-manager.css'), 'complete formation CSS must be loaded');
-assert.ok(index.includes('career-tactics-formation-manager.js'), 'complete formation runtime must be loaded');
 
 console.log(JSON.stringify({
   ok: true,
@@ -100,14 +101,13 @@ console.log(JSON.stringify({
   viewDock: 'above-bench-right-rail',
   fieldPriority: true,
   nativeScrollbarArrows: false,
-  horizontalRosterScroll: 'complete-with-wheel-and-touch',
-  formations: 15,
-  fieldFormationSelect: true,
-  gameModelPitch: false,
-  gameModelInstructionColumns: 2,
+  horizontalRosterScroll: true,
   responsibilities: 7,
   dragPreview: 'circular-player-avatar',
   dragRendering: 'request-animation-frame-gpu',
+  formationMotion: 'flip-web-animations-gpu',
+  formationRemountFlash: false,
+  formationPageReload: false,
   dropZones: ['pitch', 'bench', 'reserves'],
   benchLimit: 9,
   squadFilters: true,
