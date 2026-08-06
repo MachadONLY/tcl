@@ -97,28 +97,35 @@ function emptyLeadersMarkup(metric) {
   </div>`;
 }
 
+function penaltyLabel(value) {
+  const total = Number(value || 0);
+  return `${total} ${total === 1 ? 'gol' : 'gols'} de pênalti`;
+}
+
 function leaderRowsMarkup(career, manifest, metric) {
   const rows = leagueLeaders(career, metric, 30);
   if (!rows.length) return emptyLeadersMarkup(metric);
-  const valueLabel = metric === 'goals' ? 'Gols' : 'Assist.';
+  const goalsView = metric === 'goals';
 
-  return `<div class="cp-league-leader-table">
-    <div class="cp-league-leader-head">
-      <span>#</span><span>Jogador</span><span>Clube</span><span>Posição</span><span>Jogos</span><span>OVR</span><span>${valueLabel}</span>
-    </div>
+  return `<div class="cp-league-leader-list cp-league-leader-list-${metric}">
     ${rows.map((row, index) => {
       const player = row.player;
       const club = CLUB_BY_CODE.get(player.clubCode);
       const portrait = playerPortrait(manifest, player);
-      return `<div class="cp-league-leader-row rank-${index + 1}">
+      const clubName = club?.shortName || club?.name || player.clubCode;
+      return `<div class="cp-league-leader-row-minimal rank-${index + 1}">
         <strong class="cp-league-leader-rank">${index + 1}</strong>
-        <span class="cp-league-leader-player">
-          <span class="cp-league-player-face"><img src="${esc(portrait)}" alt="${esc(player.name)}" data-league-player-face /></span>
-          <span><b>${esc(player.name)}</b><small>${metric === 'goals' ? `${row.assists} assistências` : `${row.goals} gols`}</small></span>
+        <span class="cp-league-leader-identity">
+          <span class="cp-league-player-face-wrap">
+            <span class="cp-league-player-face"><img src="${esc(portrait)}" alt="${esc(player.name)}" data-league-player-face /></span>
+            <span class="cp-league-player-club-mark"><img src="${crestPath(player.clubCode)}" alt="${esc(clubName)}" /></span>
+          </span>
+          <span class="cp-league-leader-copy">
+            <b>${esc(player.name)}</b>
+            <small><span>${esc(clubName)}</span>${goalsView ? `<i aria-hidden="true">•</i><span>${penaltyLabel(row.penaltyGoals)}</span>` : ''}</small>
+          </span>
         </span>
-        <span class="cp-league-leader-club"><img src="${crestPath(player.clubCode)}" alt="" /><b>${esc(club?.shortName || club?.name || player.clubCode)}</b></span>
-        <span>${esc(player.position || player.group)}</span><span>${row.appearances}</span><span>${player.rating}</span>
-        <strong class="cp-league-leader-value">${row[metric]}</strong>
+        <strong class="cp-league-leader-total"><span>${row[metric]}</span><small>${goalsView ? 'gols' : 'assistências'}</small></strong>
       </div>`;
     }).join('')}
   </div>`;
