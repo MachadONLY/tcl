@@ -1,3 +1,5 @@
+import { reconcileCareerData } from './result-integrity.js';
+
 const DB_NAME = "touchline-career";
 const DB_VERSION = 1;
 const STORE_NAME = "saves";
@@ -82,18 +84,23 @@ function mergeFormationDraft(save) {
   };
 }
 
+function reconcileStoredCareer(save) {
+  if (!save) return save;
+  return reconcileCareerData(structuredClone(save));
+}
+
 export const CareerRepository = Object.freeze({
   async load(saveId = "primary") {
     try {
       const saved = await withStore("readonly", store => store.get(saveId));
-      return mergeFormationDraft(saved || readFallback(saveId));
+      return reconcileStoredCareer(mergeFormationDraft(saved || readFallback(saveId)));
     } catch {
-      return mergeFormationDraft(readFallback(saveId));
+      return reconcileStoredCareer(mergeFormationDraft(readFallback(saveId)));
     }
   },
 
   async save(save) {
-    const merged = mergeFormationDraft(consumeCareerDraft(save));
+    const merged = reconcileStoredCareer(mergeFormationDraft(consumeCareerDraft(save)));
     const snapshot = structuredClone({
       ...merged,
       updatedAt: new Date().toISOString()
