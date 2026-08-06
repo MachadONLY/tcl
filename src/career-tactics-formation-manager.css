@@ -37,7 +37,7 @@
   font-weight:850;
   outline:none;
   cursor:pointer;
-  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;
+  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,opacity .18s ease;
 }
 
 .tl-field-formation-control select:hover{
@@ -48,6 +48,47 @@
 .tl-field-formation-control select:focus{
   border-color:var(--tl-accent);
   box-shadow:0 0 0 3px color-mix(in srgb,var(--tl-accent) 14%,transparent);
+}
+
+/* Formation changes keep the pitch mounted. Only the existing player nodes move. */
+.tl-tactics-studio.tl-formation-measuring .tl-player-node{
+  transition:none!important;
+}
+
+.tl-tactics-studio.tl-formation-busy [data-tl-formation],
+.tl-tactics-studio.tl-formation-busy [data-field-formation-control] select{
+  pointer-events:none;
+  opacity:.72;
+}
+
+.tl-tactics-studio .tl-player-node[data-formation-moving]{
+  z-index:8;
+  will-change:transform,filter;
+}
+
+.tl-tactics-studio .tl-player-node[data-formation-moving] .tl-player-photo{
+  box-shadow:
+    0 11px 27px rgba(0,0,0,.48),
+    0 0 0 4px rgba(6,16,11,.42),
+    0 0 22px color-mix(in srgb,var(--tl-accent) 22%,transparent);
+}
+
+/* A short-lived visual copy masks the internal state remount after motion completes. */
+.tl-formation-snapshot{
+  position:fixed!important;
+  right:auto!important;
+  bottom:auto!important;
+  z-index:99980!important;
+  margin:0!important;
+  overflow:hidden!important;
+  pointer-events:none!important;
+  contain:layout paint style;
+  transform:translateZ(0);
+  backface-visibility:hidden;
+}
+
+.tl-formation-snapshot *{
+  pointer-events:none!important;
 }
 
 /* Every unselected player stays reachable. The final spacer prevents the last card from being clipped. */
@@ -184,5 +225,13 @@
 @media (prefers-reduced-motion:reduce){
   .tl-field-formation-control select{
     transition:none!important;
+  }
+
+  .tl-tactics-studio .tl-player-node[data-formation-moving]{
+    will-change:auto;
+  }
+
+  .tl-formation-snapshot{
+    display:none!important;
   }
 }
