@@ -21,11 +21,11 @@ assert.ok(source.includes('data-drop-zone="reserves"'), 'unselected squad must b
 assert.ok(source.includes('data-drag-player'), 'players must expose pointer drag handles');
 assert.ok(source.includes('movePlayerOnPitch'), 'free pitch positioning must exist');
 assert.ok(source.includes('swapPlayers'), 'dropping over another player must swap them');
-assert.ok(source.includes('tl-command-bar'), 'game command bar must render');
+assert.ok(source.includes('tl-command-bar'), 'game command bar must render for legacy state synchronization');
 assert.ok(source.includes('tl-war-room'), 'tactics war room must render');
 assert.ok(source.includes('tl-bench-dock'), 'bench must stay next to the pitch');
-assert.ok(source.includes('Elenco disponível'), 'full remaining squad must be visible');
-assert.ok(source.includes('GROUP_FILTERS'), 'squad filters must exist');
+assert.ok(source.includes('Elenco disponível'), 'full remaining squad must remain in the source model');
+assert.ok(source.includes('GROUP_FILTERS'), 'legacy squad filters must remain harmlessly compatible');
 assert.ok(source.includes('tacticalLayouts'), 'manual layouts must persist by plan and phase');
 assert.ok(source.includes('BENCH_LIMIT = 9'), 'match bench must support nine players');
 assert.ok(source.includes('touchline-tactics-mode'), 'tactics route must receive its own game-shell styling');
@@ -47,12 +47,18 @@ assert.ok(dragCss.includes('translate3d(var(--tl-drag-x'), 'drag preview must us
 assert.ok(dragCss.includes('tlDragAvatarPickup'), 'drag pickup must have a subtle avatar animation');
 assert.ok(dragSource.includes('requestAnimationFrame'), 'drag movement must be synchronized to animation frames');
 assert.ok(dragSource.includes('const easing = 0.58'), 'drag movement must use controlled smoothing');
+
 assert.ok(threeViews.includes("let activeView = 'lineup'"), 'lineup must be the default tactics view');
 assert.ok(threeViews.includes("id: 'lineup'"), 'lineup view must exist');
 assert.ok(threeViews.includes("id: 'tactics'"), 'game model view must exist');
 assert.ok(threeViews.includes("id: 'roles'"), 'roles view must exist');
-assert.ok(threeViews.includes('navigationHost'), 'view navigation must have a dedicated layout host');
-assert.ok(threeViews.includes("root.querySelector('.tl-side-rail')"), 'view navigation must dock in the right rail');
+assert.ok(threeViews.includes('function navigationHost(root)'), 'view navigation must have one explicit host');
+assert.ok(threeViews.includes("return root.querySelector('.tl-side-rail')"), 'all views must keep navigation in the right rail');
+assert.ok(!threeViews.includes("activeView === 'roles' ? root.querySelector('.tl-responsibilities-head')"), 'roles must never move navigation into another header');
+assert.ok(threeViews.includes('host.firstElementChild !== navigation'), 'navigation must remain the first fixed rail element');
+assert.ok(threeViews.includes('tl-responsibilities-main'), 'roles content must render inside the shared main column');
+assert.ok(threeViews.includes('data-role-lineup-panel'), 'roles summary must render inside the shared right column');
+assert.ok(threeViews.includes('tl-model-context'), 'model view must keep formation inside its own main panel');
 assert.ok(threeViews.includes('Capitão'), 'captain responsibility must exist');
 assert.ok(threeViews.includes('Pênaltis'), 'penalty responsibility must exist');
 assert.ok(threeViews.includes('Faltas diretas'), 'direct free-kick responsibility must exist');
@@ -60,17 +66,22 @@ assert.ok(threeViews.includes('Faltas indiretas'), 'indirect free-kick responsib
 assert.ok(threeViews.includes('Escanteio esquerdo'), 'left-corner responsibility must exist');
 assert.ok(threeViews.includes('Escanteio direito'), 'right-corner responsibility must exist');
 assert.ok(threeViews.includes('localStorage.setItem'), 'responsibilities must persist for the club');
-assert.ok(threeViewsCss.includes('[data-tactics-view="lineup"]'), 'lineup-specific layout must be styled');
-assert.ok(threeViewsCss.includes('[data-tactics-view="tactics"]'), 'tactics-specific layout must be styled');
-assert.ok(threeViewsCss.includes('[data-tactics-view="roles"]'), 'roles-specific layout must be styled');
-assert.ok(threeViewsCss.includes('.tl-responsibilities-view'), 'responsibilities screen must be styled');
+
+assert.ok(threeViewsCss.includes('.tl-primary-view-switch'), 'fixed view switch must be styled');
+assert.ok(threeViewsCss.includes('.tl-responsibilities-main'), 'responsibilities main panel must be styled');
+assert.ok(threeViewsCss.includes('.tl-role-lineup-panel'), 'roles side panel must be styled');
+assert.ok(threeViewsCss.includes('.tl-model-context'), 'model context must be styled');
 assert.ok(threeViewsCss.includes('prefers-reduced-motion'), 'three-view transitions must respect reduced motion');
 assert.ok(refinementCss.includes('::-webkit-scrollbar-button'), 'native scrollbar arrow buttons must be suppressed');
 assert.ok(refinementCss.includes('scrollbar-width:thin'), 'horizontal roster scrolling must remain available');
-assert.ok(refinementCss.includes('.tl-side-rail>.tl-primary-view-switch'), 'view switch must sit above the bench rail');
-assert.ok(refinementCss.includes('[data-tactics-view="lineup"] .tl-command-bar'), 'lineup must remove the old full-width command strip');
-assert.ok(refinementCss.includes('grid-template-columns:minmax(700px,1fr)'), 'lineup field must receive the dominant left column');
-assert.ok(refinementCss.includes('height:clamp(132px,16vh,158px)'), 'unselected squad strip must stay compact to increase pitch height');
+assert.ok(refinementCss.includes('.tl-tactics-studio[data-tactics-view] .tl-command-bar'), 'every view must suppress the shifting top command bar');
+assert.ok(refinementCss.includes('grid-template-columns:minmax(700px,1fr) minmax(292px,324px)!important'), 'all views must share the same two-column geometry');
+assert.ok(refinementCss.includes('grid-template-rows:68px minmax(0,1fr)!important'), 'right rail navigation row must stay fixed');
+assert.ok(refinementCss.includes('.tl-tactics-studio[data-tactics-view] .tl-side-rail>.tl-primary-view-switch'), 'view switch must stay in one exact rail slot');
+assert.ok(refinementCss.includes('.tl-tactics-studio[data-tactics-view] .tl-squad-manager'), 'lower squad strip must keep the same slot in every view');
+assert.ok(refinementCss.includes('[data-tactics-view="tactics"] .tl-tactic-controls'), 'model instructions must replace the field in the main column');
+assert.ok(refinementCss.includes('[data-tactics-view="roles"] .tl-responsibilities-main'), 'responsibilities must replace the field in the main column');
+assert.ok(refinementCss.includes('height:clamp(132px,16vh,158px)'), 'unselected squad strip must stay compact and fixed');
 
 assert.ok(formationManager.includes("document.addEventListener('change', interceptFormationChange, true)"), 'formation select must be intercepted before legacy rerender handlers');
 assert.ok(formationManager.includes('event.stopImmediatePropagation()'), 'legacy formation rerender must be blocked');
@@ -101,13 +112,16 @@ assert.ok(index.includes('career-tactics-three-views.js'), 'three-view runtime m
 
 console.log(JSON.stringify({
   ok: true,
-  interface: 'three-view-premium-tactics-room',
+  interface: 'three-view-fixed-tactics-shell',
   views: ['lineup', 'tactics', 'roles'],
   defaultView: 'lineup',
-  viewDock: 'above-bench-right-rail',
-  fieldPriority: true,
-  nativeScrollbarArrows: false,
-  horizontalRosterScroll: true,
+  viewDock: 'permanent-right-rail-top',
+  stableColumns: true,
+  stableNavigationCoordinates: true,
+  shiftingCommandBar: false,
+  lowerSquadStripPersistent: true,
+  modelReplacesField: true,
+  rolesReplaceField: true,
   responsibilities: 7,
   dragPreview: 'circular-player-avatar',
   dragRendering: 'request-animation-frame-gpu',
@@ -120,7 +134,6 @@ console.log(JSON.stringify({
   formationPersistence: 'background-authoritative-draft',
   dropZones: ['pitch', 'bench', 'reserves'],
   benchLimit: 9,
-  squadFilters: true,
   freePositioning: true,
   swapOnPlayerDrop: true,
   shirtNumberOverlay: false,
