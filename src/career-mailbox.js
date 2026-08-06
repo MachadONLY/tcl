@@ -44,7 +44,10 @@ const ICONS = Object.freeze({
   check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6.5 12.5 3.3 3.3 7.7-8"/></svg>',
   calendar: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.25h14v11H5z"/><path d="M8 4.75v4M16 4.75v4M5 10.25h14"/></svg>',
   arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6.5 5.5 5.5-5.5 5.5"/></svg>',
-  alert: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.25v6.25M12 17.25h.01"/></svg>'
+  alert: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.25v6.25M12 17.25h.01"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.25 8.25v10h9.5v-10M5.75 6.25h12.5M9.25 6.25V4.75h5.5v1.5M9.75 10.25v5.5M14.25 10.25v5.5"/></svg>',
+  unread: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.75 7h14.5v10H4.75z"/><path d="m5.25 7.75 6.75 4.75 6.75-4.75"/><circle cx="18" cy="6" r="2.25"/></svg>',
+  filter: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M8 12h8M10.5 17h3"/></svg>'
 });
 
 function icon(name) {
@@ -129,29 +132,24 @@ function senderAvatar(message, compact = false) {
   </span>`;
 }
 
-function statusMarkup(message) {
-  if (message?.status === 'expired') return '<span class="tcm-status is-muted">EXPIRED</span>';
-  if (message?.response) return `<span class="tcm-status is-resolved">${esc(message.response.label)}</span>`;
-  if (message?.requiresResponse) return '<span class="tcm-status is-required">TASK</span>';
-  if (message?.priority === 'urgent') return '<span class="tcm-status is-required">URGENT</span>';
-  if (!message?.read) return '<span class="tcm-status is-new">NEW</span>';
+function compactStateMarkup(message) {
+  if (message?.requiresResponse) return `<span class="tcm-row-state is-task">${icon('alert')}<span>TASK</span></span>`;
+  if (message?.response) return `<span class="tcm-row-state is-resolved">${icon('check')}<span>DONE</span></span>`;
+  if (!message?.read) return '<span class="tcm-row-state is-new">NEW</span>';
   return '';
 }
 
-function categoryMarkup(message) {
-  const meta = metaFor(message);
-  return `<span class="tcm-category ${meta.tone}"><i>${esc(meta.icon)}</i>${esc(meta.label)}</span>`;
-}
-
 function listItemMarkup(message) {
-  return `<button type="button" class="tcm-message-row ${message.id === selectedMessageId ? 'is-selected' : ''} ${!message.read ? 'is-unread' : ''} ${message.requiresResponse ? 'is-required' : ''}" data-mail-id="${esc(message.id)}" aria-pressed="${message.id === selectedMessageId}">
-    <span class="tcm-message-signal"></span>
+  const selected = message.id === selectedMessageId;
+  const meta = metaFor(message);
+  return `<button type="button" class="tcm-message-row ${selected ? 'is-selected' : ''} ${!message.read ? 'is-unread' : 'is-read'} ${message.requiresResponse ? 'is-required' : ''} ${message.response ? 'is-resolved' : ''}" data-mail-id="${esc(message.id)}" aria-pressed="${selected}">
+    <span class="tcm-message-signal" aria-hidden="true"></span>
     ${senderAvatar(message, true)}
     <span class="tcm-message-copy">
       <span class="tcm-message-meta"><b>${esc(message.sender)}</b><time>${esc(formatMessageDate(message))}</time></span>
       <strong>${esc(message.subject)}</strong>
       <p>${esc(message.preview || message.body)}</p>
-      <span class="tcm-message-tags">${categoryMarkup(message)}${statusMarkup(message)}</span>
+      <span class="tcm-message-foot"><small>${esc(meta.label)}</small>${compactStateMarkup(message)}</span>
     </span>
     <span class="tcm-message-arrow">${icon('arrow')}</span>
   </button>`;
@@ -171,7 +169,7 @@ function playerContextMarkup(message) {
     <dl>
       <div><dt>OVR</dt><dd>${player.rating}</dd></div>
       <div><dt>FIT</dt><dd>${Math.round(Number(state.condition || 100))}%</dd></div>
-      <div><dt>MORAL</dt><dd>${Math.round(Number(state.morale || 75))}</dd></div>
+      <div><dt>MORALE</dt><dd>${Math.round(Number(state.morale || 75))}</dd></div>
       <div><dt>STATUS</dt><dd>${esc(status)}</dd></div>
     </dl>
   </section>`;
@@ -191,15 +189,15 @@ function contextMarkup(message) {
     specific = `<section class="tcm-fact-panel medical"><small>MEDICAL REPORT</small><strong>${esc(data.type || 'Under assessment')}</strong><dl><div><dt>RECOVERY</dt><dd>${Number(data.days || 0)} days</dd></div><div><dt>RETURN</dt><dd>${esc(String(data.returnDate || '').split('-').reverse().join('/'))}</dd></div></dl></section>`;
   } else if (message?.kind === 'medical-load') {
     const players = (data.playerIds || []).map(id => PLAYER_BY_ID.get(id)).filter(Boolean);
-    specific = `<section class="tcm-fact-panel medical"><small>WORKLOAD ALERT</small><strong>${players.length} PLAYERS</strong><p>Reduce intensity and prioritise recovery before the next fixture.</p></section>`;
+    specific = `<section class="tcm-fact-panel medical"><small>WORKLOAD</small><strong>${players.length} PLAYERS</strong><p>Recovery is recommended before the next fixture.</p></section>`;
   } else if (message?.kind === 'player-minutes') {
-    specific = `<section class="tcm-fact-panel player"><small>PLAYER REQUEST</small><strong>${esc(String(data.deadline || '').split('-').reverse().join('/'))}</strong><p>Your response can alter morale, confidence and the player's future expectations.</p></section>`;
+    specific = `<section class="tcm-fact-panel player"><small>RESPONSE DUE</small><strong>${esc(String(data.deadline || '').split('-').reverse().join('/'))}</strong><p>Your choice affects morale and future expectations.</p></section>`;
   } else if (message?.kind === 'opponent-report') {
     const opponent = clubFor(data.opponentCode);
-    specific = `<section class="tcm-fact-panel staff"><small>NEXT OPPONENT</small><strong>${esc(opponent?.shortName || opponent?.name || 'Opponent')}</strong><p>The report is ready for the tactical preparation of the next match.</p></section>`;
+    specific = `<section class="tcm-fact-panel staff"><small>NEXT OPPONENT</small><strong>${esc(opponent?.shortName || opponent?.name || 'Opponent')}</strong><p>Open tactics to prepare the match plan.</p></section>`;
   }
   if (!player && !specific) {
-    specific = `<section class="tcm-fact-panel neutral"><small>${esc(metaFor(message).label)}</small><strong>${esc(formatMessageDate(message))}</strong><p>This message has been added to the permanent club record.</p></section>`;
+    specific = `<section class="tcm-fact-panel neutral"><small>${esc(metaFor(message).label)}</small><strong>${esc(formatMessageDate(message))}</strong><p>Saved in the permanent club record.</p></section>`;
   }
   return `<aside class="tcm-context">${player}${specific}</aside>`;
 }
@@ -207,15 +205,32 @@ function contextMarkup(message) {
 function actionMarkup(message) {
   if (message?.response) return `<div class="tcm-decision-record">${icon('check')}<span><small>DECISION RECORDED</small><b>${esc(message.response.label)}</b></span></div>`;
   if (!message?.actions?.length) return `<div class="tcm-decision-record is-neutral">${icon('check')}<span><small>INFORMATION</small><b>No action required</b></span></div>`;
-  return `<div class="tcm-actions">${message.actions.map(action => `<button type="button" class="${esc(action.kind || 'secondary')}" data-mail-action="${esc(action.id)}" data-mail-message="${esc(message.id)}" data-mail-label="${esc(action.label)}"><span>${esc(action.label)}</span></button>`).join('')}</div>`;
+  return `<div class="tcm-actions">${message.actions.map(action => `<button type="button" class="${esc(action.kind || 'secondary')}" data-mail-action="${esc(action.id)}" data-mail-message="${esc(message.id)}" data-mail-label="${esc(action.label)}"><span data-button-label>${esc(action.label)}</span></button>`).join('')}</div>`;
+}
+
+function detailToolbarMarkup(message) {
+  return `<div class="tcm-detail-tools">
+    <button type="button" data-mail-toggle-read="${esc(message.id)}" title="Mark as unread">${icon('unread')}<span>Unread</span></button>
+    <button type="button" class="danger" data-mail-delete="${esc(message.id)}" data-mail-label="Delete" data-mail-confirm-label="Confirm delete" title="Delete message">${icon('trash')}<span data-button-label>Delete</span></button>
+  </div>`;
 }
 
 function detailMarkup(message) {
-  if (!message) return `<div class="tcm-empty-detail"><span>${icon('mail')}</span><small>MAILBOX</small><h2>No message selected</h2><p>Choose a message from the list or change the active filter.</p></div>`;
+  if (!message) return `<div class="tcm-empty-detail"><span>${icon('mail')}</span><small>MAILBOX</small><h2>No message selected</h2><p>Choose a message or change the active filter.</p></div>`;
   const meta = metaFor(message);
   return `<article class="tcm-detail ${message.requiresResponse ? 'is-required' : ''}" data-mail-detail-article>
-    <header class="tcm-detail-head"><div class="tcm-sender">${senderAvatar(message)}<span><small>${esc(message.senderRole || meta.label)}</small><b>${esc(message.sender)}</b></span></div><div class="tcm-detail-meta">${categoryMarkup(message)}<time>${esc(fullMessageDate(message))}</time></div></header>
-    <div class="tcm-detail-scroll"><div class="tcm-detail-grid"><section class="tcm-letter">${message.requiresResponse ? `<div class="tcm-task-label">${icon('alert')}<span>DECISION REQUIRED</span></div>` : ''}<div class="tcm-subject-row">${statusMarkup(message)}<h2>${esc(message.subject)}</h2></div><p>${esc(message.body)}</p></section>${contextMarkup(message)}</div></div>
+    <header class="tcm-detail-head">
+      <div class="tcm-sender">${senderAvatar(message)}<span><small>${esc(message.senderRole || meta.label)}</small><b>${esc(message.sender)}</b></span></div>
+      <div class="tcm-detail-head-right"><div class="tcm-detail-meta"><span>${esc(meta.label)}</span><time>${esc(fullMessageDate(message))}</time></div>${detailToolbarMarkup(message)}</div>
+    </header>
+    <div class="tcm-detail-scroll"><div class="tcm-detail-grid">
+      <section class="tcm-letter">
+        <div class="tcm-kicker ${message.requiresResponse ? 'is-task' : ''}">${message.requiresResponse ? `${icon('alert')}<span>DECISION REQUIRED</span>` : `<span>${esc(meta.label)}</span>`}</div>
+        <h2>${esc(message.subject)}</h2>
+        <p>${esc(message.body)}</p>
+      </section>
+      ${contextMarkup(message)}
+    </div></div>
     <footer>${actionMarkup(message)}</footer>
   </article>`;
 }
@@ -232,28 +247,41 @@ function currentView() {
 }
 
 function listPaneMarkup(items, summary) {
-  return `<aside class="tcm-list-pane"><div class="tcm-tools"><label>${icon('search')}<input type="search" value="${esc(searchQuery)}" placeholder="Search messages" data-mail-search autocomplete="off"></label><div class="tcm-primary-filters">${filterButton('all', 'ALL', summary.total)}${filterButton('required', 'TASKS', summary.required)}${filterButton('unread', 'UNREAD', summary.unread)}</div><div class="tcm-category-filters">${filterButton('medical', 'MEDICAL')}${filterButton('transfer', 'TRANSFER')}${filterButton('player', 'SQUAD')}${filterButton('staff', 'STAFF')}</div></div><div class="tcm-message-list" data-mail-list>${items.map(listItemMarkup).join('') || '<div class="tcm-list-empty">No messages in this view.</div>'}</div></aside>`;
+  return `<aside class="tcm-list-pane">
+    <div class="tcm-tools">
+      <label>${icon('search')}<input type="search" value="${esc(searchQuery)}" placeholder="Search" data-mail-search autocomplete="off"></label>
+      <div class="tcm-filter-line">
+        <div class="tcm-primary-filters">${filterButton('all', 'ALL', summary.total)}${filterButton('required', 'TASKS', summary.required)}${filterButton('unread', 'UNREAD', summary.unread)}</div>
+        <details class="tcm-filter-menu"><summary>${icon('filter')}<span>FILTER</span></summary><div>${filterButton('medical', 'MEDICAL')}${filterButton('transfer', 'TRANSFER')}${filterButton('player', 'SQUAD')}${filterButton('staff', 'STAFF')}</div></details>
+      </div>
+    </div>
+    <div class="tcm-message-list" data-mail-list>${items.map(listItemMarkup).join('') || '<div class="tcm-list-empty">No messages in this view.</div>'}</div>
+  </aside>`;
 }
 
 function topbarMarkup(summary) {
   const club = clubFor(career.clubCode);
-  return `<header class="tcm-topbar"><button class="tcm-club" type="button" data-mail-back aria-label="Back to career hub">${crestMarkup(club.code, 'tcm-club-crest')}<span><b>${esc((club.shortName || club.name).toUpperCase())}</b><em>${boardSegments()}</em></span></button><nav class="tcm-utilities" aria-label="Career utilities"><button type="button" data-mail-calendar>${icon('calendar')}<span>Calendar</span></button><button type="button" data-mail-read-all>${icon('check')}<span>Read all</span></button><button type="button" class="is-active" aria-current="page">${icon('mail')}<span>Mailbox</span>${summary.unread ? `<b data-mail-top-unread>${summary.unread}</b>` : '<b data-mail-top-unread hidden>0</b>'}</button><i>R</i></nav></header>`;
+  return `<header class="tcm-topbar">
+    <button class="tcm-club" type="button" data-mail-back aria-label="Back to career hub">${crestMarkup(club.code, 'tcm-club-crest')}<span><b>${esc((club.shortName || club.name).toUpperCase())}</b><em>${boardSegments()}</em></span></button>
+    <nav class="tcm-utilities" aria-label="Career utilities">
+      <button type="button" data-mail-calendar>${icon('calendar')}<span>Calendar</span></button>
+      <button type="button" data-mail-read-all>${icon('check')}<span>Read all</span></button>
+      <button type="button" class="is-active" aria-current="page">${icon('mail')}<span>Mailbox</span>${summary.unread ? `<b data-mail-top-unread>${summary.unread}</b>` : '<b data-mail-top-unread hidden>0</b>'}</button><i>R</i>
+    </nav>
+  </header>`;
 }
 
 function renderScreen() {
   if (!career || location.hash !== '#inbox') return;
-  const club = clubFor(career.clubCode);
   const { items, selected, summary } = currentView();
   const existing = document.getElementById(SCREEN_ID);
   const screen = existing || document.createElement('section');
   screen.id = SCREEN_ID;
   screen.className = 'tcm-screen';
-  screen.style.setProperty('--tcm-club', club?.accent || '#67A633');
-  screen.style.setProperty('--tcm-club-dark', club?.accentDark || '#263323');
   screen.innerHTML = `<div class="tcm-bg" aria-hidden="true"></div><div class="tcm-shade" aria-hidden="true"></div>${topbarMarkup(summary)}<div class="tcm-layout"><div class="tcm-page-head"><div><small>SEASON ${esc(career.seasonLabel || '2026/27')}</small><h1>Mailbox</h1></div><div class="tcm-summary"><span><b data-mail-summary-unread>${summary.unread}</b><small>UNREAD</small></span><span class="required"><b data-mail-summary-required>${summary.required}</b><small>TASKS</small></span></div></div>${listPaneMarkup(items, summary)}<main class="tcm-detail-pane" data-mail-detail>${detailMarkup(selected)}</main></div><footer class="tcm-footer"><button type="button" data-mail-back><kbd>B</kbd> Back</button><button type="button" data-mail-focus-search><kbd>F</kbd> Search</button><button type="button" data-mail-previous><kbd>↑</kbd> Previous</button><button type="button" data-mail-next><kbd>↓</kbd> Next</button><button type="button" data-mail-calendar><kbd>X</kbd> Calendar</button></footer><div class="tcm-toast" role="status" aria-live="polite"></div>`;
   if (!existing) document.body.append(screen);
   installImageFallbacks(screen);
-  applyClubBackground(screen, club.code);
+  applyClubBackground(screen, career.clubCode);
 }
 
 function installImageFallbacks(root) {
@@ -278,13 +306,22 @@ function applyClubBackground(root, code) {
   probe.src = webp;
 }
 
+function showToast(message) {
+  const toast = document.querySelector(`#${SCREEN_ID} .tcm-toast`);
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.add('is-visible');
+  clearTimeout(showToast.timeout);
+  showToast.timeout = setTimeout(() => toast.classList.remove('is-visible'), 1700);
+}
+
 function animateDetail() {
   const article = document.querySelector(`#${SCREEN_ID} [data-mail-detail-article]`);
   if (!article) return;
   article.classList.remove('is-entering');
   void article.offsetWidth;
   article.classList.add('is-entering');
-  window.setTimeout(() => article.classList.remove('is-entering'), 240);
+  window.setTimeout(() => article.classList.remove('is-entering'), 210);
 }
 
 function updateSummary() {
@@ -313,7 +350,11 @@ function renderListAndDetail({ preserveScroll = true, animate = true } = {}) {
   const { items, selected } = currentView();
   list.innerHTML = items.map(listItemMarkup).join('') || '<div class="tcm-list-empty">No messages in this view.</div>';
   detail.innerHTML = detailMarkup(selected);
-  screen.querySelectorAll('[data-mail-filter]').forEach(button => { const active = button.dataset.mailFilter === activeFilter; button.classList.toggle('is-active', active); button.setAttribute('aria-pressed', String(active)); });
+  screen.querySelectorAll('[data-mail-filter]').forEach(button => {
+    const active = button.dataset.mailFilter === activeFilter;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
   installImageFallbacks(list);
   installImageFallbacks(detail);
   if (preserveScroll) requestAnimationFrame(() => { list.scrollTop = previousScroll; });
@@ -331,7 +372,12 @@ function selectMessage(messageId, { animate = true } = {}) {
   window.__touchlineMailboxSelection = selectedMessageId;
   markMailboxRead(career, selectedMessageId, true);
   const screen = document.getElementById(SCREEN_ID);
-  screen?.querySelectorAll('[data-mail-id]').forEach(row => { const selected = row.dataset.mailId === selectedMessageId; row.classList.toggle('is-selected', selected); if (selected) row.classList.remove('is-unread'); row.setAttribute('aria-pressed', String(selected)); });
+  screen?.querySelectorAll('[data-mail-id]').forEach(row => {
+    const selected = row.dataset.mailId === selectedMessageId;
+    row.classList.toggle('is-selected', selected);
+    if (selected) { row.classList.remove('is-unread'); row.classList.add('is-read'); }
+    row.setAttribute('aria-pressed', String(selected));
+  });
   const detail = screen?.querySelector('[data-mail-detail]');
   const selected = careerInboxItems(career, { filter: activeFilter, query: searchQuery }).find(message => message.id === selectedMessageId) || null;
   if (detail) { detail.innerHTML = detailMarkup(selected); installImageFallbacks(detail); if (animate) animateDetail(); }
@@ -351,15 +397,16 @@ function stepMessage(step) {
 
 function armConfirmation(button) {
   if (button.dataset.mailConfirming === 'true') return true;
-  const confirmationLabel = button.dataset.mailAction === 'accept-offer' ? 'CONFIRM ACCEPT' : 'CONFIRM REJECT';
+  const actionId = button.dataset.mailAction;
+  const confirmationLabel = button.dataset.mailConfirmLabel || (actionId === 'accept-offer' ? 'Confirm accept' : actionId === 'reject-offer' ? 'Confirm reject' : 'Confirm');
   button.dataset.mailConfirming = 'true';
   button.classList.add('is-confirming');
-  button.querySelector('span')?.replaceChildren(confirmationLabel);
+  button.querySelector('[data-button-label]')?.replaceChildren(confirmationLabel);
   window.setTimeout(() => {
     if (!button.isConnected || button.dataset.mailConfirming !== 'true') return;
     button.dataset.mailConfirming = 'false';
     button.classList.remove('is-confirming');
-    button.querySelector('span')?.replaceChildren(button.dataset.mailLabel || 'Confirm');
+    button.querySelector('[data-button-label]')?.replaceChildren(button.dataset.mailLabel || 'Confirm');
   }, CONFIRM_RESET_MS);
   return false;
 }
@@ -377,6 +424,36 @@ async function executeAction(button) {
   if (result.route) location.hash = result.route;
 }
 
+async function toggleSelectedRead(messageId) {
+  const message = career?.inbox?.find(item => item.id === messageId);
+  if (!message) return;
+  markMailboxRead(career, messageId, !message.read);
+  await saveCareer();
+  renderListAndDetail({ preserveScroll: true, animate: false });
+  showToast(message.read ? 'Marked as read' : 'Marked as unread');
+}
+
+async function deleteMessage(button) {
+  const message = career?.inbox?.find(item => item.id === button.dataset.mailDelete);
+  if (!message) return;
+  if (!armConfirmation(button)) return;
+  message.archived = true;
+  message.read = true;
+  message.requiresResponse = false;
+  message.status = 'dismissed';
+  message.response = { actionId: 'dismissed', label: 'Message deleted', date: career.currentDate };
+  const offer = career.transferOffers?.[message.data?.offerId];
+  if (offer && ['received', 'countered'].includes(offer.status)) {
+    offer.status = 'ignored';
+    offer.resolvedAt = career.currentDate;
+  }
+  selectedMessageId = null;
+  delete window.__touchlineMailboxSelection;
+  await saveCareer();
+  renderListAndDetail({ preserveScroll: true, animate: true });
+  showToast('Message deleted');
+}
+
 function removeMailbox() { document.getElementById(SCREEN_ID)?.remove(); }
 
 async function scheduleMount() {
@@ -392,7 +469,12 @@ async function scheduleMount() {
     career = normalizeCareer(stored, selectedClub);
     manifest = playerManifest;
     reconcileMailbox(career);
-    if (activeClubCode !== career.clubCode) { activeClubCode = career.clubCode; activeFilter = 'all'; searchQuery = ''; selectedMessageId = null; }
+    if (activeClubCode !== career.clubCode) {
+      activeClubCode = career.clubCode;
+      activeFilter = 'all';
+      searchQuery = '';
+      selectedMessageId = null;
+    }
     selectedMessageId = window.__touchlineMailboxSelection || selectedMessageId || careerInboxItems(career)[0]?.id || null;
     if (selectedMessageId) markMailboxRead(career, selectedMessageId, true);
     await saveCareer();
@@ -427,7 +509,10 @@ async function enhanceHomeMailbox() {
   if (title) title.innerHTML = summary.required ? `<b>${summary.required}</b> tasks · ${summary.unread} unread` : `<b>${summary.unread}</b> unread · ${summary.total} messages`;
   const unreadTab = slide?.querySelector('.tl-inbox-tabs span');
   if (unreadTab) unreadTab.innerHTML = `Unread <i>${summary.unread}</i>`;
-  list.querySelectorAll('[data-home-mail-id]').forEach(button => button.addEventListener('click', () => { window.__touchlineMailboxSelection = button.dataset.homeMailId; location.hash = '#inbox'; }));
+  list.querySelectorAll('[data-home-mail-id]').forEach(button => button.addEventListener('click', () => {
+    window.__touchlineMailboxSelection = button.dataset.homeMailId;
+    location.hash = '#inbox';
+  }));
   installImageFallbacks(list);
   career = previousCareer;
 }
@@ -442,12 +527,26 @@ function onClick(event) {
   const screen = document.getElementById(SCREEN_ID);
   if (!screen) return;
   const filter = event.target.closest('[data-mail-filter]');
-  if (filter) { activeFilter = filter.dataset.mailFilter; selectedMessageId = null; renderListAndDetail({ preserveScroll: false, animate: false }); return; }
-  const row = event.target.closest('[data-mail-id]');
-  if (row) { selectMessage(row.dataset.mailId); return; }
+  if (filter) {
+    activeFilter = filter.dataset.mailFilter;
+    selectedMessageId = null;
+    filter.closest('details')?.removeAttribute('open');
+    renderListAndDetail({ preserveScroll: false, animate: false });
+    return;
+  }
   const action = event.target.closest('[data-mail-action]');
   if (action && !action.disabled) { void executeAction(action); return; }
-  if (event.target.closest('[data-mail-read-all]')) { (career.inbox || []).forEach(message => { message.read = true; }); void saveCareer().then(() => renderListAndDetail({ preserveScroll: true, animate: false })); return; }
+  const deleteButton = event.target.closest('[data-mail-delete]');
+  if (deleteButton) { void deleteMessage(deleteButton); return; }
+  const readButton = event.target.closest('[data-mail-toggle-read]');
+  if (readButton) { void toggleSelectedRead(readButton.dataset.mailToggleRead); return; }
+  const row = event.target.closest('[data-mail-id]');
+  if (row) { selectMessage(row.dataset.mailId); return; }
+  if (event.target.closest('[data-mail-read-all]')) {
+    (career.inbox || []).forEach(message => { message.read = true; });
+    void saveCareer().then(() => renderListAndDetail({ preserveScroll: true, animate: false }));
+    return;
+  }
   if (event.target.closest('[data-mail-calendar]')) { location.hash = '#calendar'; return; }
   if (event.target.closest('[data-mail-back]')) { location.hash = '#home'; return; }
   if (event.target.closest('[data-mail-focus-search]')) { screen.querySelector('[data-mail-search]')?.focus(); return; }
@@ -459,7 +558,10 @@ function onInput(event) {
   if (!event.target.matches(`#${SCREEN_ID} [data-mail-search]`)) return;
   searchQuery = event.target.value;
   window.clearTimeout(searchTimer);
-  searchTimer = window.setTimeout(() => { selectedMessageId = null; renderListAndDetail({ preserveScroll: false, animate: false }); }, SEARCH_DELAY_MS);
+  searchTimer = window.setTimeout(() => {
+    selectedMessageId = null;
+    renderListAndDetail({ preserveScroll: false, animate: false });
+  }, SEARCH_DELAY_MS);
 }
 
 function onKeydown(event) {
@@ -472,12 +574,16 @@ function onKeydown(event) {
   else if (key === 'f') { event.preventDefault(); document.querySelector(`#${SCREEN_ID} [data-mail-search]`)?.focus(); }
   else if (key === 'arrowup') { event.preventDefault(); stepMessage(-1); }
   else if (key === 'arrowdown') { event.preventDefault(); stepMessage(1); }
+  else if (key === 'u' && selectedMessageId) { event.preventDefault(); void toggleSelectedRead(selectedMessageId); }
   else if (key === 'x') { event.preventDefault(); location.hash = '#calendar'; }
 }
 
 function start() {
   const app = document.querySelector('#app');
-  if (app) new MutationObserver(() => { scheduleMount(); scheduleHomeEnhancement(); }).observe(app, { childList: true, subtree: true });
+  if (app) new MutationObserver(() => {
+    scheduleMount();
+    scheduleHomeEnhancement();
+  }).observe(app, { childList: true, subtree: true });
   window.addEventListener('hashchange', scheduleMount);
   document.addEventListener('click', onClick);
   document.addEventListener('input', onInput);
