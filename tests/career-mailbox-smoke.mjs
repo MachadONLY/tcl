@@ -25,13 +25,15 @@ assert.ok(careerInboxItems(career).some(message => message.kind === 'transfer-of
 assert.ok(careerInboxItems(career).some(message => message.kind === 'opponent-report'));
 
 const playerRequest = careerInboxItems(career).find(message => message.kind === 'player-minutes');
+const playerRequestId = playerRequest.id;
 const playerId = playerRequest.data.playerId;
 const moraleBefore = career.playerState[playerId].morale;
-respondToMailboxMessage(career, playerRequest.id, 'promise-minutes');
+respondToMailboxMessage(career, playerRequestId, 'promise-minutes');
+const resolvedPlayerRequest = careerInboxItems(career).find(message => message.id === playerRequestId);
 assert.equal(career.playerPromises[playerId].status, 'active');
 assert.ok(career.playerState[playerId].morale > moraleBefore);
-assert.equal(playerRequest.requiresResponse, false);
-assert.equal(playerRequest.status, 'resolved');
+assert.equal(resolvedPlayerRequest.requiresResponse, false);
+assert.equal(resolvedPlayerRequest.status, 'resolved');
 
 const medicalMessage = careerInboxItems(career).find(message => message.kind === 'medical-load');
 respondToMailboxMessage(career, medicalMessage.id, 'recovery-plan');
@@ -39,21 +41,25 @@ assert.equal(career.trainingFocus, 'Recuperação');
 assert.equal(career.medicalPlan.type, 'recovery');
 
 const transferMessage = careerInboxItems(career).find(message => message.kind === 'transfer-offer');
+const transferMessageId = transferMessage.id;
+const transferOfferId = transferMessage.data.offerId;
 const transferPlayerId = transferMessage.data.playerId;
-const originalOffer = career.transferOffers[transferMessage.data.offerId].amount;
-respondToMailboxMessage(career, transferMessage.id, 'negotiate-offer');
+const originalOffer = career.transferOffers[transferOfferId].amount;
+respondToMailboxMessage(career, transferMessageId, 'negotiate-offer');
 const counterMessage = careerInboxItems(career).find(message =>
-  message.kind === 'transfer-offer' && message.requiresResponse && message.data.offerId === transferMessage.data.offerId
+  message.kind === 'transfer-offer' && message.requiresResponse && message.data.offerId === transferOfferId
 );
 assert.ok(counterMessage, 'Negotiation must create a new final decision message');
 assert.ok(counterMessage.data.amount > originalOffer, 'Counter offer must improve the fee');
+const counterMessageId = counterMessage.id;
 const budgetBeforeSale = career.transferBudget;
-respondToMailboxMessage(career, counterMessage.id, 'accept-offer');
+respondToMailboxMessage(career, counterMessageId, 'accept-offer');
 assert.ok(career.transferBudget > budgetBeforeSale, 'Accepting an offer must increase the transfer budget');
-assert.equal(career.transferOffers[counterMessage.data.offerId].status, 'accepted');
+assert.equal(career.transferOffers[transferOfferId].status, 'accepted');
 assert.equal(career.playerState[transferPlayerId].departurePending, true);
 assert.ok(career.transferLedger.some(row => row.playerId === transferPlayerId));
 assert.equal(career.lineup.includes(transferPlayerId), false, 'A departing player must leave the selected XI');
+assert.equal(careerInboxItems(career).find(message => message.id === counterMessageId).status, 'resolved');
 
 const fixture = nextUserFixture(career);
 const result = simulateFixture(career, fixture);
@@ -75,8 +81,9 @@ assert.equal(career.playerState[injuryCandidate].unavailable, false);
 assert.ok(careerInboxItems(career).some(message => message.kind === 'medical-clearance' && message.data.playerId === injuryCandidate));
 
 const unreadMessage = careerInboxItems(career).find(message => !message.read);
-markMailboxRead(career, unreadMessage.id, true);
-assert.equal(unreadMessage.read, true);
+const unreadMessageId = unreadMessage.id;
+markMailboxRead(career, unreadMessageId, true);
+assert.equal(careerInboxItems(career).find(message => message.id === unreadMessageId).read, true);
 assert.ok(careerInboxItems(career, { filter: 'transfer' }).every(message => message.category === 'transfer'));
 assert.ok(careerInboxItems(career, { query: 'proposta' }).every(message =>
   `${message.sender} ${message.subject} ${message.body}`.toLocaleLowerCase('pt-BR').includes('proposta')
