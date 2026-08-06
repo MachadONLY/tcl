@@ -25,6 +25,7 @@ career.results = {
     events: [
       { type: 'goal', minute: 10, side: 'home', playerId: homeScorer, isPenalty: true },
       { type: 'goal', minute: 28, side: 'home', playerId: homeScorer, assistPlayerId: homeCreator },
+      { type: 'goal', minute: 45, side: 'home', playerId: awayScorer },
       { type: 'goal', minute: 67, side: 'away', playerId: awayScorer }
     ]
   },
@@ -41,8 +42,9 @@ career.playerStats = {
 
 reconcileCareerData(career);
 assert.equal(Object.keys(career.results).length, 1, 'Invalid fixtures must be removed from the canonical save');
-assert.equal(career.results[fixture.id].homeGoals, 2, 'Home score must be derived from goal events');
-assert.equal(career.results[fixture.id].awayGoals, 1, 'Away score must be derived from goal events');
+assert.equal(career.results[fixture.id].events.length, 3, 'A scorer assigned to the wrong team must be discarded');
+assert.equal(career.results[fixture.id].homeGoals, 2, 'Home score must be derived from valid goal events');
+assert.equal(career.results[fixture.id].awayGoals, 1, 'Away score must be derived from valid goal events');
 assert.equal(career.results[fixture.id].matchweek, fixture.matchweek, 'Fixture metadata must come from the official schedule');
 assert.equal(career.results[fixture.id].date, fixture.date, 'Fixture date must come from the official schedule');
 
@@ -107,5 +109,6 @@ console.log(JSON.stringify({
   scorerPenaltyGoals: scorers[0].penaltyGoals,
   assistLeader: assists[0].player.name,
   goalsReconciled: audit.goals,
-  assistsReconciled: audit.assists
+  assistsReconciled: audit.assists,
+  wrongTeamGoalRejected: true
 }, null, 2));
