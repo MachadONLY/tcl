@@ -352,7 +352,7 @@ export function reconcileMailbox(career) {
 export function careerInboxItems(career, { filter = 'all', limit = Infinity, query = '' } = {}) {
   reconcileMailbox(career);
   const normalizedQuery = String(query || '').trim().toLocaleLowerCase('pt-BR');
-  return career.inbox
+  const items = career.inbox
     .filter(message => !message.archived)
     .filter(message => filter === 'all' ||
       (filter === 'unread' && !message.read) ||
@@ -365,8 +365,8 @@ export function careerInboxItems(career, { filter = 'all', limit = Infinity, que
       Number(!right.read) - Number(!left.read) ||
       dateScore(right.date) - dateScore(left.date) ||
       (PRIORITY_SCORE[right.priority] || 0) - (PRIORITY_SCORE[left.priority] || 0)
-    )
-    .slice(0, Number.isFinite(limit) ? limit : undefined);
+    );
+  return Number.isFinite(limit) ? items.slice(0, limit) : items;
 }
 
 export function mailboxSummary(career) {
