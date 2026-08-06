@@ -1,25 +1,18 @@
 import { PLAYER_BY_ID, deriveTable } from './career-core.js';
 import { FIXTURES } from './season-2026-27-live.js';
+import { canonicalResults, playerStatsFromResults } from './result-integrity.js';
+
+function canonicalCareer(career) {
+  return { ...(career || {}), results: canonicalResults(career) };
+}
 
 function playedResults(career, clubCode) {
-  return Object.values(career?.results || {})
-    .filter(result => result?.home === clubCode || result?.away === clubCode)
+  return Object.values(canonicalResults(career))
+    .filter(result => result.home === clubCode || result.away === clubCode)
     .sort((left, right) =>
       String(left.date || '').localeCompare(String(right.date || '')) ||
       Number(left.matchweek || 0) - Number(right.matchweek || 0)
     );
-}
-
-function penaltyGoalsByPlayer(career) {
-  const totals = new Map();
-  for (const result of Object.values(career?.results || {})) {
-    for (const event of result?.events || []) {
-      const penalty = event?.isPenalty === true || event?.penalty === true || event?.goalType === 'penalty';
-      if (!penalty || !event.playerId) continue;
-      totals.set(event.playerId, (totals.get(event.playerId) || 0) + 1);
-    }
-  }
-  return totals;
 }
 
 export function clubForm(career, clubCode, limit = 5) {
@@ -27,15 +20,16 @@ export function clubForm(career, clubCode, limit = 5) {
     .slice(-Math.max(1, Number(limit) || 5))
     .map(result => {
       const home = result.home === clubCode;
-      const scored = home ? Number(result.homeGoals || 0) : Number(result.awayGoals || 0);
-      const conceded = home ? Number(result.awayGoals || 0) : Number(result.homeGoals || 0);
+      const scored = home ? result.homeGoals : result.awayGoals;
+      const conceded = home ? result.awayGoals : result.homeGoals;
       return scored > conceded ? 'W' : scored < conceded ? 'L' : 'D';
     });
 }
 
 export function nextClubFixture(career, clubCode) {
+  const results = canonicalResults(career);
   return FIXTURES.find(fixture =>
-    !career?.results?.[fixture.id] && (fixture.home === clubCode || fixture.away === clubCode)
+    !results[fixture.id] && (fixture.home === clubCode || fixture.away === clubCode)
   ) || null;
 }
 
@@ -43,18 +37,15 @@ export function leagueLeaders(career, metric = 'goals', limit = 30) {
   const primary = metric === 'assists' ? 'assists' : 'goals';
   const secondary = primary === 'goals' ? 'assists' : 'goals';
   const maximum = Math.max(1, Number(limit) || 30);
-  const derivedPenaltyGoals = penaltyGoalsByPlayer(career);
+  const statsByPlayer = playerStatsFromResults(career);
 
-  return Object.entries(career?.playerStats || {})
+  return Object.entries(statsByPlayer)
     .map(([id, stats = {}]) => ({
       player: PLAYER_BY_ID.get(id),
       appearances: Number(stats.appearances || 0),
       goals: Number(stats.goals || 0),
       assists: Number(stats.assists || 0),
-      penaltyGoals: Math.max(
-        Number(stats.penaltyGoals || 0),
-        Number(derivedPenaltyGoals.get(id) || 0)
-      )
+      penaltyGoals: Number(stats.penaltyGoals || 0)
     }))
     .filter(row => row.player && row[primary] > 0)
     .sort((left, right) =>
@@ -67,9 +58,25 @@ export function leagueLeaders(career, metric = 'goals', limit = 30) {
 }
 
 export function standingsRows(career) {
-  return deriveTable(career).map(row => ({
+  const canonical = canonicalCareer(career);
+  return deriveTable(canonical).map(row => ({
     ...row,
-    form: clubForm(career, row.code),
-    nextFixture: nextClubFixture(career, row.code)
+    form: clubForm(canonical, row.code),
+    nextFixture: nextClubFixture(canonical, row.code)
   }));
+}
+
+export function leagueProgress(career) {
+  const canonical = canonicalCareer(career);
+  const table = deriveTable(canonical);
+  const club = table.find(row => row.code === career?.clubCode);
+  const leagueMatches = Object.keys(canonical.results).length;
+  const tableMatchTotal = table.reduce((sum, row) => sum + row.played, 0) / 2;
+  return {
+    clubPlayed: Number(club?.played || 0),
+    clubTotal: 38,
+    leagueMatches,
+    leagueTotal: FIXTURES.length,
+    tableMatchTotal
+  };
 }
