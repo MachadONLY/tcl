@@ -13,14 +13,16 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout without marketplace actions
+      - name: Checkout branch head without marketplace actions
         env:
           GH_TOKEN: ${{ github.token }}
+          CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           git init .
           git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git fetch --depth=1 origin "${GITHUB_SHA}"
+          git fetch --depth=1 origin "${CHECKOUT_SHA}"
           git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "${CHECKOUT_SHA}"
 
       - name: Use Node 22 from runner image
         run: |
@@ -42,7 +44,9 @@ jobs:
           node --check src/premier-league-live.js
           node --check src/career-face-recovery.js
           node --check src/career-core/result-integrity.js
+          node --check src/career-core/mailbox-core.js
           node --check src/career-core/league-hub-data.js
+          node --check src/career-mailbox.js
           node --check src/career-league-hub.js
 
       - name: Build production bundle and run all integrity tests
