@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [source, css, dragCss, dragSource, threeViews, threeViewsCss, refinementCss, formationManager, formationCss, index] = await Promise.all([
+const [source, css, dragCss, dragSource, threeViews, threeViewsCss, refinementCss, formationManager, formationCss, repository, index] = await Promise.all([
   readFile(new URL('../src/career-tactics-studio.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-studio.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-drag-polish.css', import.meta.url), 'utf8'),
@@ -11,6 +11,7 @@ const [source, css, dragCss, dragSource, threeViews, threeViewsCss, refinementCs
   readFile(new URL('../src/career-tactics-layout-refinement.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-formation-manager.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-formation-manager.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-core/career-repository.js', import.meta.url), 'utf8'),
   readFile(new URL('../index.html', import.meta.url), 'utf8')
 ]);
 
@@ -77,10 +78,15 @@ assert.ok(formationManager.includes('getBoundingClientRect()'), 'formation motio
 assert.ok(formationManager.includes('node.animate(['), 'formation motion must use the Web Animations API');
 assert.ok(formationManager.includes('translate3d('), 'formation motion must stay on the GPU transform path');
 assert.ok(formationManager.includes("easing: 'cubic-bezier(.16, 1, .3, 1)'"), 'formation motion must use controlled premium easing');
-assert.ok(formationManager.includes('createVisualSnapshot'), 'internal state remount must be visually masked');
-assert.ok(formationManager.includes('waitForFreshStudio'), 'visual mask must remain until the fresh studio is ready');
+assert.ok(formationManager.includes('queueFormationSave'), 'formation persistence must run in the background');
+assert.ok(formationManager.includes('__touchlineFormationDraft'), 'latest formation must remain authoritative across later saves');
+assert.ok(formationManager.includes('patchPitchInstantly'), 'later UI renders must restore the live formation before paint');
+assert.ok(!formationManager.includes('createVisualSnapshot'), 'formation changes must not clone the screen');
+assert.ok(!formationManager.includes('remountStudio'), 'formation changes must not remount the tactics screen');
+assert.ok(!formationManager.includes('waitForFreshStudio'), 'formation changes must not wait for a replacement screen');
 assert.ok(!formationManager.includes('location.reload()'), 'formation changes must never reload the page');
-assert.ok(formationCss.includes('.tl-formation-snapshot'), 'seamless remount snapshot must be styled');
+assert.ok(repository.includes('mergeFormationDraft'), 'repository saves must preserve the newest live formation');
+assert.ok(repository.includes('__touchlineFormationDraft'), 'repository must read the live formation draft');
 assert.ok(formationCss.includes('.tl-formation-measuring .tl-player-node'), 'measurement phase must disable competing transitions');
 assert.ok(formationCss.includes('[data-formation-moving]'), 'moving players must receive explicit motion styling');
 assert.ok(formationCss.includes('prefers-reduced-motion'), 'formation motion must respect reduced-motion preferences');
@@ -105,9 +111,12 @@ console.log(JSON.stringify({
   responsibilities: 7,
   dragPreview: 'circular-player-avatar',
   dragRendering: 'request-animation-frame-gpu',
-  formationMotion: 'flip-web-animations-gpu',
+  formationMotion: 'live-flip-web-animations-gpu',
+  formationRemount: false,
+  formationScreenClone: false,
   formationRemountFlash: false,
   formationPageReload: false,
+  formationPersistence: 'background-authoritative-draft',
   dropZones: ['pitch', 'bench', 'reserves'],
   benchLimit: 9,
   squadFilters: true,
