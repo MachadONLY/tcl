@@ -26,6 +26,10 @@ function activeUnread(career) {
   return (career?.inbox || []).filter(message => !message.archived && !message.read).length;
 }
 
+function shellSignature(career) {
+  return [career.clubCode, Math.round(Number(career.boardConfidence) || 0), activeUnread(career)].join(':');
+}
+
 function headerMarkup(career, club) {
   const unread = activeUnread(career);
   const clubName = (club?.shortName || club?.name || career.clubCode).toUpperCase();
@@ -47,14 +51,17 @@ function headerMarkup(career, club) {
 
 function applyStadiumFallback(screen, clubCode) {
   const background = screen.querySelector('.fmb-bg');
-  if (!background) return;
+  if (!background || background.dataset.fmbStadiumClub === clubCode) return;
+  background.dataset.fmbStadiumClub = clubCode;
   const slug = String(clubCode).toLowerCase();
   const webp = `/assets/clubs/2026-27/${slug}/stadium.webp`;
   const jpg = `/assets/clubs/2026-27/${slug}/stadium.jpg`;
   background.style.backgroundImage = `url("${webp}")`;
   const probe = new Image();
   probe.onerror = () => {
-    if (background.isConnected) background.style.backgroundImage = `url("${jpg}")`;
+    if (background.isConnected && background.dataset.fmbStadiumClub === clubCode) {
+      background.style.backgroundImage = `url("${jpg}")`;
+    }
   };
   probe.src = webp;
 }
@@ -113,7 +120,11 @@ async function enhanceMailboxShell() {
   const header = screen.querySelector('.fmb-top');
   if (!header) return;
   header.className = 'fmb-top tcc-topbar fmb-calendar-topbar';
-  header.innerHTML = headerMarkup(career, club);
+  const signature = shellSignature(career);
+  if (header.dataset.fmbCalendarShellSignature !== signature) {
+    header.dataset.fmbCalendarShellSignature = signature;
+    header.innerHTML = headerMarkup(career, club);
+  }
   wireHeader(header);
 }
 
