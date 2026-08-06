@@ -70,18 +70,30 @@ function consumeCareerDraft(save) {
   };
 }
 
+function mergeFormationDraft(save) {
+  const draft = globalThis.__touchlineFormationDraft;
+  if (!save || !draft || typeof draft !== "object") return save;
+  if (draft.saveId !== save.saveId || draft.clubCode !== save.clubCode) return save;
+  if (!draft.formation || !draft.tacticalLayouts) return save;
+  return {
+    ...save,
+    formation: draft.formation,
+    tacticalLayouts: structuredClone(draft.tacticalLayouts)
+  };
+}
+
 export const CareerRepository = Object.freeze({
   async load(saveId = "primary") {
     try {
       const saved = await withStore("readonly", store => store.get(saveId));
-      return saved || readFallback(saveId);
+      return mergeFormationDraft(saved || readFallback(saveId));
     } catch {
-      return readFallback(saveId);
+      return mergeFormationDraft(readFallback(saveId));
     }
   },
 
   async save(save) {
-    const merged = consumeCareerDraft(save);
+    const merged = mergeFormationDraft(consumeCareerDraft(save));
     const snapshot = structuredClone({
       ...merged,
       updatedAt: new Date().toISOString()
