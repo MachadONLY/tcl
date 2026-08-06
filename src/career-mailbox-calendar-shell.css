@@ -1,0 +1,172 @@
+#touchline-fifa-mailbox.fmb-calendar-shell {
+  left: 236px;
+  background: #0a0e10;
+  border-left: 1px solid rgba(255,255,255,.06);
+  box-shadow: -18px 0 42px rgba(0,0,0,.18);
+  font-family: "Avenir Next", "SF Pro Display", "Segoe UI Variable", Inter, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-bg,
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-bg {
+  background-position: center;
+  background-size: cover;
+  filter: saturate(.7) contrast(1.1) brightness(.42) blur(1px);
+  transform: scale(1.015);
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-bg::after {
+  display: none;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-shade {
+  z-index: 0;
+  background:
+    radial-gradient(circle at 35% 42%, rgba(22,33,34,.14), rgba(4,7,9,.72) 66%),
+    linear-gradient(90deg, rgba(7,11,13,.9) 0%, rgba(7,11,13,.68) 58%, rgba(5,8,10,.93) 100%),
+    linear-gradient(180deg, rgba(3,5,7,.48), rgba(3,5,7,.86));
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-top,
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-tabs,
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-window,
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-toast {
+  position: relative;
+  z-index: 2;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-topbar {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px clamp(28px,4vw,64px) 10px;
+  border: 0;
+  background: transparent;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-club {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-club .tcc-club-crest {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 9px rgba(0,0,0,.45));
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-club span {
+  display: grid;
+  gap: 6px;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-club b {
+  color: #f8faf8;
+  font-size: 16px;
+  font-weight: 720;
+  letter-spacing: .035em;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-club em {
+  display: grid;
+  grid-template-columns: repeat(4,34px);
+  gap: 2px;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-club em i {
+  height: 4px;
+  background: rgba(255,255,255,.13);
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-club em i.is-filled {
+  background: var(--tcc-club);
+  box-shadow: 0 0 10px color-mix(in srgb,var(--tcc-club) 42%,transparent);
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-utilities {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-utilities button {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid rgba(255,255,255,.07);
+  color: #f8faf8;
+  background: rgba(10,15,17,.62);
+  font: 650 13px/1 inherit;
+  cursor: pointer;
+  transition: background .16s ease,border-color .16s ease;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-utilities button:hover,
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-utilities button.is-active {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.12);
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-utilities button b {
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #e14a4a;
+  font-size: 11px;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-utilities > i {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  margin-left: 8px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 50%;
+  color: rgba(255,255,255,.72);
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-tabs {
+  margin-top: 0;
+}
+
+#touchline-fifa-mailbox.fmb-calendar-shell .fmb-window {
+  height: calc(100vh - 156px);
+}
+
+@media (max-width: 900px) {
+  #touchline-fifa-mailbox.fmb-calendar-shell {
+    left: 0;
+  }
+
+  #touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-topbar {
+    padding-inline: 18px;
+  }
+
+  #touchline-fifa-mailbox.fmb-calendar-shell .fmb-calendar-club em {
+    grid-template-columns: repeat(4,22px);
+  }
+}
