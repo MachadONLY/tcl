@@ -8,6 +8,8 @@ import {
   simulateFixture,
   squadFor
 } from "../src/career-core/career-core.js";
+import { auditCareerData, reconcileCareerData } from "../src/career-core/result-integrity.js";
+import { leagueLeaders, leagueProgress } from "../src/career-core/league-hub-data.js";
 import { CLUB_CATALOG, FIXTURES, validateSeasonPack } from "../src/career-core/season-2026-27.js";
 
 const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -70,6 +72,11 @@ assert.deepEqual(
   },
   "same save and tactics must produce the same match"
 );
+assert.equal(
+  firstSimulation.homeGoals + firstSimulation.awayGoals,
+  firstSimulation.events.filter(event => event.type === 'goal').length,
+  'Every simulated goal must have one event'
+);
 
 while (career.currentDate < opener.date) {
   const { advanceOneDay } = await import("../src/career-core/career-core.js");
@@ -80,8 +87,11 @@ assert.equal(firstPlayed.fixture.id, opener.id);
 assert.ok(career.results[opener.id]);
 assert.equal(career.recentForm.length, 1);
 assert.ok(career.inbox.some(message => message.id === `match-report-${opener.id}`));
+reconcileCareerData(career);
+assert.equal(auditCareerData(career).ok, true, 'First matchday must reconcile before continuing');
 
 completeSeasonForTest(career);
+reconcileCareerData(career);
 assert.equal(Object.keys(career.results).length, 380);
 assert.equal(career.status, "complete");
 const table = deriveTable(career);
@@ -92,6 +102,25 @@ assert.equal(table.reduce((sum, row) => sum + row.gf, 0), table.reduce((sum, row
 assert.ok(table[0].points >= table.at(-1).points);
 assert.ok(career.seasonSummary.position >= 1 && career.seasonSummary.position <= 20);
 
+const audit = auditCareerData(career);
+assert.equal(audit.ok, true, 'All 380 results must reconcile with their goal and assist events');
+assert.equal(audit.results, 380);
+assert.equal(audit.goals, table.reduce((sum, row) => sum + row.gf, 0), 'Table goals must equal canonical goal events');
+assert.equal(
+  leagueLeaders(career, 'goals', 1000).reduce((sum, row) => sum + row.goals, 0),
+  audit.goals,
+  'Scorer totals must equal every league goal event'
+);
+assert.equal(
+  leagueLeaders(career, 'assists', 1000).reduce((sum, row) => sum + row.assists, 0),
+  audit.assists,
+  'Assist totals must equal assisted goal events'
+);
+const progress = leagueProgress(career);
+assert.equal(progress.clubPlayed, 38);
+assert.equal(progress.leagueMatches, 380);
+assert.equal(progress.tableMatchTotal, 380);
+
 console.log(JSON.stringify({
   ok: true,
   clubs: CLUB_CATALOG.length,
@@ -99,6 +128,9 @@ console.log(JSON.stringify({
   players: Object.fromEntries(CLUB_CATALOG.map(club => [club.code, squadFor(club.code).length])),
   managerExcluded: true,
   unitedMidfieldVerified: true,
+  sourceOfTruth: 'canonical-match-events',
+  reconciledGoals: audit.goals,
+  reconciledAssists: audit.assists,
   champion: table[0].name,
   userFinish: career.seasonSummary.position,
   userPoints: career.seasonSummary.points
