@@ -1,0 +1,37 @@
+/* The lower squad strip has one purpose: show players outside the match squad. */
+.tl-tactics-studio .tl-squad-manager > header{
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+/* Hide the legacy label, count and positional filters before the cleanup runtime runs. */
+.tl-tactics-studio .tl-squad-manager > header > div,
+.tl-tactics-studio .tl-squad-manager > header > nav,
+.tl-tactics-studio .tl-squad-manager > header small,
+.tl-tactics-studio .tl-squad-manager [data-roster-filter]{
+  display:none!important;
+}
+
+.tl-tactics-studio .tl-squad-manager > header:not(:has([data-unselected-title]))::before{
+  content:'Não relacionados';
+  color:#f4f7f9;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.02em;
+}
+
+.tl-tactics-studio [data-unselected-title]{
+  display:block;
+  color:#f4f7f9;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.02em;
+  line-height:1;
+}
+
+.tl-tactics-studio .tl-squad-manager > header .tl-roster-scroll-tools{
+  margin-left:auto;
+}
