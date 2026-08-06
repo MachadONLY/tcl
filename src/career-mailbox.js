@@ -10,40 +10,45 @@ import {
   respondToMailboxMessage
 } from './career-core/mailbox-core.js';
 
+const SCREEN_ID = 'touchline-career-mailbox';
 const PLAYER_MANIFEST_URL = '/assets/players/2026-27/manifest.json';
 const PLAYER_FALLBACK_URL = '/assets/players/player-placeholder.svg';
-const SEARCH_DELAY_MS = 90;
+const SEARCH_DELAY_MS = 100;
 const CONFIRM_RESET_MS = 2600;
-const app = typeof document !== 'undefined' ? document.querySelector('#app') : null;
-const contexts = new WeakMap();
+
+let career = null;
+let manifest = { players: {} };
 let manifestPromise = null;
-let installQueued = false;
 let selectedMessageId = null;
 let activeFilter = 'all';
 let searchQuery = '';
+let activeClubCode = null;
+let mountPending = false;
 let searchTimer = null;
+let homeEnhancePending = false;
 
 const CATEGORY_META = Object.freeze({
-  board: { label: 'Diretoria', icon: '◇', tone: 'board' },
-  player: { label: 'Elenco', icon: '◉', tone: 'player' },
-  medical: { label: 'Médico', icon: '+', tone: 'medical' },
-  transfer: { label: 'Mercado', icon: '↔', tone: 'transfer' },
-  staff: { label: 'Comissão', icon: '⌁', tone: 'staff' },
-  match: { label: 'Partida', icon: '⚑', tone: 'match' },
-  system: { label: 'Operações', icon: '✓', tone: 'system' },
-  club: { label: 'Clube', icon: '•', tone: 'club' }
+  board: { label: 'BOARD', icon: '◇', tone: 'board' },
+  player: { label: 'SQUAD', icon: '◉', tone: 'player' },
+  medical: { label: 'MEDICAL', icon: '+', tone: 'medical' },
+  transfer: { label: 'TRANSFER', icon: '↔', tone: 'transfer' },
+  staff: { label: 'STAFF', icon: '⌁', tone: 'staff' },
+  match: { label: 'MATCH', icon: '⚑', tone: 'match' },
+  system: { label: 'OPERATIONS', icon: '✓', tone: 'system' },
+  club: { label: 'CLUB', icon: '•', tone: 'club' }
 });
 
-const SVG_ICONS = Object.freeze({
+const ICONS = Object.freeze({
   mail: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.75 6.75h14.5v10.5H4.75z"/><path d="m5.25 7.5 6.75 5 6.75-5"/></svg>',
   search: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.75" cy="10.75" r="5.75"/><path d="m15.25 15.25 4 4"/></svg>',
   check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6.5 12.5 3.3 3.3 7.7-8"/></svg>',
-  chevron: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6.5 5.5 5.5-5.5 5.5"/></svg>',
-  alert: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5 20 19H4z"/><path d="M12 9v4.5M12 16.5h.01"/></svg>'
+  calendar: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.25h14v11H5z"/><path d="M8 4.75v4M16 4.75v4M5 10.25h14"/></svg>',
+  arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6.5 5.5 5.5-5.5 5.5"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.25v6.25M12 17.25h.01"/></svg>'
 });
 
-function icon(name, className = '') {
-  return `<span class="tl-mail-icon ${esc(className)}">${SVG_ICONS[name] || ''}</span>`;
+function icon(name) {
+  return `<span class="tcm-icon">${ICONS[name] || ICONS.mail}</span>`;
 }
 
 function esc(value) {
@@ -54,455 +59,431 @@ function esc(value) {
 
 function loadPlayerManifest() {
   if (manifestPromise) return manifestPromise;
-  manifestPromise = fetch(`${PLAYER_MANIFEST_URL}?v=9`, { cache: 'no-store' })
+  manifestPromise = fetch(`${PLAYER_MANIFEST_URL}?v=10`, { cache: 'no-store' })
     .then(response => response.ok ? response.json() : { players: {} })
-    .then(manifest => manifest?.players ? manifest : { players: {} })
+    .then(payload => payload?.players ? payload : { players: {} })
     .catch(() => ({ players: {} }));
   return manifestPromise;
 }
 
-function playerPortrait(manifest, player) {
+function clubFor(code) {
+  return CLUB_BY_CODE.get(code) || CLUB_BY_CODE.values().next().value;
+}
+
+function playerPortrait(player) {
   const record = manifest?.players?.[player?.id];
   return record?.playerId === player?.id && record?.clubCode === player?.clubCode && record?.localPath
     ? record.localPath
     : PLAYER_FALLBACK_URL;
 }
 
-function formatMessageDate(message, currentDate) {
-  if (message.date === currentDate) return 'Hoje';
-  const [year, month, day] = String(message.date || '').split('-').map(Number);
-  if (!year || !month || !day) return message.date || '';
-  return new Intl.DateTimeFormat('pt-BR', {
-    timeZone: 'UTC', weekday: 'short', day: '2-digit', month: 'short'
-  }).format(new Date(Date.UTC(year, month - 1, day))).replaceAll('.', '');
+function crestMarkup(code, className = '') {
+  const club = clubFor(code);
+  const slug = String(code || '').toLowerCase();
+  const primary = club?.crest || `/assets/clubs/2026-27/${slug}/crest.svg`;
+  const fallback = `/assets/clubs/2026-27/${slug}/crest.png`;
+  return `<img class="${className}" src="${esc(primary)}" data-mail-image-fallback="${esc(fallback)}" alt="${esc(club?.name || code)} crest">`;
 }
 
-function formatCurrency(value) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency', currency: 'GBP', notation: 'compact', maximumFractionDigits: 1
-  }).format(Number(value || 0));
+function boardSegments() {
+  const filled = Math.max(0, Math.min(4, Math.round((Number(career?.boardConfidence) || 0) / 25)));
+  return Array.from({ length: 4 }, (_, index) => `<i class="${index < filled ? 'is-filled' : ''}"></i>`).join('');
+}
+
+function formatMessageDate(message) {
+  if (message.date === career?.currentDate) return 'TODAY';
+  const [year, month, day] = String(message.date || '').split('-').map(Number);
+  if (!year || !month || !day) return String(message.date || '').toUpperCase();
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'UTC', day: '2-digit', month: 'short'
+  }).format(new Date(Date.UTC(year, month - 1, day))).toUpperCase();
+}
+
+function fullMessageDate(message) {
+  const [year, month, day] = String(message.date || '').split('-').map(Number);
+  if (!year || !month || !day) return String(message.date || '');
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric'
+  }).format(new Date(Date.UTC(year, month - 1, day)));
 }
 
 function metaFor(message) {
-  return CATEGORY_META[message.category] || CATEGORY_META.club;
+  return CATEGORY_META[message?.category] || CATEGORY_META.club;
 }
 
 function initials(value) {
-  return String(value || 'TL').split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+  return String(value || 'TL').split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
 }
 
-function senderAvatar(message, manifest, compact = false) {
-  const player = PLAYER_BY_ID.get(message.entity?.playerId);
+function senderAvatar(message, compact = false) {
+  const player = PLAYER_BY_ID.get(message?.entity?.playerId);
   const meta = metaFor(message);
   if (player) {
-    return `<span class="tl-mail-avatar ${compact ? 'is-compact' : ''} has-photo ${meta.tone}">
-      <img src="${esc(playerPortrait(manifest, player))}" alt="${esc(player.name)}" data-mail-player-face>
+    return `<span class="tcm-avatar ${compact ? 'is-compact' : ''} has-photo ${meta.tone}">
+      <img src="${esc(playerPortrait(player))}" alt="${esc(player.name)}" data-mail-player-face>
       <i>${esc(meta.icon)}</i>
     </span>`;
   }
-  return `<span class="tl-mail-avatar ${compact ? 'is-compact' : ''} ${meta.tone}">
-    <b>${esc(message.entity?.initials || initials(message.sender))}</b><i>${esc(meta.icon)}</i>
+  return `<span class="tcm-avatar ${compact ? 'is-compact' : ''} ${meta.tone}">
+    <b>${esc(message?.entity?.initials || initials(message?.sender))}</b><i>${esc(meta.icon)}</i>
   </span>`;
 }
 
-function priorityLabel(message, compact = false) {
-  const compactClass = compact ? ' is-compact' : '';
-  if (message.status === 'expired') return `<span class="tl-mail-status is-muted${compactClass}">Expirada</span>`;
-  if (message.response) return `<span class="tl-mail-status is-resolved${compactClass}">${esc(message.response.label)}</span>`;
-  if (message.requiresResponse) return `<span class="tl-mail-status is-required${compactClass}">${compact ? 'Decisão' : 'Resposta necessária'}</span>`;
-  if (message.priority === 'urgent') return `<span class="tl-mail-status is-urgent${compactClass}">Urgente</span>`;
-  if (!message.read) return `<span class="tl-mail-status is-new${compactClass}">Nova</span>`;
+function statusMarkup(message) {
+  if (message?.status === 'expired') return '<span class="tcm-status is-muted">EXPIRED</span>';
+  if (message?.response) return `<span class="tcm-status is-resolved">${esc(message.response.label)}</span>`;
+  if (message?.requiresResponse) return '<span class="tcm-status is-required">TASK</span>';
+  if (message?.priority === 'urgent') return '<span class="tcm-status is-required">URGENT</span>';
+  if (!message?.read) return '<span class="tcm-status is-new">NEW</span>';
   return '';
 }
 
-function categoryChip(message, compact = false) {
+function categoryMarkup(message) {
   const meta = metaFor(message);
-  return `<span class="tl-mail-category ${meta.tone} ${compact ? 'is-compact' : ''}"><i>${esc(meta.icon)}</i>${esc(meta.label)}</span>`;
+  return `<span class="tcm-category ${meta.tone}"><i>${esc(meta.icon)}</i>${esc(meta.label)}</span>`;
 }
 
-function listItemMarkup(message, career, manifest) {
-  return `<button class="tl-mail-row ${message.id === selectedMessageId ? 'is-selected' : ''} ${!message.read ? 'is-unread' : ''} ${message.requiresResponse ? 'is-required' : ''}" data-mail-id="${esc(message.id)}" aria-pressed="${message.id === selectedMessageId}">
-    <span class="tl-mail-unread-dot"></span>
-    ${senderAvatar(message, manifest, true)}
-    <span class="tl-mail-row-copy">
-      <small><b>${esc(message.sender)}</b><time>${esc(formatMessageDate(message, career.currentDate))}</time></small>
+function listItemMarkup(message) {
+  return `<button type="button" class="tcm-message-row ${message.id === selectedMessageId ? 'is-selected' : ''} ${!message.read ? 'is-unread' : ''} ${message.requiresResponse ? 'is-required' : ''}" data-mail-id="${esc(message.id)}" aria-pressed="${message.id === selectedMessageId}">
+    <span class="tcm-message-signal"></span>
+    ${senderAvatar(message, true)}
+    <span class="tcm-message-copy">
+      <span class="tcm-message-meta"><b>${esc(message.sender)}</b><time>${esc(formatMessageDate(message))}</time></span>
       <strong>${esc(message.subject)}</strong>
       <p>${esc(message.preview || message.body)}</p>
-      <span>${categoryChip(message, true)}${priorityLabel(message, true)}</span>
+      <span class="tcm-message-tags">${categoryMarkup(message)}${statusMarkup(message)}</span>
     </span>
-    ${icon('chevron', 'tl-mail-row-arrow')}
+    <span class="tcm-message-arrow">${icon('arrow')}</span>
   </button>`;
 }
 
-function playerCard(message, career, manifest) {
-  const player = PLAYER_BY_ID.get(message.entity?.playerId);
+function playerContextMarkup(message) {
+  const player = PLAYER_BY_ID.get(message?.entity?.playerId);
   if (!player) return '';
-  const state = career.playerState?.[player.id] || {};
-  const injury = career.injuries?.[player.id];
-  const status = injury?.active
-    ? `Lesionado · retorno ${String(injury.returnDate || '').split('-').reverse().join('/')}`
-    : state.departurePending
-      ? 'Saída acordada'
-      : 'Disponível';
-  return `<section class="tl-mail-player-card">
-    <span class="tl-mail-player-photo"><img src="${esc(playerPortrait(manifest, player))}" alt="${esc(player.name)}" data-mail-player-face></span>
-    <div class="tl-mail-player-identity"><small>JOGADOR RELACIONADO</small><h3>${esc(player.name)}</h3><p>${esc(player.position)} · ${esc(CLUB_BY_CODE.get(player.clubCode)?.shortName || player.clubCode)}</p></div>
+  const state = career?.playerState?.[player.id] || {};
+  const injury = career?.injuries?.[player.id];
+  const status = injury?.active ? 'Unavailable' : state.departurePending ? 'Departure agreed' : 'Available';
+  return `<section class="tcm-player-context">
+    <div class="tcm-player-head">
+      <span class="tcm-player-photo"><img src="${esc(playerPortrait(player))}" alt="${esc(player.name)}" data-mail-player-face></span>
+      <span><small>PLAYER</small><h3>${esc(player.name)}</h3><p>${esc(player.position)} · ${esc(clubFor(player.clubCode)?.shortName || player.clubCode)}</p></span>
+    </div>
     <dl>
       <div><dt>OVR</dt><dd>${player.rating}</dd></div>
-      <div><dt>Condição</dt><dd>${Math.round(Number(state.condition || 100))}%</dd></div>
-      <div><dt>Moral</dt><dd>${Math.round(Number(state.morale || 75))}</dd></div>
-      <div><dt>Status</dt><dd>${esc(status)}</dd></div>
+      <div><dt>FIT</dt><dd>${Math.round(Number(state.condition || 100))}%</dd></div>
+      <div><dt>MORAL</dt><dd>${Math.round(Number(state.morale || 75))}</dd></div>
+      <div><dt>STATUS</dt><dd>${esc(status)}</dd></div>
     </dl>
   </section>`;
 }
 
-function contextCard(message, career) {
-  const data = message.data || {};
-  if (message.kind === 'transfer-offer') {
-    const offer = career.transferOffers?.[data.offerId] || data;
-    return `<section class="tl-mail-context-card transfer">
-      <div><small>VALOR</small><strong>${formatCurrency(offer.amount || data.amount)}</strong></div>
-      <div><small>CLUBE INTERESSADO</small><b>${esc(offer.buyer || data.buyer || message.sender)}</b></div>
-      <div><small>PRAZO</small><b>${esc(String(offer.deadline || data.deadline || '').split('-').reverse().join('/'))}</b></div>
-    </section>`;
-  }
-  if (message.kind === 'injury') {
-    return `<section class="tl-mail-context-card medical">
-      <div><small>DIAGNÓSTICO</small><strong>${esc(data.type || 'Em avaliação')}</strong></div>
-      <div><small>PREVISÃO</small><b>${Number(data.days || 0)} dias</b></div>
-      <div><small>RETORNO ESTIMADO</small><b>${esc(String(data.returnDate || '').split('-').reverse().join('/'))}</b></div>
-    </section>`;
-  }
-  if (message.kind === 'medical-load') {
+function contextMarkup(message) {
+  const data = message?.data || {};
+  const player = playerContextMarkup(message);
+  let specific = '';
+  if (message?.kind === 'transfer-offer') {
+    const offer = career?.transferOffers?.[data.offerId] || data;
+    const amount = new Intl.NumberFormat('en-GB', {
+      style: 'currency', currency: 'GBP', notation: 'compact', maximumFractionDigits: 1
+    }).format(Number(offer.amount || data.amount || 0));
+    specific = `<section class="tcm-fact-panel transfer"><small>TRANSFER OFFER</small><strong>${esc(amount)}</strong><dl><div><dt>CLUB</dt><dd>${esc(offer.buyer || data.buyer || message.sender)}</dd></div><div><dt>DEADLINE</dt><dd>${esc(String(offer.deadline || data.deadline || '').split('-').reverse().join('/'))}</dd></div></dl></section>`;
+  } else if (message?.kind === 'injury') {
+    specific = `<section class="tcm-fact-panel medical"><small>MEDICAL REPORT</small><strong>${esc(data.type || 'Under assessment')}</strong><dl><div><dt>RECOVERY</dt><dd>${Number(data.days || 0)} days</dd></div><div><dt>RETURN</dt><dd>${esc(String(data.returnDate || '').split('-').reverse().join('/'))}</dd></div></dl></section>`;
+  } else if (message?.kind === 'medical-load') {
     const players = (data.playerIds || []).map(id => PLAYER_BY_ID.get(id)).filter(Boolean);
-    return `<section class="tl-mail-context-card medical">
-      <div><small>ATLETAS EM ALERTA</small><strong>${players.length}</strong></div>
-      <div class="wide"><small>RECOMENDAÇÃO</small><b>Reduzir intensidade e priorizar recuperação</b></div>
-    </section>`;
+    specific = `<section class="tcm-fact-panel medical"><small>WORKLOAD ALERT</small><strong>${players.length} PLAYERS</strong><p>Reduce intensity and prioritise recovery before the next fixture.</p></section>`;
+  } else if (message?.kind === 'player-minutes') {
+    specific = `<section class="tcm-fact-panel player"><small>PLAYER REQUEST</small><strong>${esc(String(data.deadline || '').split('-').reverse().join('/'))}</strong><p>Your response can alter morale, confidence and the player's future expectations.</p></section>`;
+  } else if (message?.kind === 'opponent-report') {
+    const opponent = clubFor(data.opponentCode);
+    specific = `<section class="tcm-fact-panel staff"><small>NEXT OPPONENT</small><strong>${esc(opponent?.shortName || opponent?.name || 'Opponent')}</strong><p>The report is ready for the tactical preparation of the next match.</p></section>`;
   }
-  if (message.kind === 'player-minutes') {
-    return `<section class="tl-mail-context-card player">
-      <div><small>RESPONDER ATÉ</small><strong>${esc(String(data.deadline || '').split('-').reverse().join('/'))}</strong></div>
-      <div class="wide"><small>IMPACTO</small><b>Sua resposta altera a moral e a confiança do jogador</b></div>
-    </section>`;
+  if (!player && !specific) {
+    specific = `<section class="tcm-fact-panel neutral"><small>${esc(metaFor(message).label)}</small><strong>${esc(formatMessageDate(message))}</strong><p>This message has been added to the permanent club record.</p></section>`;
   }
-  if (message.kind === 'opponent-report') {
-    const opponent = CLUB_BY_CODE.get(data.opponentCode);
-    return `<section class="tl-mail-context-card staff">
-      <div><small>ADVERSÁRIO</small><strong>${esc(opponent?.shortName || opponent?.name || 'Adversário')}</strong></div>
-      <div class="wide"><small>PRÓXIMO PASSO</small><b>Levar o relatório para a preparação tática</b></div>
-    </section>`;
-  }
-  return '';
+  return `<aside class="tcm-context">${player}${specific}</aside>`;
 }
 
-function actionsMarkup(message) {
-  if (message.response) {
-    return `<div class="tl-mail-response">${icon('check')}<span><small>DECISÃO REGISTRADA</small><b>${esc(message.response.label)}</b></span></div>`;
-  }
-  if (!message.actions?.length) {
-    return `<div class="tl-mail-response is-neutral">${icon('check')}<span><small>INFORMATIVO</small><b>Nenhuma ação necessária</b></span></div>`;
-  }
-  return `<div class="tl-mail-actions">
-    <span class="tl-mail-actions-copy"><small>${message.requiresResponse ? 'DECISÃO PENDENTE' : 'PRÓXIMO PASSO'}</small><b>${message.requiresResponse ? 'Escolha uma resposta para continuar' : 'Ação disponível'}</b></span>
-    <div>${message.actions.map(action =>
-      `<button class="${esc(action.kind || 'secondary')}" data-mail-action="${esc(action.id)}" data-mail-message="${esc(message.id)}" data-mail-label="${esc(action.label)}">${esc(action.label)}</button>`
-    ).join('')}</div>
-  </div>`;
+function actionMarkup(message) {
+  if (message?.response) return `<div class="tcm-decision-record">${icon('check')}<span><small>DECISION RECORDED</small><b>${esc(message.response.label)}</b></span></div>`;
+  if (!message?.actions?.length) return `<div class="tcm-decision-record is-neutral">${icon('check')}<span><small>INFORMATION</small><b>No action required</b></span></div>`;
+  return `<div class="tcm-actions">${message.actions.map(action => `<button type="button" class="${esc(action.kind || 'secondary')}" data-mail-action="${esc(action.id)}" data-mail-message="${esc(message.id)}" data-mail-label="${esc(action.label)}"><span>${esc(action.label)}</span></button>`).join('')}</div>`;
 }
 
-function messageDetailMarkup(message, career, manifest) {
-  if (!message) {
-    return `<div class="tl-mail-empty-detail">${icon('mail')}<h2>Nenhuma mensagem</h2><p>Altere o filtro ou limpe a busca para voltar à sua caixa postal.</p></div>`;
-  }
-  return `<article class="tl-mail-detail ${message.requiresResponse ? 'is-required' : ''}" data-mail-detail-id="${esc(message.id)}">
-    <header class="tl-mail-detail-head">
-      <div class="tl-mail-sender">${senderAvatar(message, manifest)}<span><small>${esc(message.senderRole)}</small><b>${esc(message.sender)}</b></span></div>
-      <div class="tl-mail-detail-meta">${categoryChip(message)}<time>${esc(formatMessageDate(message, career.currentDate))}</time></div>
-    </header>
-    ${message.requiresResponse ? `<div class="tl-mail-required-banner">${icon('alert')}<span><b>Decisão pendente</b><small>Revise os dados abaixo e escolha uma resposta.</small></span></div>` : ''}
-    <div class="tl-mail-detail-body">
-      <div class="tl-mail-subject-line">${priorityLabel(message)}<h2>${esc(message.subject)}</h2></div>
-      <p class="tl-mail-letter">${esc(message.body)}</p>
-      <div class="tl-mail-detail-cards">
-        ${playerCard(message, career, manifest)}
-        ${contextCard(message, career)}
-      </div>
-    </div>
-    <footer>${actionsMarkup(message)}</footer>
+function detailMarkup(message) {
+  if (!message) return `<div class="tcm-empty-detail"><span>${icon('mail')}</span><small>MAILBOX</small><h2>No message selected</h2><p>Choose a message from the list or change the active filter.</p></div>`;
+  const meta = metaFor(message);
+  return `<article class="tcm-detail ${message.requiresResponse ? 'is-required' : ''}" data-mail-detail-article>
+    <header class="tcm-detail-head"><div class="tcm-sender">${senderAvatar(message)}<span><small>${esc(message.senderRole || meta.label)}</small><b>${esc(message.sender)}</b></span></div><div class="tcm-detail-meta">${categoryMarkup(message)}<time>${esc(fullMessageDate(message))}</time></div></header>
+    <div class="tcm-detail-scroll"><div class="tcm-detail-grid"><section class="tcm-letter">${message.requiresResponse ? `<div class="tcm-task-label">${icon('alert')}<span>DECISION REQUIRED</span></div>` : ''}<div class="tcm-subject-row">${statusMarkup(message)}<h2>${esc(message.subject)}</h2></div><p>${esc(message.body)}</p></section>${contextMarkup(message)}</div></div>
+    <footer>${actionMarkup(message)}</footer>
   </article>`;
 }
 
 function filterButton(id, label, count = null) {
-  return `<button class="${activeFilter === id ? 'is-active' : ''}" data-mail-filter="${id}" aria-pressed="${activeFilter === id}">${esc(label)}${count !== null ? `<i>${count}</i>` : ''}</button>`;
+  return `<button type="button" class="${activeFilter === id ? 'is-active' : ''}" data-mail-filter="${id}" aria-pressed="${activeFilter === id}"><span>${esc(label)}</span>${count !== null ? `<i>${count}</i>` : ''}</button>`;
 }
 
-function currentView(career) {
+function currentView() {
+  const summary = mailboxSummary(career);
   const items = careerInboxItems(career, { filter: activeFilter, query: searchQuery });
   if (!items.some(item => item.id === selectedMessageId)) selectedMessageId = items[0]?.id || null;
-  return {
-    items,
-    selected: items.find(item => item.id === selectedMessageId) || null,
-    summary: mailboxSummary(career)
-  };
+  return { summary, items, selected: items.find(item => item.id === selectedMessageId) || null };
 }
 
-function inboxMarkup(career, manifest) {
-  const { items, selected, summary } = currentView(career);
-  return `<div class="tl-mailbox-page">
-    <header class="tl-mailbox-header">
-      <div class="tl-mailbox-identity">
-        <span class="tl-mailbox-mark">${icon('mail')}</span>
-        <div><small>CLUBE</small><h1>Mailbox</h1><p>Mensagens, tarefas e decisões da sua carreira.</p></div>
-      </div>
-      <div class="tl-mailbox-summary">
-        <span><b data-mail-summary-unread>${summary.unread}</b><small>não lidas</small></span>
-        <span class="required"><b data-mail-summary-required>${summary.required}</b><small>decisões</small></span>
-        <button data-mail-read-all>${icon('check')}<span>Marcar como lidas</span></button>
-      </div>
-    </header>
-    <section class="tl-mailbox-shell">
-      <aside class="tl-mailbox-list-pane">
-        <div class="tl-mailbox-tools">
-          <label>${icon('search')}<input type="search" value="${esc(searchQuery)}" placeholder="Buscar na Mailbox" data-mail-search autocomplete="off"></label>
-          <div class="tl-mailbox-filters">
-            ${filterButton('all', 'Todas', summary.total)}
-            ${filterButton('required', 'Tarefas', summary.required)}
-            ${filterButton('unread', 'Não lidas', summary.unread)}
-          </div>
-          <div class="tl-mailbox-categories">
-            ${filterButton('medical', 'Médico')}${filterButton('transfer', 'Mercado')}${filterButton('player', 'Elenco')}${filterButton('staff', 'Comissão')}
-          </div>
-        </div>
-        <div class="tl-mailbox-list" data-mail-list>${items.map(message => listItemMarkup(message, career, manifest)).join('') || '<div class="tl-mailbox-list-empty">Nenhuma mensagem neste filtro.</div>'}</div>
-      </aside>
-      <section class="tl-mailbox-detail-pane" data-mail-detail>${messageDetailMarkup(selected, career, manifest)}</section>
-    </section>
-  </div>`;
+function listPaneMarkup(items, summary) {
+  return `<aside class="tcm-list-pane"><div class="tcm-tools"><label>${icon('search')}<input type="search" value="${esc(searchQuery)}" placeholder="Search messages" data-mail-search autocomplete="off"></label><div class="tcm-primary-filters">${filterButton('all', 'ALL', summary.total)}${filterButton('required', 'TASKS', summary.required)}${filterButton('unread', 'UNREAD', summary.unread)}</div><div class="tcm-category-filters">${filterButton('medical', 'MEDICAL')}${filterButton('transfer', 'TRANSFER')}${filterButton('player', 'SQUAD')}${filterButton('staff', 'STAFF')}</div></div><div class="tcm-message-list" data-mail-list>${items.map(listItemMarkup).join('') || '<div class="tcm-list-empty">No messages in this view.</div>'}</div></aside>`;
 }
 
-function wireFaceFallbacks(root) {
-  root.querySelectorAll('img[data-mail-player-face]').forEach(image => {
-    image.addEventListener('error', () => {
-      if (!image.src.endsWith(PLAYER_FALLBACK_URL)) image.src = PLAYER_FALLBACK_URL;
-    }, { once: true });
-  });
+function topbarMarkup(summary) {
+  const club = clubFor(career.clubCode);
+  return `<header class="tcm-topbar"><button class="tcm-club" type="button" data-mail-back aria-label="Back to career hub">${crestMarkup(club.code, 'tcm-club-crest')}<span><b>${esc((club.shortName || club.name).toUpperCase())}</b><em>${boardSegments()}</em></span></button><nav class="tcm-utilities" aria-label="Career utilities"><button type="button" data-mail-calendar>${icon('calendar')}<span>Calendar</span></button><button type="button" data-mail-read-all>${icon('check')}<span>Read all</span></button><button type="button" class="is-active" aria-current="page">${icon('mail')}<span>Mailbox</span>${summary.unread ? `<b data-mail-top-unread>${summary.unread}</b>` : '<b data-mail-top-unread hidden>0</b>'}</button><i>R</i></nav></header>`;
 }
 
-function animateDetail(detailPane) {
-  const detail = detailPane?.firstElementChild;
-  if (!detail) return;
-  detail.classList.remove('is-entering');
-  void detail.offsetWidth;
-  detail.classList.add('is-entering');
-  window.setTimeout(() => detail.classList.remove('is-entering'), 240);
+function renderScreen() {
+  if (!career || location.hash !== '#inbox') return;
+  const club = clubFor(career.clubCode);
+  const { items, selected, summary } = currentView();
+  const existing = document.getElementById(SCREEN_ID);
+  const screen = existing || document.createElement('section');
+  screen.id = SCREEN_ID;
+  screen.className = 'tcm-screen';
+  screen.style.setProperty('--tcm-club', club?.accent || '#67A633');
+  screen.style.setProperty('--tcm-club-dark', club?.accentDark || '#263323');
+  screen.innerHTML = `<div class="tcm-bg" aria-hidden="true"></div><div class="tcm-shade" aria-hidden="true"></div>${topbarMarkup(summary)}<div class="tcm-layout"><div class="tcm-page-head"><div><small>SEASON ${esc(career.seasonLabel || '2026/27')}</small><h1>Mailbox</h1></div><div class="tcm-summary"><span><b data-mail-summary-unread>${summary.unread}</b><small>UNREAD</small></span><span class="required"><b data-mail-summary-required>${summary.required}</b><small>TASKS</small></span></div></div>${listPaneMarkup(items, summary)}<main class="tcm-detail-pane" data-mail-detail>${detailMarkup(selected)}</main></div><footer class="tcm-footer"><button type="button" data-mail-back><kbd>B</kbd> Back</button><button type="button" data-mail-focus-search><kbd>F</kbd> Search</button><button type="button" data-mail-previous><kbd>↑</kbd> Previous</button><button type="button" data-mail-next><kbd>↓</kbd> Next</button><button type="button" data-mail-calendar><kbd>X</kbd> Calendar</button></footer><div class="tcm-toast" role="status" aria-live="polite"></div>`;
+  if (!existing) document.body.append(screen);
+  installImageFallbacks(screen);
+  applyClubBackground(screen, club.code);
 }
 
-function updateSummary(content, career) {
+function installImageFallbacks(root) {
+  root.querySelectorAll('img[data-mail-image-fallback]').forEach(image => image.addEventListener('error', () => {
+    const fallback = image.dataset.mailImageFallback;
+    if (fallback && image.src !== new URL(fallback, location.href).href) image.src = fallback;
+  }, { once: true }));
+  root.querySelectorAll('img[data-mail-player-face]').forEach(image => image.addEventListener('error', () => {
+    if (!image.src.endsWith(PLAYER_FALLBACK_URL)) image.src = PLAYER_FALLBACK_URL;
+  }, { once: true }));
+}
+
+function applyClubBackground(root, code) {
+  const target = root.querySelector('.tcm-bg');
+  if (!target) return;
+  const slug = String(code).toLowerCase();
+  const webp = `/assets/clubs/2026-27/${slug}/stadium.webp`;
+  const jpg = `/assets/clubs/2026-27/${slug}/stadium.jpg`;
+  target.style.backgroundImage = `url("${webp}")`;
+  const probe = new Image();
+  probe.onerror = () => { target.style.backgroundImage = `url("${jpg}")`; };
+  probe.src = webp;
+}
+
+function animateDetail() {
+  const article = document.querySelector(`#${SCREEN_ID} [data-mail-detail-article]`);
+  if (!article) return;
+  article.classList.remove('is-entering');
+  void article.offsetWidth;
+  article.classList.add('is-entering');
+  window.setTimeout(() => article.classList.remove('is-entering'), 240);
+}
+
+function updateSummary() {
+  const screen = document.getElementById(SCREEN_ID);
+  if (!screen || !career) return;
   const summary = mailboxSummary(career);
-  content.querySelector('[data-mail-summary-unread]')?.replaceChildren(String(summary.unread));
-  content.querySelector('[data-mail-summary-required]')?.replaceChildren(String(summary.required));
-  content.querySelectorAll('[data-mail-filter]').forEach(button => {
+  screen.querySelector('[data-mail-summary-unread]')?.replaceChildren(String(summary.unread));
+  screen.querySelector('[data-mail-summary-required]')?.replaceChildren(String(summary.required));
+  const top = screen.querySelector('[data-mail-top-unread]');
+  if (top) { top.replaceChildren(String(summary.unread)); top.hidden = summary.unread === 0; }
+  screen.querySelectorAll('[data-mail-filter]').forEach(button => {
     const count = button.querySelector('i');
     if (!count) return;
-    const value = button.dataset.mailFilter === 'all'
-      ? summary.total
-      : button.dataset.mailFilter === 'required'
-        ? summary.required
-        : button.dataset.mailFilter === 'unread'
-          ? summary.unread
-          : null;
+    const value = button.dataset.mailFilter === 'all' ? summary.total : button.dataset.mailFilter === 'required' ? summary.required : button.dataset.mailFilter === 'unread' ? summary.unread : null;
     if (value !== null) count.replaceChildren(String(value));
   });
 }
 
-function renderMessageDetail(content, context, { animate = true } = {}) {
-  const detailPane = content.querySelector('[data-mail-detail]');
-  if (!detailPane) return;
-  const selected = careerInboxItems(context.career, { filter: activeFilter, query: searchQuery })
-    .find(message => message.id === selectedMessageId) || null;
-  detailPane.innerHTML = messageDetailMarkup(selected, context.career, context.manifest);
-  wireFaceFallbacks(detailPane);
-  if (animate) animateDetail(detailPane);
-}
-
-function renderListAndDetail(content, context, { preserveScroll = true, animateDetailPane = true } = {}) {
-  const list = content.querySelector('[data-mail-list]');
-  const detailPane = content.querySelector('[data-mail-detail]');
-  if (!list || !detailPane) return;
+function renderListAndDetail({ preserveScroll = true, animate = true } = {}) {
+  const screen = document.getElementById(SCREEN_ID);
+  if (!screen || !career) return;
+  const list = screen.querySelector('[data-mail-list]');
+  const detail = screen.querySelector('[data-mail-detail]');
+  if (!list || !detail) return;
   const previousScroll = list.scrollTop;
-  const { items, selected } = currentView(context.career);
-  list.innerHTML = items.map(message => listItemMarkup(message, context.career, context.manifest)).join('') || '<div class="tl-mailbox-list-empty">Nenhuma mensagem neste filtro.</div>';
-  detailPane.innerHTML = messageDetailMarkup(selected, context.career, context.manifest);
-  content.querySelectorAll('[data-mail-filter]').forEach(button => {
-    const active = button.dataset.mailFilter === activeFilter;
-    button.classList.toggle('is-active', active);
-    button.setAttribute('aria-pressed', String(active));
-  });
-  wireFaceFallbacks(list);
-  wireFaceFallbacks(detailPane);
+  const { items, selected } = currentView();
+  list.innerHTML = items.map(listItemMarkup).join('') || '<div class="tcm-list-empty">No messages in this view.</div>';
+  detail.innerHTML = detailMarkup(selected);
+  screen.querySelectorAll('[data-mail-filter]').forEach(button => { const active = button.dataset.mailFilter === activeFilter; button.classList.toggle('is-active', active); button.setAttribute('aria-pressed', String(active)); });
+  installImageFallbacks(list);
+  installImageFallbacks(detail);
   if (preserveScroll) requestAnimationFrame(() => { list.scrollTop = previousScroll; });
-  if (animateDetailPane) animateDetail(detailPane);
+  if (animate) animateDetail();
+  updateSummary();
 }
 
-async function saveContext(context) {
-  context.career = await CareerRepository.save(context.career);
-  return context.career;
+async function saveCareer() {
+  if (career) career = await CareerRepository.save(career);
 }
 
-function selectMessage(content, context, messageId) {
+function selectMessage(messageId, { animate = true } = {}) {
+  if (!career || !messageId) return;
   selectedMessageId = messageId;
   window.__touchlineMailboxSelection = selectedMessageId;
-  markMailboxRead(context.career, selectedMessageId, true);
-  content.querySelectorAll('[data-mail-id]').forEach(row => {
-    const selected = row.dataset.mailId === selectedMessageId;
-    row.classList.toggle('is-selected', selected);
-    row.classList.toggle('is-unread', selected ? false : row.classList.contains('is-unread'));
-    row.setAttribute('aria-pressed', String(selected));
-  });
-  renderMessageDetail(content, context);
-  updateSummary(content, context.career);
-  void saveContext(context);
+  markMailboxRead(career, selectedMessageId, true);
+  const screen = document.getElementById(SCREEN_ID);
+  screen?.querySelectorAll('[data-mail-id]').forEach(row => { const selected = row.dataset.mailId === selectedMessageId; row.classList.toggle('is-selected', selected); if (selected) row.classList.remove('is-unread'); row.setAttribute('aria-pressed', String(selected)); });
+  const detail = screen?.querySelector('[data-mail-detail]');
+  const selected = careerInboxItems(career, { filter: activeFilter, query: searchQuery }).find(message => message.id === selectedMessageId) || null;
+  if (detail) { detail.innerHTML = detailMarkup(selected); installImageFallbacks(detail); if (animate) animateDetail(); }
+  updateSummary();
+  void saveCareer();
+}
+
+function stepMessage(step) {
+  const items = careerInboxItems(career, { filter: activeFilter, query: searchQuery });
+  if (!items.length) return;
+  let index = items.findIndex(item => item.id === selectedMessageId);
+  if (index < 0) index = 0;
+  index = Math.max(0, Math.min(items.length - 1, index + step));
+  selectMessage(items[index].id);
+  document.querySelector(`#${SCREEN_ID} [data-mail-id="${CSS.escape(items[index].id)}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function armConfirmation(button) {
   if (button.dataset.mailConfirming === 'true') return true;
-  const actionId = button.dataset.mailAction;
-  const confirmationLabel = actionId === 'accept-offer' ? 'Confirmar aceite' : 'Confirmar recusa';
+  const confirmationLabel = button.dataset.mailAction === 'accept-offer' ? 'CONFIRM ACCEPT' : 'CONFIRM REJECT';
   button.dataset.mailConfirming = 'true';
-  button.dataset.mailOriginalLabel = button.textContent || button.dataset.mailLabel || '';
   button.classList.add('is-confirming');
-  button.replaceChildren(confirmationLabel);
+  button.querySelector('span')?.replaceChildren(confirmationLabel);
   window.setTimeout(() => {
     if (!button.isConnected || button.dataset.mailConfirming !== 'true') return;
     button.dataset.mailConfirming = 'false';
     button.classList.remove('is-confirming');
-    button.replaceChildren(button.dataset.mailOriginalLabel || button.dataset.mailLabel || 'Confirmar');
+    button.querySelector('span')?.replaceChildren(button.dataset.mailLabel || 'Confirm');
   }, CONFIRM_RESET_MS);
   return false;
 }
 
-async function executeAction(content, context, button) {
+async function executeAction(button) {
+  if (!career) return;
   const actionId = button.dataset.mailAction;
   if (['accept-offer', 'reject-offer'].includes(actionId) && !armConfirmation(button)) return;
   button.disabled = true;
   button.classList.add('is-loading');
-  const result = respondToMailboxMessage(context.career, button.dataset.mailMessage, actionId);
-  context.career = result.career;
-  await saveContext(context);
-  renderListAndDetail(content, context, { preserveScroll: true });
-  updateSummary(content, context.career);
-  if (result.route) window.location.hash = result.route;
+  const result = respondToMailboxMessage(career, button.dataset.mailMessage, actionId);
+  career = result.career;
+  await saveCareer();
+  renderListAndDetail({ preserveScroll: true, animate: true });
+  if (result.route) location.hash = result.route;
 }
 
-function bindInbox(content, context) {
-  contexts.set(content, context);
-  wireFaceFallbacks(content);
-  content.addEventListener('click', event => {
-    const filter = event.target.closest('[data-mail-filter]');
-    if (filter) {
-      activeFilter = filter.dataset.mailFilter;
-      selectedMessageId = null;
-      renderListAndDetail(content, context, { preserveScroll: false });
-      return;
-    }
+function removeMailbox() { document.getElementById(SCREEN_ID)?.remove(); }
 
-    const row = event.target.closest('[data-mail-id]');
-    if (row) {
-      selectMessage(content, context, row.dataset.mailId);
-      return;
-    }
-
-    if (event.target.closest('[data-mail-read-all]')) {
-      context.career.inbox.forEach(message => { message.read = true; });
-      void saveContext(context).then(() => {
-        renderListAndDetail(content, context, { preserveScroll: true, animateDetailPane: false });
-        updateSummary(content, context.career);
-      });
-      return;
-    }
-
-    const action = event.target.closest('[data-mail-action]');
-    if (action && !action.disabled) void executeAction(content, context, action);
-  });
-
-  content.addEventListener('input', event => {
-    if (!event.target.matches('[data-mail-search]')) return;
-    searchQuery = event.target.value;
-    window.clearTimeout(searchTimer);
-    searchTimer = window.setTimeout(() => {
-      selectedMessageId = null;
-      renderListAndDetail(content, context, { preserveScroll: false, animateDetailPane: false });
-    }, SEARCH_DELAY_MS);
+async function scheduleMount() {
+  if (mountPending) return;
+  mountPending = true;
+  queueMicrotask(async () => {
+    mountPending = false;
+    if (location.hash !== '#inbox') { removeMailbox(); scheduleHomeEnhancement(); return; }
+    const selectedClub = legacyClubSelection();
+    if (!selectedClub) { removeMailbox(); return; }
+    const [stored, playerManifest] = await Promise.all([CareerRepository.load(), loadPlayerManifest()]);
+    if (location.hash !== '#inbox') return;
+    career = normalizeCareer(stored, selectedClub);
+    manifest = playerManifest;
+    reconcileMailbox(career);
+    if (activeClubCode !== career.clubCode) { activeClubCode = career.clubCode; activeFilter = 'all'; searchQuery = ''; selectedMessageId = null; }
+    selectedMessageId = window.__touchlineMailboxSelection || selectedMessageId || careerInboxItems(career)[0]?.id || null;
+    if (selectedMessageId) markMailboxRead(career, selectedMessageId, true);
+    await saveCareer();
+    renderScreen();
   });
 }
 
-async function installInboxPage() {
-  const heading = [...document.querySelectorAll('.cp-title h1')].find(node => node.textContent?.trim() === 'Inbox');
-  const content = heading?.closest('.cp-content');
-  if (!content || content.querySelector('.tl-mailbox-page')) return;
-  const selectedClub = legacyClubSelection() || 'MUN';
-  const [stored, manifest] = await Promise.all([CareerRepository.load(), loadPlayerManifest()]);
-  if (!content.isConnected || window.location.hash.replace('#', '') !== 'inbox') return;
-  const career = normalizeCareer(stored, selectedClub);
-  reconcileMailbox(career);
-  selectedMessageId = window.__touchlineMailboxSelection || selectedMessageId || careerInboxItems(career)[0]?.id || null;
-  if (selectedMessageId) markMailboxRead(career, selectedMessageId, true);
-  const saved = await CareerRepository.save(career);
-  content.classList.add('cp-content-mailbox');
-  content.innerHTML = inboxMarkup(saved, manifest);
-  bindInbox(content, { career: saved, manifest });
-}
-
-function homeMessageMarkup(message, career, manifest) {
+function homeMessageMarkup(message) {
   const meta = metaFor(message);
-  return `<button class="tl-message ${!message.read ? 'is-unread' : ''} ${message.requiresResponse ? 'is-required' : ''}" data-home-mail-id="${esc(message.id)}">
-    <i></i>${senderAvatar(message, manifest, true)}
-    <span class="tl-message-copy"><small>${esc(message.sender)}<time>${esc(formatMessageDate(message, career.currentDate))}</time></small><b>${esc(message.subject)}</b><p>${esc(message.preview || message.body)}</p><em class="${meta.tone}">${esc(meta.label)}</em>${message.requiresResponse ? '<strong>DECISÃO</strong>' : ''}</span>
-  </button>`;
+  return `<button class="tl-message ${!message.read ? 'is-unread' : ''} ${message.requiresResponse ? 'is-required' : ''}" data-home-mail-id="${esc(message.id)}"><i></i>${senderAvatar(message, true)}<span class="tl-message-copy"><small>${esc(message.sender)}<time>${esc(formatMessageDate(message))}</time></small><b>${esc(message.subject)}</b><p>${esc(message.preview || message.body)}</p><em class="${meta.tone}">${esc(meta.label)}</em>${message.requiresResponse ? '<strong>TASK</strong>' : ''}</span></button>`;
 }
 
 async function enhanceHomeMailbox() {
   const list = document.querySelector('.tl-home-v2 .tl-message-list');
   if (!list || list.dataset.mailboxEnhanced === 'true') return;
   list.dataset.mailboxEnhanced = 'true';
-  const selectedClub = legacyClubSelection() || 'MUN';
-  const [stored, manifest] = await Promise.all([CareerRepository.load(), loadPlayerManifest()]);
+  const selectedClub = legacyClubSelection();
+  if (!selectedClub) return;
+  const [stored, playerManifest] = await Promise.all([CareerRepository.load(), loadPlayerManifest()]);
   if (!list.isConnected) return;
-  const career = normalizeCareer(stored, selectedClub);
-  reconcileMailbox(career);
-  const messages = careerInboxItems(career, { limit: 4 });
-  const summary = mailboxSummary(career);
-  list.innerHTML = messages.map(message => homeMessageMarkup(message, career, manifest)).join('');
+  const homeCareer = normalizeCareer(stored, selectedClub);
+  manifest = playerManifest;
+  reconcileMailbox(homeCareer);
+  const messages = careerInboxItems(homeCareer, { limit: 4 });
+  const summary = mailboxSummary(homeCareer);
+  const previousCareer = career;
+  career = homeCareer;
+  list.innerHTML = messages.map(homeMessageMarkup).join('');
   const slide = list.closest('[data-slide="0"]');
   slide?.querySelector('.tl-inbox-title h3')?.replaceChildren('Mailbox');
   const title = slide?.querySelector('.tl-inbox-title p');
-  if (title) title.innerHTML = summary.required
-    ? `<b>${summary.required}</b> decisões · ${summary.unread} não lidas`
-    : `<b>${summary.unread}</b> não lidas · ${summary.total} mensagens`;
+  if (title) title.innerHTML = summary.required ? `<b>${summary.required}</b> tasks · ${summary.unread} unread` : `<b>${summary.unread}</b> unread · ${summary.total} messages`;
   const unreadTab = slide?.querySelector('.tl-inbox-tabs span');
-  if (unreadTab) unreadTab.innerHTML = `Não lidas <i>${summary.unread}</i>`;
-  list.querySelectorAll('[data-home-mail-id]').forEach(button => {
-    button.addEventListener('click', () => {
-      window.__touchlineMailboxSelection = button.dataset.homeMailId;
-      window.location.hash = 'inbox';
-    });
-  });
-  wireFaceFallbacks(list);
+  if (unreadTab) unreadTab.innerHTML = `Unread <i>${summary.unread}</i>`;
+  list.querySelectorAll('[data-home-mail-id]').forEach(button => button.addEventListener('click', () => { window.__touchlineMailboxSelection = button.dataset.homeMailId; location.hash = '#inbox'; }));
+  installImageFallbacks(list);
+  career = previousCareer;
 }
 
-function scheduleInstall() {
-  if (installQueued) return;
-  installQueued = true;
-  queueMicrotask(async () => {
-    installQueued = false;
-    await Promise.all([installInboxPage(), enhanceHomeMailbox()]);
-  });
+function scheduleHomeEnhancement() {
+  if (homeEnhancePending) return;
+  homeEnhancePending = true;
+  queueMicrotask(async () => { homeEnhancePending = false; await enhanceHomeMailbox(); });
 }
 
-if (app) {
-  const observer = new MutationObserver(scheduleInstall);
-  observer.observe(app, { childList: true, subtree: true });
-  window.addEventListener('hashchange', scheduleInstall);
-  scheduleInstall();
+function onClick(event) {
+  const screen = document.getElementById(SCREEN_ID);
+  if (!screen) return;
+  const filter = event.target.closest('[data-mail-filter]');
+  if (filter) { activeFilter = filter.dataset.mailFilter; selectedMessageId = null; renderListAndDetail({ preserveScroll: false, animate: false }); return; }
+  const row = event.target.closest('[data-mail-id]');
+  if (row) { selectMessage(row.dataset.mailId); return; }
+  const action = event.target.closest('[data-mail-action]');
+  if (action && !action.disabled) { void executeAction(action); return; }
+  if (event.target.closest('[data-mail-read-all]')) { (career.inbox || []).forEach(message => { message.read = true; }); void saveCareer().then(() => renderListAndDetail({ preserveScroll: true, animate: false })); return; }
+  if (event.target.closest('[data-mail-calendar]')) { location.hash = '#calendar'; return; }
+  if (event.target.closest('[data-mail-back]')) { location.hash = '#home'; return; }
+  if (event.target.closest('[data-mail-focus-search]')) { screen.querySelector('[data-mail-search]')?.focus(); return; }
+  if (event.target.closest('[data-mail-previous]')) { stepMessage(-1); return; }
+  if (event.target.closest('[data-mail-next]')) stepMessage(1);
 }
+
+function onInput(event) {
+  if (!event.target.matches(`#${SCREEN_ID} [data-mail-search]`)) return;
+  searchQuery = event.target.value;
+  window.clearTimeout(searchTimer);
+  searchTimer = window.setTimeout(() => { selectedMessageId = null; renderListAndDetail({ preserveScroll: false, animate: false }); }, SEARCH_DELAY_MS);
+}
+
+function onKeydown(event) {
+  if (!document.getElementById(SCREEN_ID)) return;
+  const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement;
+  const key = event.key.toLowerCase();
+  if (key === 'escape' && typing) { event.target.blur(); return; }
+  if (typing) return;
+  if (['escape', 'backspace', 'b'].includes(key)) { event.preventDefault(); location.hash = '#home'; }
+  else if (key === 'f') { event.preventDefault(); document.querySelector(`#${SCREEN_ID} [data-mail-search]`)?.focus(); }
+  else if (key === 'arrowup') { event.preventDefault(); stepMessage(-1); }
+  else if (key === 'arrowdown') { event.preventDefault(); stepMessage(1); }
+  else if (key === 'x') { event.preventDefault(); location.hash = '#calendar'; }
+}
+
+function start() {
+  const app = document.querySelector('#app');
+  if (app) new MutationObserver(() => { scheduleMount(); scheduleHomeEnhancement(); }).observe(app, { childList: true, subtree: true });
+  window.addEventListener('hashchange', scheduleMount);
+  document.addEventListener('click', onClick);
+  document.addEventListener('input', onInput);
+  document.addEventListener('keydown', onKeydown);
+  scheduleMount();
+  scheduleHomeEnhancement();
+}
+
+start();
