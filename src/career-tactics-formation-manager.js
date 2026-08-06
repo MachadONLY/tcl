@@ -106,8 +106,9 @@ async function applyExtendedFormation(formation) {
     if (!career) return;
     career.formation = formation;
     resetLayoutsForFormation(career, formation);
-    globalThis.__touchlineCareerDraft = structuredClone(career);
-    await CareerRepository.save(career);
+    const saved = await CareerRepository.save(career);
+    // Protect the new formation if an older debounced studio save finishes during remount.
+    globalThis.__touchlineCareerDraft = structuredClone(saved);
     remountStudio();
   } finally {
     applyingFormation = false;
