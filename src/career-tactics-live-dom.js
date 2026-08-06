@@ -146,12 +146,88 @@ function restorePersistentUi(root, persistent) {
   if (persistent.viewToast) root.append(persistent.viewToast);
 }
 
+function scrollCandidates(root) {
+  const candidates = new Set([
+    document.scrollingElement,
+    document.documentElement,
+    document.body,
+    root,
+    root.querySelector('.tl-roster-grid.reserves'),
+    root.querySelector('.tl-bench-list'),
+    root.querySelector('.tl-controls-scroll'),
+    root.querySelector('.tl-side-rail'),
+    document.querySelector('.cp-work'),
+    document.querySelector('.cp-content')
+  ].filter(Boolean));
+
+  let ancestor = root.parentElement;
+  while (ancestor) {
+    candidates.add(ancestor);
+    ancestor = ancestor.parentElement;
+  }
+  return [...candidates];
+}
+
+function verticalScroller(root) {
+  let node = root.parentElement;
+  while (node) {
+    const style = getComputedStyle(node);
+    if (/(auto|scroll|overlay)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 1) return node;
+    node = node.parentElement;
+  }
+  return document.scrollingElement || document.documentElement;
+}
+
+function captureGeometry(root) {
+  const pitch = root.querySelector('.tl-pitch-stage');
+  const field = root.querySelector('.tl-pitch');
+  const warRoom = root.querySelector('.tl-war-room');
+  return {
+    pitchTop: pitch?.getBoundingClientRect().top ?? null,
+    pitchLeft: pitch?.getBoundingClientRect().left ?? null,
+    fieldTop: field?.getBoundingClientRect().top ?? null,
+    warRoomTop: warRoom?.getBoundingClientRect().top ?? null,
+    scroller: verticalScroller(root),
+    scrolls: scrollCandidates(root).map(element => ({
+      element,
+      top: element.scrollTop,
+      left: element.scrollLeft
+    }))
+  };
+}
+
+function restoreScrollPositions(snapshot) {
+  for (const item of snapshot.scrolls) {
+    if (!item.element?.isConnected) continue;
+    if (item.element.scrollTop !== item.top) item.element.scrollTop = item.top;
+    if (item.element.scrollLeft !== item.left) item.element.scrollLeft = item.left;
+  }
+}
+
+function stabilizeGeometry(root, snapshot) {
+  if (!snapshot) return;
+  restoreScrollPositions(snapshot);
+  const pitch = root.querySelector('.tl-pitch-stage');
+  if (pitch && Number.isFinite(snapshot.pitchTop)) {
+    const currentTop = pitch.getBoundingClientRect().top;
+    const delta = currentTop - snapshot.pitchTop;
+    if (Math.abs(delta) > .25 && snapshot.scroller?.isConnected) {
+      snapshot.scroller.scrollTop += delta;
+    }
+  }
+  restoreScrollPositions({
+    ...snapshot,
+    scrolls: snapshot.scrolls.filter(item => item.element !== snapshot.scroller)
+  });
+}
+
 function morphStudio(root, markup) {
   if (!root.querySelector('.tl-war-room')) {
     innerHTMLDescriptor.set.call(root, markup);
     return;
   }
 
+  const geometry = captureGeometry(root);
   const parser = document.createElement('div');
   parser.innerHTML = markup;
   const persistent = detachPersistentUi(root);
@@ -160,7 +236,11 @@ function morphStudio(root, markup) {
   } finally {
     restorePersistentUi(root, persistent);
   }
-  requestAnimationFrame(() => enhanceRoster(root));
+  stabilizeGeometry(root, geometry);
+  requestAnimationFrame(() => {
+    stabilizeGeometry(root, geometry);
+    enhanceRoster(root);
+  });
 }
 
 function installLiveDom(root) {
@@ -181,6 +261,7 @@ function installLiveDom(root) {
     }
   });
   root.dataset.liveDom = 'true';
+  root.dataset.geometryLock = 'true';
   enhanceRoster(root, true);
 }
 
@@ -188,11 +269,28 @@ function rosterPageSize(grid) {
   return Math.max(420, Math.floor(grid.clientWidth * .76));
 }
 
+function rosterMaximum(grid) {
+  return Math.max(0, grid.scrollWidth - grid.clientWidth);
+}
+
+function scrollRoster(grid, direction) {
+  const page = rosterPageSize(grid);
+  const max = rosterMaximum(grid);
+  if (direction < 0) {
+    const target = grid.scrollLeft <= page * 1.05 ? 0 : Math.max(0, grid.scrollLeft - page);
+    grid.scrollTo({ left: target, behavior: 'smooth' });
+    return;
+  }
+  const remaining = max - grid.scrollLeft;
+  const target = remaining <= page * 1.05 ? max : Math.min(max, grid.scrollLeft + page);
+  grid.scrollTo({ left: target, behavior: 'smooth' });
+}
+
 function updateRosterControls(root) {
   const state = rosterEnhancements.get(root);
   if (!state?.grid?.isConnected) return;
   const { grid, previous, next } = state;
-  const max = Math.max(0, grid.scrollWidth - grid.clientWidth);
+  const max = rosterMaximum(grid);
   previous.disabled = grid.scrollLeft <= 2;
   next.disabled = grid.scrollLeft >= max - 2;
   previous.setAttribute('aria-disabled', String(previous.disabled));
@@ -212,12 +310,12 @@ function enhanceRoster(root, reset = false) {
     header.append(tools);
     const previous = tools.querySelector('[data-roster-scroll="previous"]');
     const next = tools.querySelector('[data-roster-scroll="next"]');
-    previous.onclick = () => grid.scrollBy({ left: -rosterPageSize(grid), behavior: 'smooth' });
-    next.onclick = () => grid.scrollBy({ left: rosterPageSize(grid), behavior: 'smooth' });
+    previous.onclick = () => scrollRoster(grid, -1);
+    next.onclick = () => scrollRoster(grid, 1);
     grid.addEventListener('scroll', () => updateRosterControls(root), { passive: true });
     grid.addEventListener('keydown', event => {
       if (event.key === 'Home') grid.scrollTo({ left: 0, behavior: 'smooth' });
-      if (event.key === 'End') grid.scrollTo({ left: grid.scrollWidth, behavior: 'smooth' });
+      if (event.key === 'End') grid.scrollTo({ left: rosterMaximum(grid), behavior: 'smooth' });
     });
     grid.tabIndex = 0;
     state = { grid, previous, next, filter: '' };
