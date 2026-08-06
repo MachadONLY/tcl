@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [source, css, index] = await Promise.all([
+const [source, css, hardSource, hardCss, index] = await Promise.all([
   readFile(new URL('../src/career-tactics-live-dom.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-live-dom.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-hard-stability.js', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-hard-stability.css', import.meta.url), 'utf8'),
   readFile(new URL('../index.html', import.meta.url), 'utf8')
 ]);
 
@@ -24,6 +26,14 @@ assert.ok(source.includes("event.key === 'End'"), 'keyboard users must be able t
 assert.ok(source.includes('grid.scrollWidth - grid.clientWidth'), 'carousel controls must detect the true scroll range');
 assert.ok(!source.includes('root.replaceChildren('), 'live tactics updates must never replace the full studio root');
 
+assert.ok(hardSource.includes("document.addEventListener('pointerdown'"), 'stability layer must observe player pointer interactions');
+assert.ok(hardSource.includes('setPointerCapture'), 'stability layer must explicitly preserve the original drag controller contract');
+assert.ok(!hardSource.includes('event.preventDefault();'), 'stability layer must never cancel pointerdown and break dragging');
+assert.ok(hardSource.includes('pointerInteraction.moved = true'), 'stability layer must distinguish click from drag');
+assert.ok(hardSource.includes('syncPitchPositions'), 'dragging within the pitch must patch only player coordinates');
+assert.ok(hardSource.includes('syncSquadContainers'), 'cross-zone drops must reconcile only squad containers');
+assert.ok(hardSource.includes('data-hard-geometry'), 'lineup geometry must remain locked during interactions');
+
 assert.ok(css.includes('[data-live-dom="true"]'), 'zero-flash state must disable entry animations after mount');
 assert.ok(css.includes('overflow-anchor:none!important'), 'browser scroll anchoring must be disabled in the tactics room');
 assert.ok(css.includes('contain:layout paint'), 'the pitch must be isolated from side-panel layout changes');
@@ -36,9 +46,12 @@ assert.ok(css.includes('flex-basis:72px'), 'the final carousel spacer must keep 
 assert.ok(css.includes('flex:0 0 220px!important'), 'reserve cards must retain a stable readable width');
 assert.ok(css.includes('scroll-snap-type:none!important'), 'native free scrolling must not stop before the final card');
 assert.ok(css.includes('.tl-roster-scroll-tools'), 'compact previous and next controls must exist');
+assert.ok(hardCss.includes('--tl-locked-field-height'), 'hard stability CSS must keep the field height fixed');
 
 assert.ok(index.includes('career-tactics-live-dom.css'), 'live DOM CSS must load after the formation styles');
 assert.ok(index.includes('career-tactics-live-dom.js'), 'live DOM runtime must load after the tactics controllers');
+assert.ok(index.includes('career-tactics-hard-stability.css'), 'hard stability CSS must be loaded');
+assert.ok(index.includes('career-tactics-hard-stability.js'), 'hard stability runtime must be loaded');
 
 console.log(JSON.stringify({
   ok: true,
@@ -46,6 +59,9 @@ console.log(JSON.stringify({
   fullScreenRemount: false,
   playerClickFlash: false,
   playerClickLayoutShift: false,
+  dragEnabled: true,
+  pointerDownCancelled: false,
+  playerPointerCapturePreserved: true,
   dragDropFlash: false,
   dragDropLayoutShift: false,
   browserScrollAnchoring: false,
