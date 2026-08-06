@@ -22,8 +22,13 @@ jobs:
           git fetch --depth=1 origin "${GITHUB_SHA}"
           git checkout --detach FETCH_HEAD
 
-      - name: Verify runtime
+      - name: Use Node 22 from runner image
         run: |
+          export NVM_DIR="$HOME/.nvm"
+          . "$NVM_DIR/nvm.sh"
+          nvm install 22
+          nvm use 22
+          echo "$NVM_BIN" >> "$GITHUB_PATH"
           node --version
           npm --version
 
