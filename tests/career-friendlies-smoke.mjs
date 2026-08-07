@@ -9,6 +9,7 @@ import {
 } from '../src/career-core/career-runtime.js';
 import {
   cancelFriendly,
+  ensureFriendlyWorld,
   friendlyDateStatus,
   friendlyResultFor,
   resolveFriendlyClub,
@@ -24,6 +25,16 @@ assert.ok(EUROPEAN_CLUBS.length >= 1200, 'European browser must include more tha
 assert.equal(EUROPEAN_CATALOG_META.runtimeNetworkRequired, false);
 assert.equal(new Set(EUROPE_COUNTRIES.map(country => country.code)).size, EUROPE_COUNTRIES.length, 'country codes must be unique');
 assert.equal(new Set(EUROPEAN_CLUBS.map(club => club.id)).size, EUROPEAN_CLUBS.length, 'club ids must be unique');
+
+ensureFriendlyWorld(career);
+const globalOccupied = new Set();
+for (const fixture of [...career.friendlies, ...career.worldFriendlies]) {
+  for (const team of [fixture.home, fixture.away]) {
+    const key = `${fixture.date}:${team}`;
+    assert.equal(globalOccupied.has(key), false, `global double booking detected for ${key}`);
+    globalOccupied.add(key);
+  }
+}
 
 const friendlies = career.friendlies;
 const official = friendlies.map(fixture => ({
@@ -79,6 +90,7 @@ console.log(JSON.stringify({
   countries: EUROPE_COUNTRIES.length,
   clubs: EUROPEAN_CLUBS.length,
   officialManchesterUnitedFriendlies: expectedManchesterUnited.length,
+  globalDoubleBookingBlocked: true,
   sameDayDoubleBookingBlocked: true,
   opponentConflictBlocked: true,
   cancelSupported: true,
