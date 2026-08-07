@@ -1,19 +1,22 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [index, source, styles, brandStyles, expandedSource, expandedStyles] = await Promise.all([
+const [index, source, styles, brandStyles, expandedSource, expandedStyles, crestSource, crestStyles] = await Promise.all([
   readFile(new URL('../index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-home-v2.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-home-v2.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-home-v2-brand.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-home-league-expanded.js', import.meta.url), 'utf8'),
-  readFile(new URL('../src/career-home-league-expanded.css', import.meta.url), 'utf8')
+  readFile(new URL('../src/career-home-league-expanded.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-home-crest-stability.js', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-home-crest-stability.css', import.meta.url), 'utf8')
 ]);
 
 assert.match(index, /career-home-v2\.js/);
 assert.match(index, /career-home-v2-brand\.css/);
 assert.match(index, /career-home-league-expanded\.js/);
 assert.match(index, /career-home-league-expanded\.css/);
+assert.match(index, /career-home-crest-stability\.js/);
 assert.match(source, /ROTATION_MS\s*=\s*5000/);
 assert.match(source, /Caixa de entrada/);
 assert.match(source, /Touchline News/);
@@ -35,6 +38,13 @@ assert.match(expandedSource, /--tl-table-rows/);
 assert.match(expandedStyles, /repeat\(var\(--tl-table-rows,8\)/);
 assert.match(expandedStyles, /width:28px/);
 assert.match(expandedStyles, /font-size:clamp\(10\.5px/);
+assert.match(crestSource, /OFFICIAL_CLUB_LOGO_MANIFEST/, 'home matchup must prefer deterministic official crests');
+assert.match(crestSource, /team\.replaceChildren\(shell, heading, subtitle\)/, 'home matchup must remove malformed legacy image fragments');
+assert.match(crestSource, /tl-home-crest-shell/, 'home matchup must normalize every crest into one shell');
+assert.match(crestStyles, /align-items:\s*center\s*!important/, 'home crest shell must center vertically');
+assert.match(crestStyles, /justify-content:\s*center\s*!important/, 'home crest shell must center horizontally');
+assert.match(crestStyles, /object-position:\s*50% 50%\s*!important/, 'home crests must use a centered image origin');
+assert.match(crestStyles, /width:\s*88px\s*!important[\s\S]*height:\s*88px\s*!important/, 'home crests must share one visual box');
 
 console.log(JSON.stringify({
   ok: true,
@@ -44,5 +54,7 @@ console.log(JSON.stringify({
   officialCompetitionMark: true,
   responsiveStandings: true,
   visibleTeams: '8-14',
-  largerClubMarks: true
+  largerClubMarks: true,
+  homeCrestGeometry: '116-shell/88-image-centered',
+  malformedExternalCrestFragmentsRemoved: true
 }, null, 2));
