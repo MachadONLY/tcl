@@ -2,12 +2,16 @@ import './career-official-club-logos.css';
 import { EUROPEAN_CLUBS } from './career-core/european-club-catalog.js';
 import { normalizeClubLogoKey, resolveOfficialClubLogo } from './career-core/official-club-logo-service.js';
 
-const TARGET_SELECTOR = [
+const TARGET_SELECTORS = [
   '.tcc-external-crest',
   '.cp-external-crest',
   '.tl-team img[src^="data:image/svg+xml"]',
   '.tl-match-center img[src^="data:image/svg+xml"]'
-].join(',');
+];
+const TARGET_SELECTOR = TARGET_SELECTORS.join(',');
+const FALLBACK_SELECTOR = TARGET_SELECTORS
+  .map(selector => `${selector}[data-official-logo-state="fallback"]`)
+  .join(',');
 
 const CLUB_BY_NAME = new Map(EUROPEAN_CLUBS.map(club => [normalizeClubLogoKey(club.name), club]));
 const queued = new WeakSet();
@@ -148,10 +152,7 @@ const domObserver = new MutationObserver(records => {
 
 domObserver.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('online', () => {
-  document.querySelectorAll(`${TARGET_SELECTOR}[data-official-logo-state="fallback"]`).forEach(node => {
-    node.removeAttribute('data-official-logo-state');
-    void upgrade(node);
-  });
+  document.querySelectorAll(FALLBACK_SELECTOR).forEach(node => void upgrade(node));
 });
 
 scan();
