@@ -9,6 +9,7 @@ on:
       - 'scripts/audit-official-club-logo-catalog.mjs'
       - 'scripts/complete-official-club-logo-manifest.mjs'
       - 'scripts/finish-official-club-logo-manifest.mjs'
+      - 'scripts/resolve-fotmob-club-logo-manifest.mjs'
       - '.github/workflows/official-club-logo-catalog-audit.yml'
   workflow_dispatch:
 
@@ -38,8 +39,11 @@ jobs:
       - name: Complete broad provider pass
         run: node scripts/complete-official-club-logo-manifest.mjs
 
-      - name: Resolve and verify every remaining club
-        run: node scripts/finish-official-club-logo-manifest.mjs --require-complete
+      - name: Resolve secondary providers
+        run: node scripts/finish-official-club-logo-manifest.mjs
+
+      - name: Resolve remaining clubs through FotMob and require full coverage
+        run: node scripts/resolve-fotmob-club-logo-manifest.mjs --require-complete
 
       - name: Upload complete audit and generated manifest
         if: always()
