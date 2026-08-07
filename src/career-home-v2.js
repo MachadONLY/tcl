@@ -4,9 +4,11 @@ import {
   deriveTable,
   formatDate,
   nextUserFixture,
+  normalizeCareer,
   squadFor,
   userFixtures
-} from './career-core/career-core.js';
+} from './career-core/career-runtime.js';
+import { friendlyResultFor, isFriendlyFixture, resolveFriendlyClub } from './career-core/friendly-engine.js';
 import { CareerRepository, legacyClubSelection } from './career-core/career-repository.js';
 
 const ROTATION_MS = 5000;
@@ -27,6 +29,7 @@ let activeSlide = 2;
 let rotationTimer = null;
 let renderQueued = false;
 let renderVersion = 0;
+let activeCareer = null;
 
 const slideMeta = Object.freeze([
   { eyebrow: 'CLUBE', title: 'Caixa de entrada', subtitle: 'Mensagens e decisões' },
@@ -38,9 +41,23 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, token => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 })[token]);
 
-const club = code => CLUB_BY_CODE.get(code);
-const crestPath = code => `/assets/clubs/2026-27/${String(code).toLowerCase()}/crest.svg`;
-const clubAsset = (code, file) => `/assets/clubs/2026-27/${String(code).toLowerCase()}/${file}`;
+function initials(value) {
+  return String(value || 'FC').split(/\s+/).filter(Boolean).slice(0, 3).map(part => part[0]).join('').toUpperCase();
+}
+
+function externalCrestData(clubData) {
+  const label = initials(clubData?.shortName || clubData?.name);
+  const color = String(clubData?.color || '#43899c').replace('#', '%23');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${color}"/><stop offset="1" stop-color="%23061117"/></linearGradient></defs><circle cx="64" cy="64" r="58" fill="url(%23g)" stroke="%23bfeef2" stroke-opacity=".5" stroke-width="3"/><text x="64" y="70" text-anchor="middle" fill="white" font-family="Arial" font-size="27" font-weight="900">${label}</text></svg>`;
+  return `data:image/svg+xml,${svg}`;
+}
+
+const club = code => CLUB_BY_CODE.get(code) || (activeCareer ? resolveFriendlyClub(activeCareer, code) : null) || { id: code, name: String(code), shortName: String(code), color: '#43899c' };
+const crestPath = code => CLUB_BY_CODE.has(code) ? `/assets/clubs/2026-27/${String(code).toLowerCase()}/crest.svg` : externalCrestData(club(code));
+const clubAsset = (code, file) => {
+  const safeCode = CLUB_BY_CODE.has(code) ? code : activeCareer?.clubCode || 'MUN';
+  return `/assets/clubs/2026-27/${String(safeCode).toLowerCase()}/${file}`;
+};
 
 function isHomeRoute() {
   const hash = window.location.hash.replace('#', '');
@@ -165,7 +182,7 @@ function contextMessages(career, fixture) {
 
 function latestUserResult(career) {
   return userFixtures(career)
-    .filter(fixture => career.results[fixture.id])
+    .filter(fixture => friendlyResultFor(career, fixture))
     .sort((first, second) => second.date.localeCompare(first.date))[0] || null;
 }
 
@@ -173,21 +190,24 @@ function newsStory(career, fixture) {
   const selectedClub = club(career.clubCode);
   const latest = latestUserResult(career);
   if (latest) {
-    const result = career.results[latest.id];
+    const result = friendlyResultFor(career, latest);
     const opponentCode = latest.home === career.clubCode ? latest.away : latest.home;
     const opponent = club(opponentCode);
     const form = resultForClub(latest, result, career.clubCode);
     const home = latest.home === career.clubCode;
     const scored = home ? result.homeGoals : result.awayGoals;
     const conceded = home ? result.awayGoals : result.homeGoals;
+    const friendly = isFriendlyFixture(latest);
     return {
-      category: form === 'W' ? 'VITÓRIA' : form === 'L' ? 'REAÇÃO' : 'PREMIER LEAGUE',
+      category: friendly ? 'PRÉ-TEMPORADA' : form === 'W' ? 'VITÓRIA' : form === 'L' ? 'REAÇÃO' : 'PREMIER LEAGUE',
       title: form === 'W'
         ? `${selectedClub.shortName || selectedClub.name} vence ${opponent.shortName || opponent.name} e ganha força`
         : form === 'L'
           ? `${selectedClub.shortName || selectedClub.name} volta ao trabalho após duelo com ${opponent.shortName || opponent.name}`
-          : `${selectedClub.shortName || selectedClub.name} e ${opponent.shortName || opponent.name} dividem os pontos`,
-      body: `O placar de ${scored}–${conceded} já repercute no ambiente do clube. A comissão técnica volta as atenções para a próxima rodada.`,
+          : `${selectedClub.shortName || selectedClub.name} e ${opponent.shortName || opponent.name} terminam empatados`,
+      body: friendly
+        ? `O placar de ${scored}–${conceded} elevou o ritmo competitivo do elenco sem afetar a tabela da liga.`
+        : `O placar de ${scored}–${conceded} já repercute no ambiente do clube. A comissão técnica volta as atenções para a próxima rodada.`,
       image: clubAsset(career.clubCode, 'stadium.webp'),
       fallback: clubAsset(career.clubCode, 'stadium.jpg'),
       time: 'Hoje · 18:05'
@@ -198,13 +218,16 @@ function newsStory(career, fixture) {
     ? (fixture.home === career.clubCode ? fixture.away : fixture.home)
     : null;
   const opponent = opponentCode ? club(opponentCode) : null;
+  const friendly = isFriendlyFixture(fixture);
   return {
-    category: fixture ? 'PRÓXIMO JOGO' : 'NOVA TEMPORADA',
+    category: fixture ? friendly ? 'PRÉ-TEMPORADA' : 'PRÓXIMO JOGO' : 'NOVA TEMPORADA',
     title: fixture
       ? `${selectedClub.shortName || selectedClub.name} fecha a preparação para enfrentar ${opponent.shortName || opponent.name}`
       : `${selectedClub.shortName || selectedClub.name} inicia uma nova temporada`,
     body: fixture
-      ? `O elenco entra na reta final de preparação para a rodada ${fixture.matchweek}. Condição, moral e escolhas táticas podem decidir o confronto.`
+      ? friendly
+        ? 'O amistoso será usado para ganhar condição, testar a tática e distribuir minutos antes da estreia oficial.'
+        : `O elenco entra na reta final de preparação para a rodada ${fixture.matchweek}. Condição, moral e escolhas táticas podem decidir o confronto.`
       : 'A diretoria, a comissão e o elenco já trabalham nos primeiros objetivos da carreira.',
     image: clubAsset(career.clubCode, 'manager.webp'),
     fallback: clubAsset(career.clubCode, 'stadium.webp'),
@@ -217,7 +240,7 @@ function renderTimeline(career, fixture) {
     const isToday = date === career.currentDate;
     const isMatch = fixture?.date === date;
     const days = daysBetween(career.currentDate, date);
-    const label = isMatch ? 'JOGO' : days === 0 ? 'HOJE' : days % 3 === 0 ? 'RECUPERAÇÃO' : 'TREINO';
+    const label = isMatch ? isFriendlyFixture(fixture) ? 'AMISTOSO' : 'JOGO' : days === 0 ? 'HOJE' : days % 3 === 0 ? 'RECUPERAÇÃO' : 'TREINO';
     return `<div class="tl-day ${isToday ? 'is-today' : ''} ${isMatch ? 'is-match' : ''}">
       <span>${weekday(date)}</span><b>${date.slice(-2)}</b><small>${label}</small>
     </div>`;
@@ -236,18 +259,28 @@ function renderMatchPanel(career, fixture) {
 
   const home = club(fixture.home);
   const away = club(fixture.away);
-  const venue = home;
+  const homeInternal = CLUB_BY_CODE.has(fixture.home);
+  const awayInternal = CLUB_BY_CODE.has(fixture.away);
+  const venue = fixture.venue === 'neutral' ? selectedClub : home;
+  const venueText = fixture.venue === 'neutral' ? 'Campo neutro' : venue.stadium || venue.name;
   const distance = daysBetween(career.currentDate, fixture.date);
   const timing = distance === 0 ? 'Hoje' : distance === 1 ? 'Amanhã' : `Em ${distance} dias`;
   const preparation = preparationValue(career, fixture);
-  return `<section class="tl-match-card">
-    <img class="tl-match-bg" src="${clubAsset(venue.code, 'stadium.webp')}" data-fallback="${clubAsset(venue.code, 'stadium.jpg')}" alt="${escapeHtml(venue.stadium)}">
+  const friendly = isFriendlyFixture(fixture);
+  const table = friendly ? [] : deriveTable(career);
+  const teamSubtitle = (reference, internal) => reference === career.clubCode
+    ? 'Seu clube'
+    : friendly || !internal
+      ? 'Adversário de pré-temporada'
+      : `${table.find(row => row.code === reference)?.position || '—'}º lugar`;
+  return `<section class="tl-match-card ${friendly ? 'is-friendly' : ''}">
+    <img class="tl-match-bg" src="${clubAsset(venue.code, 'stadium.webp')}" data-fallback="${clubAsset(venue.code, 'stadium.jpg')}" alt="${escapeHtml(venueText)}">
     <div class="tl-match-shade"></div>
-    <header class="tl-match-head"><div><small>PRÓXIMO JOGO</small><b>Premier League · Rodada ${fixture.matchweek}</b></div><span><i></i>${timing}</span></header>
+    <header class="tl-match-head"><div><small>${friendly ? 'PRÓXIMO AMISTOSO' : 'PRÓXIMO JOGO'}</small><b>${friendly ? 'Friendly Match · Pré-temporada' : `Premier League · Rodada ${fixture.matchweek}`}</b></div><span><i></i>${timing}</span></header>
     <div class="tl-match-center">
-      <div class="tl-team"><span><img src="${crestPath(home.code)}" alt="${escapeHtml(home.name)}"></span><h2>${escapeHtml(home.shortName || home.name)}</h2><small>${fixture.home === career.clubCode ? 'Seu clube' : `${deriveTable(career).find(row => row.code === home.code)?.position || '—'}º lugar`}</small></div>
-      <div class="tl-kickoff"><small>${formatDate(fixture.date, true)}</small><strong>${fixture.time}</strong><span>${escapeHtml(venue.stadium)}</span></div>
-      <div class="tl-team"><span><img src="${crestPath(away.code)}" alt="${escapeHtml(away.name)}"></span><h2>${escapeHtml(away.shortName || away.name)}</h2><small>${fixture.away === career.clubCode ? 'Seu clube' : `${deriveTable(career).find(row => row.code === away.code)?.position || '—'}º lugar`}</small></div>
+      <div class="tl-team"><span><img src="${crestPath(fixture.home)}" alt="${escapeHtml(home.name)}"></span><h2>${escapeHtml(home.shortName || home.name)}</h2><small>${teamSubtitle(fixture.home, homeInternal)}</small></div>
+      <div class="tl-kickoff"><small>${formatDate(fixture.date, true)}</small><strong>${fixture.time}</strong><span>${escapeHtml(venueText)}</span></div>
+      <div class="tl-team"><span><img src="${crestPath(fixture.away)}" alt="${escapeHtml(away.name)}"></span><h2>${escapeHtml(away.shortName || away.name)}</h2><small>${teamSubtitle(fixture.away, awayInternal)}</small></div>
     </div>
     <footer class="tl-match-foot"><div><span>Preparação</span><b>${preparation}%</b><i><em style="width:${preparation}%"></em></i></div><button data-home-continue>▷ <span>${distance === 0 ? 'Preparar partida' : 'Avançar calendário'}</span></button></footer>
   </section>`;
@@ -260,9 +293,9 @@ function renderInboxSlide(career, fixture) {
     <div class="tl-inbox-title"><span>✉</span><div><h3>Principal</h3><p><b>${unread}</b> não lidas · ${messages.length} mensagens</p></div><button data-home-open="inbox">⌕</button></div>
     <div class="tl-inbox-tabs"><b>Todos</b><span>Não lidos <i>${unread}</i></span><button data-home-open="inbox">Ver caixa completa</button></div>
     <div class="tl-message-list">${messages.map(message => {
-      const initials = message.sender.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+      const avatar = message.sender.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
       return `<button class="tl-message ${message.unread ? 'is-unread' : ''}" data-home-open="inbox">
-        <i></i><span class="tl-avatar ${message.tone}">${escapeHtml(initials)}</span>
+        <i></i><span class="tl-avatar ${message.tone}">${escapeHtml(avatar)}</span>
         <span class="tl-message-copy"><small>${escapeHtml(message.sender)}<time>${escapeHtml(message.time)}</time></small><b>${escapeHtml(message.subject)}</b><p>${escapeHtml(message.body)}</p><em>${escapeHtml(message.category)}</em></span>
       </button>`;
     }).join('')}</div>
@@ -306,6 +339,7 @@ function renderRail(career, fixture) {
 }
 
 function renderHomeMarkup(career) {
+  activeCareer = career;
   const fixture = nextUserFixture(career);
   return `<div class="tl-home-v2">
     <section class="tl-home-main">
@@ -382,7 +416,8 @@ async function installHome() {
   if (!content || content.querySelector('.tl-home-v2')) return;
   const version = ++renderVersion;
   const selected = legacyClubSelection();
-  const career = await CareerRepository.load();
+  const loaded = await CareerRepository.load();
+  const career = normalizeCareer(loaded, selected || 'MUN');
   if (version !== renderVersion || !career || !selected || !isHomeRoute()) return;
   content.classList.add('cp-content-home-v2');
   content.innerHTML = renderHomeMarkup(career);
