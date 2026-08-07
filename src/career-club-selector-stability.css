@@ -13,9 +13,93 @@
   display: none;
 }
 
+/*
+ * Club crest presentation contract.
+ * Every official local crest keeps its native artwork/aspect ratio inside the
+ * same centered square safe-area. No per-club scaling, stretching or offsets.
+ */
+.tl-club-select__rail-item {
+  --tl-rail-crest-box: clamp(28px, 1.7vw, 32px);
+}
+
+.tl-club-select__rail-item img {
+  display: block;
+  width: var(--tl-rail-crest-box);
+  height: var(--tl-rail-crest-box);
+  max-width: none;
+  max-height: none;
+  padding: 2px;
+  box-sizing: border-box;
+  object-fit: contain;
+  object-position: center;
+  transform: none;
+  image-rendering: auto;
+}
+
+.tl-club-select .tl-club-card__crest-media {
+  position: relative !important;
+  inset: auto !important;
+  display: grid;
+  place-items: center;
+  width: clamp(168px, 12vw, 214px);
+  height: clamp(168px, 12vw, 214px);
+  aspect-ratio: 1 / 1;
+}
+
+.tl-club-select .tl-club-card__crest-media > img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 8%;
+  box-sizing: border-box;
+  object-fit: contain !important;
+  object-position: center;
+  transform: none !important;
+  image-rendering: auto;
+}
+
+.tl-club-select .tl-club-story__rival-media {
+  position: relative !important;
+  inset: auto !important;
+  display: grid;
+  place-items: center;
+  width: clamp(52px, 3.6vw, 66px);
+  height: clamp(52px, 3.6vw, 66px);
+  aspect-ratio: 1 / 1;
+}
+
+.tl-club-select .tl-club-story__rival-media > img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 7%;
+  box-sizing: border-box;
+  object-fit: contain !important;
+  object-position: center;
+  transform: none !important;
+  image-rendering: auto;
+}
+
 @media (max-height: 820px) {
   .tl-club-select {
     grid-template-rows: 82px 46px minmax(0, 1fr);
     padding-bottom: 0;
+  }
+
+  .tl-club-select__rail-item {
+    --tl-rail-crest-box: 27px;
+  }
+
+  .tl-club-select .tl-club-card__crest-media {
+    width: clamp(146px, 10.5vw, 188px);
+    height: clamp(146px, 10.5vw, 188px);
   }
 }
