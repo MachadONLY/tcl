@@ -5,6 +5,7 @@ const calendarSource = fs.readFileSync('src/career-calendar.js', 'utf8');
 const calendarStyles = fs.readFileSync('src/career-calendar.css', 'utf8');
 const matchupSource = fs.readFileSync('src/career-calendar-matchup.js', 'utf8');
 const matchupStyles = fs.readFileSync('src/career-calendar-matchup.css', 'utf8');
+const fixtureParityStyles = fs.readFileSync('src/career-calendar-fixture-parity.css', 'utf8');
 const footerlessStyles = fs.readFileSync('src/career-calendar-no-footer.css', 'utf8');
 const entrypoint = fs.readFileSync('index.html', 'utf8');
 
@@ -16,8 +17,13 @@ assert.match(calendarSource, /userFixtures\(career\)/, 'calendar must derive fix
 assert.match(calendarSource, /index < 42/, 'calendar must render a stable six-week month grid');
 assert.match(calendarSource, /career\.clubCode/, 'calendar must derive club-specific content from the save');
 assert.doesNotMatch(calendarSource, /Burnley|Manchester City|Aston Villa/, 'reference clubs must not be hardcoded');
-assert.match(matchupSource, /clubFor\(fixture\.home\)/, 'matchup must render the actual home club on the left');
-assert.match(matchupSource, /clubFor\(fixture\.away\)/, 'matchup must render the actual away club on the right');
+assert.match(matchupSource, /career-runtime\.js/, 'matchup must use the combined league + friendly runtime fixture list');
+assert.match(matchupSource, /clubFor\(career, fixture\.home\)/, 'matchup must render the actual home club on the left');
+assert.match(matchupSource, /clubFor\(career, fixture\.away\)/, 'matchup must render the actual away club on the right');
+assert.match(matchupSource, /resolveFriendlyClub\(career, reference\)/, 'matchup must resolve external friendly opponents instead of substituting a league club');
+assert.match(matchupSource, /friendlyResultFor\(career, fixture\)/, 'matchup must render persisted friendly results with the same score layout');
+assert.match(matchupSource, /data-official-club-name/, 'external friendly crests must opt into the official crest resolver');
+assert.match(matchupSource, /data-calendar-cancel-friendly/, 'friendly cancellation must remain available inside the unified matchup panel');
 assert.match(matchupSource, /result\.homeGoals/, 'matchup score must preserve home-away ordering');
 assert.match(matchupSource, /result\?\.events/, 'matchup must read persisted match events');
 assert.match(matchupSource, /event\.playerName/, 'matchup must render goal scorers');
@@ -27,6 +33,8 @@ assert.match(matchupSource, /requestedFixtureId/, 'fixture selection must persis
 assert.match(matchupSource, /matchupFixtureId === fixtureId/, 'observer rendering must be idempotent');
 assert.match(matchupStyles, /grid-template-columns:\s*minmax\(0, 1fr\).*minmax\(0, 1fr\)/, 'matchup must display both clubs side by side');
 assert.match(matchupStyles, /\.tcc-matchup-goals/, 'matchup must provide a goal timeline below the score');
+assert.match(fixtureParityStyles, /\.tcc-fixture\.is-friendly[\s\S]*#13e6ee[\s\S]*#15c9ed[\s\S]*#6d77f4/, 'friendly cards must inherit the league fixture visual treatment');
+assert.match(fixtureParityStyles, /\.tl-official-club-logo\.tcc-matchup-crest/, 'official external crests must be normalized inside the same matchup crest box');
 assert.match(calendarStyles, /grid-template-columns:\s*repeat\(7/, 'calendar must keep seven weekday columns');
 assert.match(calendarStyles, /left:\s*236px/, 'calendar must preserve the full career sidebar on wide screens');
 assert.match(calendarStyles, /@media \(max-width: 1180px\)[\s\S]*left:\s*76px/, 'calendar must preserve the compact sidebar on narrower screens');
