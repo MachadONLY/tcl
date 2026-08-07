@@ -1,3 +1,5 @@
+import { OFFICIAL_CLUB_LOGO_MANIFEST } from './official-club-logo-manifest.js';
+
 const SPORTS_DB_SEARCH = 'https://www.thesportsdb.com/api/v1/json/123/searchteams.php';
 const WIKIPEDIA_API = 'https://en.wikipedia.org/w/api.php';
 const CACHE_KEY = 'touchline.official-club-logos.v1';
@@ -53,6 +55,18 @@ export function normalizeClubLogoKey(value) {
   return String(value || '')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function staticManifestLogo(club) {
+  if (!club?.id) return null;
+  const entry = OFFICIAL_CLUB_LOGO_MANIFEST[club.id];
+  if (!entry || typeof entry.logoUrl !== 'string' || !/^https:\/\//i.test(entry.logoUrl)) return null;
+  return {
+    url: entry.logoUrl,
+    source: entry.provider || 'Static official club logo manifest',
+    providerId: entry.providerId || null,
+    resolvedName: entry.sourceName || entry.name || club.name || ''
+  };
 }
 
 function loadCache() {
@@ -240,6 +254,8 @@ async function wikipediaLogo(club) {
 
 export async function resolveOfficialClubLogo(club) {
   if (!club?.name) return null;
+  const staticLogo = staticManifestLogo(club);
+  if (staticLogo) return staticLogo;
   const cached = readCached(club);
   if (cached) return cached.url ? cached : null;
   const key = cacheKey(club);
@@ -264,5 +280,6 @@ export const OFFICIAL_CLUB_LOGO_META = Object.freeze({
   fallbackProvider: 'Wikipedia PageImages',
   networkMode: 'lazy-visible-only',
   cacheDays: 30,
-  sportsDbRequestsPerMinute: MAX_SPORTS_DB_REQUESTS_PER_MINUTE
+  sportsDbRequestsPerMinute: MAX_SPORTS_DB_REQUESTS_PER_MINUTE,
+  staticManifestFirst: true
 });
