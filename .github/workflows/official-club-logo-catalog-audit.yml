@@ -1,0 +1,44 @@
+name: Official Club Logo Catalog Audit
+
+on:
+  push:
+    branches:
+      - feat/playable-career-v1
+    paths:
+      - 'src/career-core/european-club-catalog*.js'
+      - 'scripts/audit-official-club-logo-catalog.mjs'
+      - '.github/workflows/official-club-logo-catalog-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout branch head
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve every European club logo
+        run: node scripts/audit-official-club-logo-catalog.mjs
+
+      - name: Upload complete audit and generated manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-club-logo-catalog-audit
+          path: |
+            artifacts/official-club-logo-audit.json
+            artifacts/official-club-logo-manifest.generated.json
+          if-no-files-found: error
+          retention-days: 7
