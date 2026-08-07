@@ -1,0 +1,67 @@
+/* Friendly fixtures use the same calendar-card and matchup visual language as league fixtures. */
+.tcc-fixture.is-friendly {
+  color: #071317;
+  background: linear-gradient(135deg, #13e6ee 0%, #15c9ed 52%, #6d77f4 100%);
+}
+
+.tcc-fixture.is-friendly::before {
+  background: var(--tcc-club);
+  opacity: .8;
+}
+
+.tcc-fixture.is-friendly .tcc-fixture-copy small {
+  color: inherit;
+}
+
+.tcc-matchup-crest-shell .tcc-external-crest {
+  width: 100%;
+  height: 100%;
+}
+
+.tcc-matchup-crest-shell .tcc-external-crest:not(.tl-official-club-logo) {
+  opacity: 0;
+}
+
+.tcc-matchup-crest-shell .tl-official-club-logo.tcc-matchup-crest {
+  width: 100%;
+  height: 100%;
+  padding: 6%;
+  object-fit: contain !important;
+  object-position: center;
+  transform: none !important;
+  filter: drop-shadow(0 13px 24px rgba(0,0,0,.42));
+}
+
+.tcc-matchup-friendly-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 10px;
+}
+
+.tcc-matchup-friendly-meta > small {
+  color: rgba(255,255,255,.38);
+  font-size: 8px;
+  font-weight: 780;
+  letter-spacing: .16em;
+}
+
+.tcc-matchup-cancel {
+  margin-top: 0;
+  min-width: 150px;
+  padding: 8px 12px;
+}
+
+@media (max-height: 760px) {
+  .tcc-matchup-friendly-meta {
+    gap: 6px;
+    min-height: 32px;
+    margin-top: 6px;
+  }
+
+  .tcc-matchup-cancel {
+    padding-block: 6px;
+  }
+}

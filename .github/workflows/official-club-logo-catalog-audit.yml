@@ -1,0 +1,102 @@
+name: Official Club Logo Catalog Audit
+
+on:
+  push:
+    branches:
+      - feat/playable-career-v1
+    paths:
+      - 'src/career-core/european-club-catalog*.js'
+      - 'scripts/audit-official-club-logo-catalog.mjs'
+      - 'scripts/complete-official-club-logo-manifest.mjs'
+      - 'scripts/finish-official-club-logo-manifest.mjs'
+      - 'scripts/resolve-fotmob-club-logo-manifest.mjs'
+      - 'scripts/finalize-official-club-logo-manifest.mjs'
+      - 'scripts/fill-sofascore-club-logo-manifest.mjs'
+      - '.github/workflows/official-club-logo-catalog-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout branch head
+        uses: actions/checkout@v4
+        with:
+          ref: feat/playable-career-v1
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build country catalog baseline
+        run: node scripts/audit-official-club-logo-catalog.mjs
+
+      - name: Complete broad provider pass
+        run: node scripts/complete-official-club-logo-manifest.mjs
+
+      - name: Resolve secondary providers
+        run: node scripts/finish-official-club-logo-manifest.mjs
+
+      - name: Resolve remaining clubs through FotMob
+        run: node scripts/resolve-fotmob-club-logo-manifest.mjs
+
+      - name: Run resilient final resolution pass
+        run: node scripts/finalize-official-club-logo-manifest.mjs
+
+      - name: Resolve remaining clubs through SofaScore
+        run: node scripts/fill-sofascore-club-logo-manifest.mjs
+
+      - name: Install generated manifest and audit snapshot
+        run: |
+          cp artifacts/official-club-logo-manifest.generated.js src/career-core/official-club-logo-manifest.js
+          cp artifacts/official-club-logo-audit.json .github/official-club-logo-audit.latest.json
+
+      - name: Commit generated crest progress before completeness gate
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/career-core/official-club-logo-manifest.js .github/official-club-logo-audit.latest.json
+          if git diff --cached --quiet; then
+            echo "Generated crest files already current."
+          else
+            git commit -m "Persist generated European club crests"
+            git push origin HEAD:feat/playable-career-v1
+          fi
+
+      - name: Assert every catalog club has a deterministic crest
+        run: |
+          node --input-type=module <<'NODE'
+          import { EUROPEAN_CLUBS } from './src/career-core/european-club-catalog.js';
+          import { OFFICIAL_CLUB_LOGO_MANIFEST } from './src/career-core/official-club-logo-manifest.js';
+          const missing = EUROPEAN_CLUBS.filter(club => !OFFICIAL_CLUB_LOGO_MANIFEST[club.id]?.logoUrl);
+          if (missing.length) {
+            console.error('Missing crests:', missing.map(club => `${club.id}:${club.name}`).join(', '));
+            process.exit(1);
+          }
+          if (Object.keys(OFFICIAL_CLUB_LOGO_MANIFEST).length < EUROPEAN_CLUBS.length) process.exit(1);
+          console.log(`Verified deterministic crests: ${EUROPEAN_CLUBS.length}/${EUROPEAN_CLUBS.length}`);
+          NODE
+
+      - name: Run logo smoke test
+        run: node tests/official-club-logos-smoke.mjs
+
+      - name: Upload complete audit and generated manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-club-logo-catalog-audit
+          path: |
+            artifacts/official-club-logo-audit.json
+            artifacts/official-club-logo-manifest.generated.json
+            artifacts/official-club-logo-manifest.generated.js
+          if-no-files-found: error
+          retention-days: 7

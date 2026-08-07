@@ -1,0 +1,169 @@
+/* Zero-flash tactics updates, fixed geometry and fully reachable reserve carousel. */
+html.touchline-tactics-mode,
+html.touchline-tactics-mode body,
+html.touchline-tactics-mode .cp-work,
+html.touchline-tactics-mode .cp-content,
+.tl-tactics-studio[data-live-dom="true"],
+.tl-tactics-studio[data-live-dom="true"] .tl-war-room,
+.tl-tactics-studio[data-live-dom="true"] .tl-pitch-stage,
+.tl-tactics-studio[data-live-dom="true"] .tl-side-rail,
+.tl-tactics-studio[data-live-dom="true"] .tl-squad-manager,
+.tl-tactics-studio[data-live-dom="true"] .tl-roster-grid{
+  overflow-anchor:none!important;
+}
+
+.tl-tactics-studio[data-live-dom="true"] .tl-command-bar,
+.tl-tactics-studio[data-live-dom="true"] .tl-war-room,
+.tl-tactics-studio[data-live-dom="true"] .tl-tactic-controls,
+.tl-tactics-studio[data-live-dom="true"] .tl-pitch-stage,
+.tl-tactics-studio[data-live-dom="true"] .tl-side-rail,
+.tl-tactics-studio[data-live-dom="true"] .tl-squad-manager{
+  animation:none!important;
+}
+
+.tl-tactics-studio[data-live-dom="true"] .tl-pitch-stage{
+  contain:layout paint;
+  transform:translateZ(0);
+}
+
+.tl-tactics-studio[data-live-dom="true"][data-tactics-view="lineup"] .tl-side-rail{
+  grid-template-rows:68px minmax(0,1fr)!important;
+}
+
+.tl-tactics-studio[data-live-dom="true"][data-tactics-view="lineup"] .tl-side-rail>.tl-primary-view-switch{
+  height:68px!important;
+  min-height:68px!important;
+  max-height:68px!important;
+}
+
+.tl-tactics-studio[data-live-dom="true"] .tl-player-node{
+  will-change:left,top,transform;
+  backface-visibility:hidden;
+  transform:translate3d(-50%,-50%,0);
+}
+
+.tl-tactics-studio[data-live-dom="true"] .tl-player-node:hover{
+  transform:translate3d(-50%,-50%,0) scale(1.05);
+}
+
+.tl-tactics-studio[data-live-dom="true"] .tl-player-node.selected{
+  transform:translate3d(-50%,-50%,0)!important;
+}
+
+.tl-tactics-studio[data-live-dom="true"] .tl-squad-card.selected{
+  transform:none!important;
+}
+
+.tl-squad-manager{
+  overflow:hidden;
+}
+
+.tl-squad-manager>header{
+  min-width:0;
+}
+
+.tl-squad-manager>header>nav{
+  min-width:0;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+
+.tl-squad-manager>header>nav::-webkit-scrollbar{
+  display:none;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves{
+  display:flex!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  flex-wrap:nowrap!important;
+  gap:10px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  box-sizing:border-box;
+  padding:3px 78px 13px 18px!important;
+  scroll-padding-inline:18px 78px;
+  scroll-snap-type:none!important;
+  scrollbar-gutter:stable both-edges;
+  overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves::before,
+.tl-tactics-studio .tl-roster-grid.reserves::after{
+  content:"";
+  flex:0 0 2px;
+  height:1px;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves::after{
+  flex-basis:72px;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves>.tl-squad-card{
+  flex:0 0 220px!important;
+  width:220px!important;
+  min-width:220px!important;
+  scroll-snap-align:none!important;
+}
+
+.tl-roster-scroll-tools{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  flex:0 0 auto;
+  margin-left:auto;
+}
+
+.tl-roster-scroll-tools button{
+  display:grid;
+  place-items:center;
+  width:30px;
+  min-width:30px!important;
+  height:30px;
+  min-height:30px!important;
+  border:1px solid rgba(255,255,255,.09)!important;
+  border-radius:9px!important;
+  background:#0c1117!important;
+  padding:0!important;
+  color:#dfe5eb!important;
+  font-size:18px!important;
+  font-weight:700!important;
+  line-height:1!important;
+  transition:background .16s ease,border-color .16s ease,opacity .16s ease!important;
+}
+
+.tl-roster-scroll-tools button:hover:not(:disabled){
+  border-color:rgba(255,255,255,.2)!important;
+  background:#171f28!important;
+}
+
+.tl-roster-scroll-tools button:disabled{
+  opacity:.28;
+  cursor:default;
+}
+
+@media(max-width:900px){
+  .tl-squad-manager>header{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto;
+  }
+
+  .tl-squad-manager>header>nav{
+    grid-column:1/-1;
+    order:3;
+  }
+
+  .tl-roster-scroll-tools{
+    grid-column:2;
+    grid-row:1;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .tl-tactics-studio[data-live-dom="true"] .tl-player-node,
+  .tl-roster-scroll-tools button{
+    transition:none!important;
+  }
+}

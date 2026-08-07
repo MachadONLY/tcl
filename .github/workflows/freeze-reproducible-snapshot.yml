@@ -1,0 +1,134 @@
+name: Freeze reproducible game snapshot
+
+on:
+  push:
+    branches: [feat/playable-career-v1]
+    paths:
+      - .github/workflows/freeze-reproducible-snapshot.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: freeze-reproducible-game-snapshot
+  cancel-in-progress: false
+
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/playable-career-v1
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate the exact roster, ratings and portrait snapshot
+        run: npm run sync:full-rosters
+
+      - name: Validate the generated game before freezing
+        run: npm run verify:all
+
+      - name: Write reproducibility metadata and checksums
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { readdir, readFile, writeFile } from 'node:fs/promises';
+          import { createHash } from 'node:crypto';
+          import path from 'node:path';
+
+          const roots = [
+            'src/career-core/fotmob-rosters.local.json',
+            'public/assets/players/2026-27'
+          ];
+
+          async function walk(target) {
+            const entries = await readdir(target, { withFileTypes: true });
+            const files = [];
+            for (const entry of entries) {
+              const full = path.join(target, entry.name);
+              if (entry.isDirectory()) files.push(...await walk(full));
+              else files.push(full);
+            }
+            return files;
+          }
+
+          const files = [];
+          for (const root of roots) {
+            if (root.endsWith('.json')) files.push(root);
+            else files.push(...await walk(root));
+          }
+          files.sort();
+
+          const checksums = [];
+          for (const file of files) {
+            const bytes = await readFile(file);
+            checksums.push(`${createHash('sha256').update(bytes).digest('hex')}  ${file.replaceAll('\\\\', '/')}`);
+          }
+
+          const portraitCount = files.filter(file => file.endsWith('.png')).length;
+          if (portraitCount < 628) throw new Error(`Snapshot incompleto: apenas ${portraitCount} retratos.`);
+
+          const metadata = {
+            schemaVersion: 1,
+            generatedAt: new Date().toISOString(),
+            branch: 'feat/playable-career-v1',
+            playerPortraits: portraitCount,
+            generatedFiles: files.length,
+            restore: ['npm install', 'npm run dev'],
+            note: 'This repository ZIP contains the frozen data and assets used by the validated game build.'
+          };
+
+          await writeFile('REPRODUCIBLE_SNAPSHOT.json', `${JSON.stringify(metadata, null, 2)}\n`);
+          await writeFile('REPRODUCIBLE_SNAPSHOT.sha256', `${checksums.join('\n')}\n`);
+          console.log(metadata);
+          NODE
+
+      - name: Commit the frozen snapshot
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/career-core/fotmob-rosters.local.json
+          git add public/assets/players/2026-27
+          git add REPRODUCIBLE_SNAPSHOT.json REPRODUCIBLE_SNAPSHOT.sha256
+          git commit -m "chore: freeze reproducible Touchline game snapshot [skip ci]"
+
+      - name: Prove a clean GitHub ZIP can rebuild the same game
+        shell: bash
+        run: |
+          archive_dir="$(mktemp -d)"
+          git archive --format=tar HEAD | tar -xf - -C "$archive_dir"
+          cd "$archive_dir"
+          npm ci
+          node --input-type=module <<'NODE'
+          import { readFile, readdir } from 'node:fs/promises';
+          import { createHash } from 'node:crypto';
+
+          const expected = (await readFile('REPRODUCIBLE_SNAPSHOT.sha256', 'utf8')).trim().split('\n');
+          for (const row of expected) {
+            const [hash, ...parts] = row.split(/\s+/);
+            const file = parts.join(' ');
+            const actual = createHash('sha256').update(await readFile(file)).digest('hex');
+            if (actual !== hash) throw new Error(`Checksum divergente: ${file}`);
+          }
+
+          const portraits = (await readdir('public/assets/players/2026-27')).filter(name => name.endsWith('.png'));
+          if (portraits.length < 628) throw new Error(`ZIP incompleto: ${portraits.length} retratos.`);
+          console.log(`ZIP limpo validado: ${portraits.length} retratos e ${expected.length} checksums.`);
+          NODE
+          npm run build
+
+      - name: Push the self-contained snapshot
+        run: git push origin HEAD:feat/playable-career-v1
