@@ -8,6 +8,7 @@ on:
       - 'src/career-core/european-club-catalog*.js'
       - 'scripts/audit-official-club-logo-catalog.mjs'
       - 'scripts/complete-official-club-logo-manifest.mjs'
+      - 'scripts/finish-official-club-logo-manifest.mjs'
       - '.github/workflows/official-club-logo-catalog-audit.yml'
   workflow_dispatch:
 
@@ -17,7 +18,7 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout branch head
         uses: actions/checkout@v4
@@ -34,10 +35,14 @@ jobs:
       - name: Build country catalog baseline
         run: node scripts/audit-official-club-logo-catalog.mjs
 
-      - name: Complete and verify every European club logo
-        run: node scripts/complete-official-club-logo-manifest.mjs --require-complete
+      - name: Complete broad provider pass
+        run: node scripts/complete-official-club-logo-manifest.mjs
+
+      - name: Resolve and verify every remaining club
+        run: node scripts/finish-official-club-logo-manifest.mjs --require-complete
 
       - name: Upload complete audit and generated manifest
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: official-club-logo-catalog-audit
