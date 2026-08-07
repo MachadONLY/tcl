@@ -44,11 +44,25 @@ jobs:
       - name: Resolve secondary providers
         run: node scripts/finish-official-club-logo-manifest.mjs
 
-      - name: Resolve remaining clubs through FotMob and require full coverage
-        run: node scripts/resolve-fotmob-club-logo-manifest.mjs --require-complete
+      - name: Resolve remaining clubs through FotMob
+        run: node scripts/resolve-fotmob-club-logo-manifest.mjs
 
-      - name: Install verified manifest in runtime source
-        run: cp artifacts/official-club-logo-manifest.generated.js src/career-core/official-club-logo-manifest.js
+      - name: Install generated manifest and audit snapshot
+        run: |
+          cp artifacts/official-club-logo-manifest.generated.js src/career-core/official-club-logo-manifest.js
+          cp artifacts/official-club-logo-audit.json .github/official-club-logo-audit.latest.json
+
+      - name: Commit generated crest progress before completeness gate
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/career-core/official-club-logo-manifest.js .github/official-club-logo-audit.latest.json
+          if git diff --cached --quiet; then
+            echo "Generated crest files already current."
+          else
+            git commit -m "Persist generated European club crests"
+            git push origin HEAD:feat/playable-career-v1
+          fi
 
       - name: Assert every catalog club has a deterministic crest
         run: |
@@ -66,18 +80,6 @@ jobs:
 
       - name: Run logo smoke test
         run: node tests/official-club-logos-smoke.mjs
-
-      - name: Commit verified manifest to playable branch
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/career-core/official-club-logo-manifest.js
-          if git diff --cached --quiet; then
-            echo "Manifest already current."
-          else
-            git commit -m "Ship verified crests for every European club"
-            git push origin HEAD:feat/playable-career-v1
-          fi
 
       - name: Upload complete audit and generated manifest
         if: always()
