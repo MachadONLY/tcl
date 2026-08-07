@@ -19,9 +19,11 @@ import { EUROPEAN_CATALOG_META, EUROPE_COUNTRIES, EUROPEAN_CLUBS } from '../src/
 const career = createCareer('MUN', '2026-07-01T09:00:00.000Z');
 assert.equal(career.schemaVersion, 4);
 assert.equal(career.currentDate, '2026-07-01', 'every season must begin on 1 July');
-assert.ok(EUROPE_COUNTRIES.length >= 18, 'European browser must include a broad country catalog');
-assert.ok(EUROPEAN_CLUBS.length >= 350, 'European browser must include hundreds of offline clubs');
+assert.ok(EUROPE_COUNTRIES.length >= 50, 'European browser must include the complete continent-sized country catalog');
+assert.ok(EUROPEAN_CLUBS.length >= 1200, 'European browser must include more than one thousand offline clubs');
 assert.equal(EUROPEAN_CATALOG_META.runtimeNetworkRequired, false);
+assert.equal(new Set(EUROPE_COUNTRIES.map(country => country.code)).size, EUROPE_COUNTRIES.length, 'country codes must be unique');
+assert.equal(new Set(EUROPEAN_CLUBS.map(club => club.id)).size, EUROPEAN_CLUBS.length, 'club ids must be unique');
 
 const friendlies = career.friendlies;
 const official = friendlies.map(fixture => ({
