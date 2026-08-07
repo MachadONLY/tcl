@@ -68,13 +68,19 @@ assert.match(controller, /nextUserFixture\(career\)/);
 assert.match(controller, /const homeReference = fixture\.home/);
 assert.match(controller, /resolveFriendlyClub\(career, homeReference\)/, 'external friendly home clubs must be resolved');
 assert.match(controller, /resolveClubStadiumMedia\(homeClub\)/, 'external home stadiums must use online stadium resolution');
-assert.match(controller, /Never substitute the user's stadium/, 'external failure must never show the save club stadium');
 assert.match(controller, /touchline:career-updated/, 'stadium must refresh when the save advances');
 assert.match(controller, /data-stadium-candidates/);
+assert.match(controller, /revealWhenLoaded/, 'candidate loads must explicitly reveal the stadium image');
 assert.match(controller, /window\.addEventListener\('error'/);
 assert.doesNotMatch(controller, /career-core\/career-core\.js/, 'league-only next fixture logic must never drive the home stadium');
 assert.doesNotMatch(controller, /stadium-custom\.svg/);
 assert.doesNotMatch(controller, /hullStadiumObjectUrl/);
+
+const localBranch = controller.indexOf('if (CLUB_BY_CODE.has(homeReference))');
+const externalBlank = controller.indexOf('clearWrongBackground(image)', localBranch + 1);
+assert.ok(localBranch >= 0 && externalBlank > localBranch, 'verified local home stadiums must be installed before any external-only blanking path');
+assert.match(controller.slice(localBranch, externalBlank), /stadiumAssetCandidates\(homeReference\)/, 'local home clubs must use their bundled stadium media directly');
+
 assert.match(service, /strStadiumThumb/);
 assert.match(service, /Wikipedia PageImages/);
 assert.match(service, /Lerkendal Stadion/);
@@ -88,6 +94,7 @@ console.log(JSON.stringify({
   hullStadium: canonicalStadiumAsset('HUL'),
   firstFriendlyBackground: 'Manchester United / Old Trafford',
   secondFriendlyBackground: 'Rosenborg / Lerkendal Stadion',
+  localStadiumBlankingPrevented: true,
   externalProviderChain: ['TheSportsDB strStadiumThumb', 'Wikipedia PageImages'],
   invariant: STADIUM_MEDIA_META.invariant
 }, null, 2));
