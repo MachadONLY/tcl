@@ -1,0 +1,21 @@
+/* Keep the club selector geometry fixed while every club asset changes. */
+.tl-club-select {
+  grid-template-rows: 102px 52px minmax(0, 1fr);
+  padding-bottom: 0;
+  overflow: clip;
+}
+
+.tl-club-select__stage {
+  padding-top: 0;
+}
+
+.tl-club-select__controls {
+  display: none;
+}
+
+@media (max-height: 820px) {
+  .tl-club-select {
+    grid-template-rows: 82px 46px minmax(0, 1fr);
+    padding-bottom: 0;
+  }
+}
