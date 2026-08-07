@@ -1,9 +1,9 @@
-import { readCareerSummary } from "./career-save-profile.js";
+import { ensureLegacyCareerPointer } from "./career-save-profile.js";
 
 const isBareEntry = !window.location.hash || window.location.hash === "#";
 
 if (isBareEntry) {
-  const summary = readCareerSummary();
+  const summary = ensureLegacyCareerPointer();
   const destination = summary.hasCareer ? summary.lastRoute : "welcome";
   window.history.replaceState(
     null,
