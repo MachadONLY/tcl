@@ -10,6 +10,7 @@ on:
       - 'scripts/complete-official-club-logo-manifest.mjs'
       - 'scripts/finish-official-club-logo-manifest.mjs'
       - 'scripts/resolve-fotmob-club-logo-manifest.mjs'
+      - 'scripts/finalize-official-club-logo-manifest.mjs'
       - '.github/workflows/official-club-logo-catalog-audit.yml'
   workflow_dispatch:
 
@@ -46,6 +47,9 @@ jobs:
 
       - name: Resolve remaining clubs through FotMob
         run: node scripts/resolve-fotmob-club-logo-manifest.mjs
+
+      - name: Run resilient final resolution pass
+        run: node scripts/finalize-official-club-logo-manifest.mjs
 
       - name: Install generated manifest and audit snapshot
         run: |
