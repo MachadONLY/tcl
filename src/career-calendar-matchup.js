@@ -1,6 +1,12 @@
 import './career-calendar-matchup.css';
+import './career-calendar-fixture-parity.css';
 import { CLUB_BY_CODE } from './career-core/season-2026-27.js';
-import { normalizeCareer, userFixtures } from './career-core/career-core.js';
+import { normalizeCareer, userFixtures } from './career-core/career-runtime.js';
+import {
+  friendlyResultFor,
+  isFriendlyFixture,
+  resolveFriendlyClub
+} from './career-core/friendly-engine.js';
 import { CareerRepository, legacyClubSelection } from './career-core/career-repository.js';
 
 const SCREEN_ID = 'touchline-career-calendar';
@@ -12,16 +18,24 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character =>
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[character]));
 
-function clubFor(code) {
-  return CLUB_BY_CODE.get(code) || CLUB_BY_CODE.values().next().value;
+function initials(value) {
+  return String(value || 'FC').split(/\s+/).filter(Boolean).slice(0, 3).map(part => part[0]).join('').toUpperCase();
 }
 
-function crestMarkup(code, className = '') {
-  const club = clubFor(code);
-  const slug = String(code || '').toLowerCase();
-  const primary = club?.crest || `/assets/clubs/2026-27/${slug}/crest.svg`;
-  const fallback = `/assets/clubs/2026-27/${slug}/crest.png`;
-  return `<img class="${className}" src="${escapeHtml(primary)}" data-matchup-image-fallback="${escapeHtml(fallback)}" alt="${escapeHtml(club?.name || code)} crest">`;
+function clubFor(career, reference) {
+  return CLUB_BY_CODE.get(reference) || resolveFriendlyClub(career, reference);
+}
+
+function crestMarkup(career, reference, className = '') {
+  const club = clubFor(career, reference);
+  if (CLUB_BY_CODE.has(reference)) {
+    const slug = String(reference || '').toLowerCase();
+    const primary = club?.crest || `/assets/clubs/2026-27/${slug}/crest.svg`;
+    const fallback = `/assets/clubs/2026-27/${slug}/crest.png`;
+    return `<img class="${className}" src="${escapeHtml(primary)}" data-matchup-image-fallback="${escapeHtml(fallback)}" alt="${escapeHtml(club?.name || reference)} crest">`;
+  }
+
+  return `<span class="tcc-external-crest ${className}" data-official-club-name="${escapeHtml(club?.name || reference)}" style="--external-club:${escapeHtml(club?.color || '#69a7bf')}" aria-label="${escapeHtml(club?.name || reference)} crest">${escapeHtml(initials(club?.shortName || club?.name))}</span>`;
 }
 
 function installImageFallbacks(root) {
@@ -82,11 +96,30 @@ function goalsMarkup(result) {
   `;
 }
 
+function venueLabel(career, fixture, homeClub) {
+  if (isFriendlyFixture(fixture) && fixture.venue === 'neutral') return 'Neutral venue';
+  if (homeClub?.stadium) return homeClub.stadium;
+  if (fixture.home === career.clubCode) return CLUB_BY_CODE.get(career.clubCode)?.stadium || homeClub?.name || '';
+  return homeClub?.name || '';
+}
+
+function friendlyMetaMarkup(career, fixture, result) {
+  if (!isFriendlyFixture(fixture)) return '';
+  const cancellable = !result && fixture.date >= career.currentDate;
+  const source = fixture.source === 'official-2026-preseason' ? 'REAL 2026/27 PRE-SEASON' : 'MANAGER ARRANGED';
+  return `
+    <div class="tcc-matchup-friendly-meta">
+      <small>${source}</small>
+      ${cancellable ? `<button class="tcc-cancel-friendly tcc-matchup-cancel" type="button" data-calendar-cancel-friendly="${escapeHtml(fixture.id)}">Cancelar amistoso</button>` : ''}
+    </div>
+  `;
+}
+
 function matchupMarkup(career, fixture) {
-  const homeClub = clubFor(fixture.home);
-  const awayClub = clubFor(fixture.away);
-  const result = career.results?.[fixture.id] || null;
-  const venue = homeClub?.stadium || '';
+  const homeClub = clubFor(career, fixture.home);
+  const awayClub = clubFor(career, fixture.away);
+  const result = friendlyResultFor(career, fixture);
+  const venue = venueLabel(career, fixture, homeClub);
   const center = result
     ? `<strong class="tcc-matchup-score" aria-label="${result.homeGoals} to ${result.awayGoals}"><span>${result.homeGoals}</span><i>–</i><span>${result.awayGoals}</span></strong>`
     : '<strong class="tcc-matchup-versus" aria-label="versus">×</strong>';
@@ -95,7 +128,7 @@ function matchupMarkup(career, fixture) {
     <div class="tcc-matchup-row">
       <div class="tcc-matchup-club ${fixture.home === career.clubCode ? 'is-controlled' : ''}">
         <small>HOME</small>
-        <div class="tcc-matchup-crest-shell">${crestMarkup(homeClub.code, 'tcc-matchup-crest')}</div>
+        <div class="tcc-matchup-crest-shell">${crestMarkup(career, fixture.home, 'tcc-matchup-crest')}</div>
         <h3>${escapeHtml(homeClub.shortName || homeClub.name)}</h3>
       </div>
 
@@ -106,7 +139,7 @@ function matchupMarkup(career, fixture) {
 
       <div class="tcc-matchup-club ${fixture.away === career.clubCode ? 'is-controlled' : ''}">
         <small>AWAY</small>
-        <div class="tcc-matchup-crest-shell">${crestMarkup(awayClub.code, 'tcc-matchup-crest')}</div>
+        <div class="tcc-matchup-crest-shell">${crestMarkup(career, fixture.away, 'tcc-matchup-crest')}</div>
         <h3>${escapeHtml(awayClub.shortName || awayClub.name)}</h3>
       </div>
     </div>
@@ -117,6 +150,8 @@ function matchupMarkup(career, fixture) {
       <span>${escapeHtml(venue)}</span>
       <b>${result ? 'Full time' : escapeHtml(fixture.time || '15:00')}</b>
     </div>
+
+    ${friendlyMetaMarkup(career, fixture, result)}
   `;
 }
 
@@ -188,9 +223,8 @@ function selectFixtureFromGrid(event) {
   const button = event.target.closest(`#${SCREEN_ID} [data-calendar-fixture]`);
   if (!button) return;
 
-  // The base calendar only accepts fixtures from the anchor month. Intercepting
-  // in capture phase lets overflow-day fixtures remain selectable without
-  // changing the month currently being viewed.
+  // Intercept all fixtures in capture phase so friendlies and overflow-day
+  // league matches share one deterministic detail-panel selection path.
   event.preventDefault();
   event.stopImmediatePropagation();
 
