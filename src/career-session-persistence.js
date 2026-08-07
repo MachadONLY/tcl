@@ -1,4 +1,5 @@
 import {
+  clearActiveCareerProfile,
   markStoragePersistence,
   readCareerSummary,
   recordCareerRoute,
@@ -32,6 +33,11 @@ async function requestPersistentStorage() {
 }
 
 document.addEventListener("click", event => {
+  if (event.target.closest("[data-reset]")) {
+    clearActiveCareerProfile();
+    return;
+  }
+
   const routeButton = event.target.closest("[data-route]");
   if (routeButton?.dataset.route && CAREER_ROUTES.has(routeButton.dataset.route)) {
     recordCareerRoute(routeButton.dataset.route);
