@@ -49,16 +49,17 @@ assert.match(bridgeSource, /\.cp-external-crest/);
 assert.match(bridgeSource, /data:image\/svg\+xml/);
 
 try {
-  const response = await fetch('https://football-logos.cc/greece/olympiacos/', {
+  const response = await fetch('https://football-logos.cc/greece/', {
     headers: { 'user-agent': 'TouchlineLogoAudit/1.0' }
   });
   const html = await response.text();
-  const candidates = [...html.matchAll(/(?:src|href|content)=["']([^"']+\.(?:svg|png|webp)(?:\?[^"']*)?)["']/gi)]
-    .map(match => match[1])
-    .filter(value => /olymp|logo|cdn|storage|assets/i.test(value));
-  console.log('LOGO_SOURCE_DIAGNOSTIC', JSON.stringify({ status: response.status, length: html.length, candidates: [...new Set(candidates)].slice(0, 80) }));
+  const snippets = ['aek-athens', 'olympiacos', 'panathinaikos'].map(slug => {
+    const index = html.indexOf(slug);
+    return { slug, snippet: index >= 0 ? html.slice(Math.max(0, index - 650), index + 1250) : null };
+  });
+  console.log('COUNTRY_MARKUP_DIAGNOSTIC', JSON.stringify({ status: response.status, length: html.length, snippets }));
 } catch (error) {
-  console.log('LOGO_SOURCE_DIAGNOSTIC_ERROR', error.message);
+  console.log('COUNTRY_MARKUP_DIAGNOSTIC_ERROR', error.message);
 }
 
 console.log(JSON.stringify({
