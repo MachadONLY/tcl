@@ -1,0 +1,37 @@
+.tl-official-club-logo {
+  display: block;
+  object-fit: contain !important;
+  object-position: center;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  padding: 2px;
+}
+
+.tcc-external-crest.tl-official-club-logo,
+.cp-external-crest.tl-official-club-logo {
+  border-radius: 0;
+  filter: drop-shadow(0 4px 8px rgba(0, 10, 18, .24));
+}
+
+img[data-official-logo-state="loading"] {
+  opacity: .45;
+}
+
+img[data-official-logo-state="loaded"] {
+  opacity: 1;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.tcc-club-option:hover .tl-official-club-logo,
+.tcc-fixture:hover .tl-official-club-logo {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-official-club-logo {
+    transition: none !important;
+  }
+}
