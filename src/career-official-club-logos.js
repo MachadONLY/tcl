@@ -108,6 +108,7 @@ function installLogo(node, name, logo, { dynamicFallback = false } = {}) {
   if (!node?.isConnected || !logo?.url) return null;
 
   const image = node instanceof HTMLImageElement ? node : document.createElement('img');
+  queued.add(image);
   if (!(node instanceof HTMLImageElement)) {
     image.className = node.className;
     node.replaceWith(image);
