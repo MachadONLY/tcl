@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { EUROPEAN_CLUBS } from '../src/career-core/european-club-catalog.js';
+import { OFFICIAL_CLUB_LOGO_MANIFEST } from '../src/career-core/official-club-logo-manifest.js';
 import {
   OFFICIAL_CLUB_LOGO_META,
   chooseSportsDbLogo,
@@ -13,6 +14,17 @@ assert.equal(normalizeClubLogoKey('Paris Saint-Germain FC'), 'paris saint germai
 
 const club = EUROPEAN_CLUBS.find(item => item.name === 'Paris Saint-Germain');
 assert.ok(club, 'catalog must include Paris Saint-Germain');
+
+const wrexham = EUROPEAN_CLUBS.find(item => item.name === 'Wrexham');
+assert.ok(wrexham, 'catalog must include Wrexham');
+assert.match(OFFICIAL_CLUB_LOGO_MANIFEST[wrexham.id]?.logoUrl || '', /^https:\/\//, 'Wrexham must have a deterministic official crest URL');
+
+const missingManifestCrests = EUROPEAN_CLUBS.filter(item => !/^https:\/\//i.test(OFFICIAL_CLUB_LOGO_MANIFEST[item.id]?.logoUrl || ''));
+assert.equal(
+  missingManifestCrests.length,
+  0,
+  `every European club must have a deterministic crest: ${missingManifestCrests.slice(0, 12).map(item => `${item.id}:${item.name}`).join(', ')}`
+);
 
 const exact = {
   idTeam: '133714', strTeam: 'Paris Saint-Germain', strTeamShort: 'PSG',
@@ -37,16 +49,27 @@ assert.ok(EUROPEAN_CLUBS.length >= 1400, 'all European catalog clubs must be eli
 
 const serviceSource = await readFile(new URL('../src/career-core/official-club-logo-service.js', import.meta.url), 'utf8');
 const bridgeSource = await readFile(new URL('../src/career-official-club-logos.js', import.meta.url), 'utf8');
+const bridgeStyles = await readFile(new URL('../src/career-official-club-logos.css', import.meta.url), 'utf8');
+const playableSource = await readFile(new URL('../src/career-playable.js', import.meta.url), 'utf8');
 assert.match(serviceSource, /thesportsdb\.com\/api\/v1\/json\/123\/searchteams\.php/);
 assert.match(serviceSource, /strBadge/);
 assert.match(serviceSource, /en\.wikipedia\.org\/w\/api\.php/);
 assert.match(serviceSource, /localStorage/);
 assert.match(serviceSource, /POSITIVE_TTL/);
+assert.match(bridgeSource, /OFFICIAL_CLUB_LOGO_MANIFEST/, 'UI bridge must use deterministic manifest before lazy provider lookup');
+assert.match(bridgeSource, /staticLogoFor\(/, 'UI bridge must resolve known club crests synchronously');
+assert.match(bridgeSource, /dynamicFallback:\s*true/, 'failed static URLs must fall back to another online provider');
+assert.match(bridgeSource, /skipStatic:\s*true/, 'fallback lookup must bypass a failed static URL');
 assert.match(bridgeSource, /IntersectionObserver/);
 assert.match(bridgeSource, /MutationObserver/);
 assert.match(bridgeSource, /\.tcc-external-crest/);
 assert.match(bridgeSource, /\.cp-external-crest/);
 assert.match(bridgeSource, /data:image\/svg\+xml/);
+assert.match(playableSource, /\.cp-match/, 'live match screen must render through the shared playable crest markup');
+assert.match(playableSource, /\.cp-fulltime/, 'post-match screen must render through the shared playable crest markup');
+assert.match(bridgeStyles, /cp-match[\s\S]*tl-official-club-logo/, 'live match official crest sizing must be explicit');
+assert.match(bridgeStyles, /cp-fulltime[\s\S]*tl-official-club-logo/, 'post-match official crest sizing must be explicit');
+assert.match(bridgeStyles, /data-official-logo-state="loading"[\s\S]*opacity:\s*0/, 'generic placeholders must stay invisible while the official crest loads');
 
 try {
   const response = await fetch('https://football-logos.cc/greece/', {
@@ -65,10 +88,11 @@ try {
 console.log(JSON.stringify({
   ok: true,
   eligibleClubs: EUROPEAN_CLUBS.length,
+  deterministicCrests: EUROPEAN_CLUBS.length - missingManifestCrests.length,
   primaryProvider: OFFICIAL_CLUB_LOGO_META.primaryProvider,
   fallbackProvider: OFFICIAL_CLUB_LOGO_META.fallbackProvider,
   requestMode: OFFICIAL_CLUB_LOGO_META.networkMode,
   cacheDays: OFFICIAL_CLUB_LOGO_META.cacheDays,
-  lazyLoading: true,
+  liveAndPostmatchStaticFirst: true,
   persistentCache: true
 }, null, 2));
