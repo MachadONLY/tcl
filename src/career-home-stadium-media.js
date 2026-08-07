@@ -21,11 +21,23 @@ function absoluteUrl(path) {
   return new URL(path, window.location.href).href;
 }
 
+function revealWhenLoaded(image, expectedUrl) {
+  const reveal = () => {
+    if (!image.isConnected || image.src !== expectedUrl || !image.naturalWidth) return;
+    image.classList.remove('is-stadium-resolving');
+    image.classList.add('is-stadium-ready');
+  };
+
+  image.addEventListener('load', reveal, { once: true });
+  if (image.complete && image.naturalWidth && image.src === expectedUrl) reveal();
+}
+
 function clearWrongBackground(image) {
   imageState.delete(image);
   image.removeAttribute('data-fallback');
   image.removeAttribute('data-stadium-candidates');
   image.removeAttribute('data-stadium-source');
+  image.classList.remove('is-stadium-ready');
   image.classList.add('is-stadium-resolving');
   image.src = EMPTY_IMAGE;
 }
@@ -48,11 +60,21 @@ function installFallbackCycle(image, candidates, metadata = {}) {
 function useCandidate(image, index) {
   const state = imageState.get(image);
   if (!state || index >= state.candidates.length) return false;
+
   state.index = index;
   image.dataset.stadiumCandidateIndex = String(index);
+  image.classList.remove('is-stadium-ready');
   image.classList.add('is-stadium-resolving');
-  const next = absoluteUrl(state.candidates[index]);
-  if (image.src !== next) image.src = state.candidates[index];
+
+  const path = state.candidates[index];
+  const expectedUrl = absoluteUrl(path);
+  revealWhenLoaded(image, expectedUrl);
+
+  if (image.src !== expectedUrl) image.src = path;
+  else if (image.complete && image.naturalWidth) {
+    image.classList.remove('is-stadium-resolving');
+    image.classList.add('is-stadium-ready');
+  }
   return true;
 }
 
@@ -84,6 +106,7 @@ function handleImageError(event) {
   if (useCandidate(image, state.index + 1)) return;
 
   image.src = EMPTY_IMAGE;
+  image.classList.remove('is-stadium-ready');
   image.classList.add('is-stadium-resolving');
   void recoverOnlineStadium(image, state);
 }
@@ -91,7 +114,7 @@ function handleImageError(event) {
 function handleImageLoad(event) {
   const image = event.target;
   if (!(image instanceof HTMLImageElement) || !image.matches('.tl-match-bg')) return;
-  if (image.src === absoluteUrl(EMPTY_IMAGE)) return;
+  if (image.src === absoluteUrl(EMPTY_IMAGE) || !image.naturalWidth) return;
   image.classList.remove('is-stadium-resolving');
   image.classList.add('is-stadium-ready');
 }
@@ -104,10 +127,6 @@ async function refreshHomeStadium() {
   const image = document.querySelector('.tl-match-bg');
   if (!image) return;
 
-  // The markup may momentarily contain the save club's old image. Blank it before
-  // any async work so an away/home switch can never flash the wrong stadium.
-  clearWrongBackground(image);
-
   const selected = legacyClubSelection() || 'MUN';
   const loaded = await CareerRepository.load();
   const career = normalizeCareer(loaded, selected);
@@ -116,8 +135,7 @@ async function refreshHomeStadium() {
   const fixture = nextUserFixture(career);
   if (!fixture) return;
 
-  // Global invariant: the photograph belongs to fixture.home, independently of
-  // the user's club, save, competition or friendly venue metadata.
+  // Universal rule: the fixture's home team owns the background image.
   const homeReference = fixture.home;
   const homeClub = CLUB_BY_CODE.get(homeReference) || resolveFriendlyClub(career, homeReference);
   if (!homeClub?.name) return;
@@ -126,22 +144,31 @@ async function refreshHomeStadium() {
   image.dataset.stadiumHomeReference = String(homeReference);
   image.alt = homeClub.stadium || `${homeClub.name} stadium`;
 
+  // Premier League clubs already have verified local stadium photography.
+  // Do not blank a correct local image while the save is loading: install the
+  // local candidates immediately and reveal as soon as the browser confirms it.
   if (CLUB_BY_CODE.has(homeReference)) {
     const localCandidates = stadiumAssetCandidates(homeReference);
-    installFallbackCycle(image, localCandidates, { source: 'local-home-club', club: homeClub, homeReference });
+    installFallbackCycle(image, localCandidates, {
+      source: 'local-home-club',
+      club: homeClub,
+      homeReference
+    });
     useCandidate(image, 0);
     return;
   }
 
+  // External friendly opponents have no bundled stadium pack. Only at this
+  // point do we remove the markup fallback, because it may belong to the save
+  // club. We then resolve the actual home club's stadium from verified media.
   const cached = cachedClubStadiumMedia(homeClub);
+  if (!cached?.url) clearWrongBackground(image);
+
   const media = cached || await resolveClubStadiumMedia(homeClub);
   if (version !== refreshVersion || !image.isConnected || !isCareerHome()) return;
 
   if (!media?.url) {
-    // Never substitute the user's stadium or another club's stadium. A dark card
-    // is preferable to lying visually about the home venue.
     image.dataset.stadiumSource = 'unresolved-home-club';
-    image.classList.add('is-stadium-resolving');
     return;
   }
 
