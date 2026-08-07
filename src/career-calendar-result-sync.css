@@ -1,0 +1,45 @@
+.tcc-fixture.is-played {
+  filter: none;
+  background: linear-gradient(135deg, #0ea9b8 0%, #1487b7 58%, #4459a9 100%);
+  color: #fff;
+}
+
+.tcc-fixture.is-played .tcc-fixture-copy b,
+.tcc-fixture.is-played .tcc-fixture-copy small,
+.tcc-fixture.is-played .tcc-fixture-day {
+  color: #fff;
+}
+
+.tcc-fixture.is-played .tcc-fixture-score {
+  right: 6px;
+  bottom: 5px;
+  min-width: 35px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(3, 11, 16, .72);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.1;
+  letter-spacing: .02em;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+
+.tcc-fixture.is-played .tcc-fixture-crest,
+.tcc-fixture.is-played .tl-official-club-logo.tcc-fixture-crest {
+  opacity: 1 !important;
+  filter: drop-shadow(0 3px 7px rgba(0,0,0,.28));
+}
+
+.tcc-opponent.tcc-matchup .tcc-matchup-goals {
+  scrollbar-gutter: stable;
+}
+
+.tcc-opponent.tcc-matchup .tcc-goal-event span {
+  font-weight: 680;
+}
+
+.tcc-opponent.tcc-matchup .tcc-goal-event time {
+  color: rgba(255,255,255,.58);
+}
