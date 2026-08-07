@@ -11,6 +11,7 @@ on:
       - 'scripts/finish-official-club-logo-manifest.mjs'
       - 'scripts/resolve-fotmob-club-logo-manifest.mjs'
       - 'scripts/finalize-official-club-logo-manifest.mjs'
+      - 'scripts/fill-sofascore-club-logo-manifest.mjs'
       - '.github/workflows/official-club-logo-catalog-audit.yml'
   workflow_dispatch:
 
@@ -50,6 +51,9 @@ jobs:
 
       - name: Run resilient final resolution pass
         run: node scripts/finalize-official-club-logo-manifest.mjs
+
+      - name: Resolve remaining clubs through SofaScore
+        run: node scripts/fill-sofascore-club-logo-manifest.mjs
 
       - name: Install generated manifest and audit snapshot
         run: |
