@@ -1,4 +1,6 @@
 import "./career-game-home-refinement.css";
+import "./career-save-state.css";
+import { readCareerSummary } from "./career-save-profile.js";
 
 const PLAYER_ASSETS = Object.freeze({
   bruno: "/assets/ui/home/bruno-fernandes-hero.webp",
@@ -6,6 +8,14 @@ const PLAYER_ASSETS = Object.freeze({
   saka: "/assets/players/2026-27/ars-961995.png",
   palmer: "/assets/players/2026-27/che-1096353.png"
 });
+
+const esc = value => String(value ?? "").replace(/[&<>"']/g, character => ({
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;"
+}[character]));
 
 function icon(name) {
   const paths = {
@@ -33,8 +43,29 @@ function lockedTile({ title, label, copy, image, alt, className }) {
   </article>`;
 }
 
+function formatCareerDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))) return "SAVE LOCAL";
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+}
+
 export function renderGameHome() {
-  document.title = "Touchline — Manager Career";
+  const summary = readCareerSummary();
+  const profile = summary.profile;
+  const hasCareer = summary.hasCareer;
+  const managerName = esc(summary.managerName || profile.managerName);
+  const clubName = esc(summary.clubName || summary.clubCode || "SEU CLUBE");
+  const seasonLabel = esc(summary.seasonLabel || "2026/27");
+  const primaryAttribute = hasCareer ? "data-continue-career" : "data-start-career";
+  const primaryTitle = hasCareer ? "CONTINUAR<br>CARREIRA" : "CRIAR<br>CARREIRA";
+  const primaryKicker = hasCareer ? "SAVE LOCAL ATIVO" : "MODO PRINCIPAL";
+  const primaryCopy = hasCareer
+    ? `Retome sua carreira no ${clubName} exatamente do ponto em que você parou.`
+    : "Escolha um clube da Premier League e comece sua jornada como manager.";
+  const primaryCta = hasCareer ? "CONTINUAR" : "COMEÇAR";
+  const primaryMeta = hasCareer ? clubName : "PREMIER LEAGUE";
+
+  document.title = hasCareer ? `Touchline — Continuar ${summary.clubName || "carreira"}` : "Touchline — Manager Career";
   const app = document.querySelector("#app");
   if (!app) return;
 
@@ -54,9 +85,9 @@ export function renderGameHome() {
 
       <div class="tgh-status" aria-label="Perfil e temporada">
         <span class="tgh-status-user">${icon("user")}</span>
-        <span><small>PERFIL</small><b>GABRIEL MACHADO</b></span>
+        <span><small>PERFIL SALVO</small><b>${managerName}</b></span>
         <i></i>
-        <span><small>TEMPORADA</small><b>2026/27</b></span>
+        <span><small>TEMPORADA</small><b>${seasonLabel}</b></span>
       </div>
     </header>
 
@@ -71,9 +102,10 @@ export function renderGameHome() {
           <section class="tgh-profile">
             <div class="tgh-profile-avatar">${icon("user")}</div>
             <div class="tgh-profile-copy">
-              <strong>GABRIEL MACHADO</strong>
-              <span><b>NVL: 1</b></span>
-              <small>0 / 1.000 XP</small>
+              <strong>${managerName}</strong>
+              <span><b>NVL: ${profile.level}</b></span>
+              <small>${profile.xp.toLocaleString("pt-BR")} / 1.000 XP</small>
+              <small class="tgh-profile-save">AUTOSAVE LOCAL</small>
             </div>
           </section>
 
@@ -104,17 +136,18 @@ export function renderGameHome() {
         </aside>
 
         <section class="tgh-grid" aria-label="Modos de jogo">
-          <button class="tgh-tile tgh-career" type="button" data-start-career aria-label="Criar carreira como manager">
+          <button class="tgh-tile tgh-career ${hasCareer ? "has-save" : ""}" type="button" ${primaryAttribute} aria-label="${hasCareer ? "Continuar carreira salva" : "Criar carreira como manager"}">
             <div class="tgh-career-lines" aria-hidden="true"></div>
+            ${hasCareer ? `<span class="tgh-career-save-info">ÚLTIMO SAVE · ${formatCareerDate(summary.currentDate)}</span>` : ""}
             <div class="tgh-career-copy">
-              <span class="tgh-career-kicker">MODO PRINCIPAL</span>
-              <h1>CRIAR<br>CARREIRA</h1>
-              <p>Escolha um clube da Premier League e comece sua jornada como manager.</p>
-              <span class="tgh-career-cta">COMEÇAR ${icon("arrow")}</span>
+              <span class="tgh-career-kicker">${primaryKicker}</span>
+              <h1>${primaryTitle}</h1>
+              <p>${primaryCopy}</p>
+              <span class="tgh-career-cta">${primaryCta} ${icon("arrow")}</span>
             </div>
             <div class="tgh-career-meta">
-              <span>PREMIER LEAGUE</span>
-              <b>2026/27</b>
+              <span>${primaryMeta}</span>
+              <b>${seasonLabel}</b>
             </div>
             <img class="tgh-career-player" src="${PLAYER_ASSETS.bruno}" alt="Bruno Fernandes" loading="eager" decoding="async">
           </button>
@@ -153,8 +186,8 @@ export function renderGameHome() {
 
     <footer class="tgh-controls">
       <span><b>A</b> SELECIONAR</span>
-      <span><b>ENTER</b> CRIAR CARREIRA</span>
-      <small>TOUCHLINE · MANAGER CAREER</small>
+      <span><b>ENTER</b> ${hasCareer ? "CONTINUAR CARREIRA" : "CRIAR CARREIRA"}</span>
+      <small>TOUCHLINE · AUTOSAVE LOCAL</small>
     </footer>
   </main>`;
 }
