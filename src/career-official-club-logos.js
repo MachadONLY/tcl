@@ -1,5 +1,6 @@
 import './career-official-club-logos.css';
 import { EUROPEAN_CLUBS } from './career-core/european-club-catalog.js';
+import { OFFICIAL_CLUB_LOGO_MANIFEST } from './career-core/official-club-logo-manifest.js';
 import { normalizeClubLogoKey, resolveOfficialClubLogo } from './career-core/official-club-logo-service.js';
 
 const TARGET_SELECTORS = [
@@ -13,7 +14,22 @@ const FALLBACK_SELECTOR = TARGET_SELECTORS
   .map(selector => `${selector}[data-official-logo-state="fallback"]`)
   .join(',');
 
-const CLUB_BY_NAME = new Map(EUROPEAN_CLUBS.map(club => [normalizeClubLogoKey(club.name), club]));
+const CLUB_BY_NAME = new Map();
+for (const club of EUROPEAN_CLUBS) {
+  for (const name of [club.name, club.shortName]) {
+    const key = normalizeClubLogoKey(name);
+    if (key && !CLUB_BY_NAME.has(key)) CLUB_BY_NAME.set(key, club);
+  }
+}
+
+const MANIFEST_BY_NAME = new Map();
+for (const [id, entry] of Object.entries(OFFICIAL_CLUB_LOGO_MANIFEST)) {
+  for (const name of [entry?.name, entry?.sourceName]) {
+    const key = normalizeClubLogoKey(name);
+    if (key && !MANIFEST_BY_NAME.has(key)) MANIFEST_BY_NAME.set(key, { id, entry });
+  }
+}
+
 const queued = new WeakSet();
 
 function textOf(root, selector) {
@@ -64,6 +80,19 @@ function metadataFor(name, node) {
   };
 }
 
+function staticLogoFor(name, club) {
+  const direct = club?.id ? OFFICIAL_CLUB_LOGO_MANIFEST[club.id] : null;
+  const byName = MANIFEST_BY_NAME.get(normalizeClubLogoKey(name))?.entry || null;
+  const entry = direct || byName;
+  if (!entry || typeof entry.logoUrl !== 'string' || !/^https:\/\//i.test(entry.logoUrl)) return null;
+  return {
+    url: entry.logoUrl,
+    source: entry.provider || 'Official club logo manifest',
+    providerId: entry.providerId || null,
+    resolvedName: entry.sourceName || entry.name || name
+  };
+}
+
 function imageReady(url) {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -75,7 +104,45 @@ function imageReady(url) {
   });
 }
 
-async function upgrade(node) {
+function installLogo(node, name, logo, { dynamicFallback = false } = {}) {
+  if (!node?.isConnected || !logo?.url) return null;
+
+  const image = node instanceof HTMLImageElement ? node : document.createElement('img');
+  if (!(node instanceof HTMLImageElement)) {
+    image.className = node.className;
+    node.replaceWith(image);
+  }
+
+  image.classList.add('tl-official-club-logo');
+  image.alt = `${name} crest`;
+  image.loading = 'eager';
+  image.decoding = 'async';
+  image.referrerPolicy = 'no-referrer';
+  image.dataset.officialClubName = name;
+  image.dataset.officialLogoSource = logo.source || 'official';
+  image.dataset.officialLogoState = 'loading';
+
+  const loaded = () => {
+    image.dataset.officialLogoState = 'loaded';
+    image.removeEventListener('load', loaded);
+    image.removeEventListener('error', failed);
+  };
+  const failed = () => {
+    image.removeEventListener('load', loaded);
+    image.removeEventListener('error', failed);
+    image.dataset.officialLogoState = 'loading';
+    if (dynamicFallback) void upgrade(image, { skipStatic: true });
+    else image.dataset.officialLogoState = 'fallback';
+  };
+
+  image.addEventListener('load', loaded, { once: true });
+  image.addEventListener('error', failed, { once: true });
+  image.src = logo.url;
+  if (image.complete && image.naturalWidth > 0) loaded();
+  return image;
+}
+
+async function upgrade(node, { skipStatic = false } = {}) {
   if (!node?.isConnected) return;
   const name = clubNameFromNode(node);
   if (!name) {
@@ -85,7 +152,8 @@ async function upgrade(node) {
 
   node.dataset.officialLogoState = 'loading';
   const club = metadataFor(name, node);
-  const logo = await resolveOfficialClubLogo(club);
+  const lookupClub = skipStatic ? { ...club, id: null } : club;
+  const logo = await resolveOfficialClubLogo(lookupClub);
   if (!logo?.url || !node.isConnected) {
     node.dataset.officialLogoState = 'fallback';
     return;
@@ -94,28 +162,7 @@ async function upgrade(node) {
   try {
     await imageReady(logo.url);
     if (!node.isConnected) return;
-    if (node instanceof HTMLImageElement) {
-      node.src = logo.url;
-      node.alt = `${name} crest`;
-      node.loading = 'lazy';
-      node.decoding = 'async';
-      node.referrerPolicy = 'no-referrer';
-      node.classList.add('tl-official-club-logo');
-      node.dataset.officialLogoSource = logo.source;
-      node.dataset.officialLogoState = 'loaded';
-      return;
-    }
-
-    const image = document.createElement('img');
-    image.className = `${node.className} tl-official-club-logo`;
-    image.src = logo.url;
-    image.alt = `${name} crest`;
-    image.loading = 'lazy';
-    image.decoding = 'async';
-    image.referrerPolicy = 'no-referrer';
-    image.dataset.officialLogoSource = logo.source;
-    image.dataset.officialLogoState = 'loaded';
-    node.replaceWith(image);
+    installLogo(node, name, logo, { dynamicFallback: false });
   } catch {
     node.dataset.officialLogoState = 'fallback';
   }
@@ -134,6 +181,17 @@ const visibilityObserver = 'IntersectionObserver' in globalThis
 function queueNode(node) {
   if (!(node instanceof Element) || queued.has(node)) return;
   queued.add(node);
+
+  const name = clubNameFromNode(node);
+  if (name) {
+    const club = metadataFor(name, node);
+    const staticLogo = staticLogoFor(name, club);
+    if (staticLogo) {
+      installLogo(node, name, staticLogo, { dynamicFallback: true });
+      return;
+    }
+  }
+
   node.dataset.officialLogoState = 'queued';
   if (visibilityObserver) visibilityObserver.observe(node);
   else void upgrade(node);
@@ -152,7 +210,7 @@ const domObserver = new MutationObserver(records => {
 
 domObserver.observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener('online', () => {
-  document.querySelectorAll(FALLBACK_SELECTOR).forEach(node => void upgrade(node));
+  document.querySelectorAll(FALLBACK_SELECTOR).forEach(node => void upgrade(node, { skipStatic: true }));
 });
 
 scan();
