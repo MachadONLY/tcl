@@ -19,7 +19,7 @@ const COUNTRY_ALIASES = Object.freeze({
   Finlândia: ['Finland'], Islândia: ['Iceland'], Letônia: ['Latvia'], Lituânia: ['Lithuania'], Estônia: ['Estonia'],
   Geórgia: ['Georgia'], Armênia: ['Armenia'], Azerbaijão: ['Azerbaijan'], Kosovo: ['Kosovo'],
   Bielorrússia: ['Belarus'], Moldávia: ['Moldova'], Malta: ['Malta'], Luxemburgo: ['Luxembourg'],
-  Andorra: ['Andorra'], Gibraltar: ['Gibraltar'], 'Ilhas Faroé': ['Faroe Islands'], San Marino: ['San Marino']
+  Andorra: ['Andorra'], Gibraltar: ['Gibraltar'], 'Ilhas Faroé': ['Faroe Islands'], 'San Marino': ['San Marino']
 });
 
 const NAME_ALIASES = Object.freeze({
