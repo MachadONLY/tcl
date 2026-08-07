@@ -9559,17 +9559,6 @@ export const OFFICIAL_CLUB_LOGO_MANIFEST = Object.freeze({
     "confidence": "sportsdb",
     "score": 100
   },
-  "cze-2-slavia-prague-b": {
-    "name": "Slavia Prague B",
-    "countryCode": "CZE",
-    "sourceName": "Slavia Prague B",
-    "sourcePage": "www.slavia.cz/mladez.asp?kategorie=JUN",
-    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/lmkl9m1658229229.png",
-    "provider": "TheSportsDB",
-    "providerId": "146409",
-    "confidence": "sportsdb",
-    "score": 100
-  },
   "aut-2-schwarz-wei-bregenz": {
     "name": "Schwarz-Weiß Bregenz",
     "countryCode": "AUT",
@@ -9580,6 +9569,28 @@ export const OFFICIAL_CLUB_LOGO_MANIFEST = Object.freeze({
     "providerId": "10040599",
     "confidence": "wikipedia",
     "score": 100
+  },
+  "cze-2-slavia-prague-b": {
+    "name": "Slavia Prague B",
+    "countryCode": "CZE",
+    "sourceName": "SK Slavia Prague",
+    "sourcePage": "https://en.wikipedia.org/wiki/SK_Slavia_Prague",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/SK_Slavia_Praha_full_logo.svg/330px-SK_Slavia_Praha_full_logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "896034",
+    "confidence": "wikipedia",
+    "score": 99
+  },
+  "cro-2-cibalia": {
+    "name": "Cibalia",
+    "countryCode": "CRO",
+    "sourceName": "Stadion HNK Cibalia",
+    "sourcePage": "https://en.wikipedia.org/wiki/Stadion_HNK_Cibalia",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Stadion_Cibalije_u_Vinkovcima-%D0%A1%D1%82%D0%B0%D0%B4%D0%B8%D0%BE%D0%BD_%D0%A6%D0%B8%D0%B1%D0%B0%D0%BB%D0%B8%D1%98%D0%B5_%D1%83_%D0%92%D0%B8%D0%BD%D0%BA%D0%BE%D0%B2%D1%86%D0%B8%D0%BC%D0%B0_2.jpg/330px-Stadion_Cibalije_u_Vinkovcima-%D0%A1%D1%82%D0%B0%D0%B4%D0%B8%D0%BE%D0%BD_%D0%A6%D0%B8%D0%B1%D0%B0%D0%BB%D0%B8%D1%98%D0%B5_%D1%83_%D0%92%D0%B8%D0%BD%D0%BA%D0%BE%D0%B2%D1%86%D0%B8%D0%BC%D0%B0_2.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "4458855",
+    "confidence": "wikipedia",
+    "score": 93
   },
   "cro-2-croatia-zmijavci": {
     "name": "Croatia Zmijavci",
@@ -9613,17 +9624,6 @@ export const OFFICIAL_CLUB_LOGO_MANIFEST = Object.freeze({
     "providerId": "556894",
     "confidence": "wikipedia",
     "score": 100
-  },
-  "srb-1-dubocica": {
-    "name": "Dubocica",
-    "countryCode": "SRB",
-    "sourceName": "Dubočica (region)",
-    "sourcePage": "https://en.wikipedia.org/wiki/Dubo%C4%8Dica_(region)",
-    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Dolina_reke_Vu%C4%8Djanke_30.jpg/330px-Dolina_reke_Vu%C4%8Djanke_30.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
-    "provider": "Wikipedia",
-    "providerId": "82917714",
-    "confidence": "wikipedia",
-    "score": 93
   },
   "srb-2-borac-cacak": {
     "name": "Borac Čačak",
@@ -9680,16 +9680,295 @@ export const OFFICIAL_CLUB_LOGO_MANIFEST = Object.freeze({
     "confidence": "wikipedia",
     "score": 93
   },
-  "rou-2-afumati": {
-    "name": "Afumați",
-    "countryCode": "ROU",
-    "sourceName": "Afumați, Ilfov",
-    "sourcePage": "https://en.wikipedia.org/wiki/Afuma%C8%9Bi,_Ilfov",
-    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Biserica_Adormirea_Maicii_Domnului_Afumati.JPG/330px-Biserica_Adormirea_Maicii_Domnului_Afumati.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+  "mkd-2-ohrid": {
+    "name": "Ohrid",
+    "countryCode": "MKD",
+    "sourceName": "Ohrid",
+    "sourcePage": "https://en.wikipedia.org/wiki/Ohrid",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/03760-Ohrid_%2816064511578%29.jpg/330px-03760-Ohrid_%2816064511578%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
     "provider": "Wikipedia",
-    "providerId": "2263431",
+    "providerId": "639333",
+    "confidence": "wikipedia",
+    "score": 100
+  },
+  "isl-1-leiknir-reykjavik": {
+    "name": "Leiknir Reykjavík",
+    "countryCode": "ISL",
+    "sourceName": "Reykjavík",
+    "sourcePage": "https://en.wikipedia.org/wiki/Reykjav%C3%ADk",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Reykjav%C3%ADk%2C_view_from_Hallgr%C3%ADmskirkja_%282%29.jpg/330px-Reykjav%C3%ADk%2C_view_from_Hallgr%C3%ADmskirkja_%282%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "25798",
     "confidence": "wikipedia",
     "score": 93
+  },
+  "bel-1-oh-leuven": {
+    "name": "OH Leuven",
+    "countryCode": "BEL",
+    "sourceName": "Oud-Heverlee Leuven",
+    "sourcePage": "https://football-logos.cc/belgium/oud-heverlee-leuven/#webpage",
+    "logoUrl": "https://assets.football-logos.cc/logos/belgium/700x700/oud-heverlee-leuven.187c23dc.png",
+    "provider": "football-logos.cc",
+    "confidence": "relaxed-country-match",
+    "score": 100
+  },
+  "ukr-2-victoria-sumy": {
+    "name": "Victoria Sumy",
+    "countryCode": "UKR",
+    "sourceName": "Viktoriya Sumy",
+    "sourcePage": "https://football-logos.cc/ukraine/viktoriya/#webpage",
+    "logoUrl": "https://assets.football-logos.cc/logos/ukraine/700x700/viktoriya.076b53e9.png",
+    "provider": "football-logos.cc",
+    "confidence": "relaxed-country-match",
+    "score": 100
+  },
+  "rou-2-fcu-craiova": {
+    "name": "FCU Craiova",
+    "countryCode": "ROU",
+    "sourceName": "U Craiova 1948",
+    "sourcePage": "https://football-logos.cc/romania/u-1948/#webpage",
+    "logoUrl": "https://assets.football-logos.cc/logos/romania/700x700/u-1948.7be7cb8e.png",
+    "provider": "football-logos.cc",
+    "confidence": "relaxed-country-match",
+    "score": 99
+  },
+  "est-2-flora-u21": {
+    "name": "Flora U21",
+    "countryCode": "EST",
+    "sourceName": "Flora Tallinn",
+    "sourcePage": "https://football-logos.cc/estonia/flora-tallinn/#webpage",
+    "logoUrl": "https://assets.football-logos.cc/logos/estonia/700x700/flora-tallinn.ee669746.png",
+    "provider": "football-logos.cc",
+    "confidence": "relaxed-country-match",
+    "score": 90
+  },
+  "arm-2-bkma-ii": {
+    "name": "BKMA II",
+    "countryCode": "ARM",
+    "sourceName": "BKMA Yerevan",
+    "sourcePage": "https://football-logos.cc/armenia/bkma-yerevan/#webpage",
+    "logoUrl": "https://assets.football-logos.cc/logos/armenia/700x700/bkma-yerevan.df37f061.png",
+    "provider": "football-logos.cc",
+    "confidence": "relaxed-country-match",
+    "score": 90
+  },
+  "fro-2-b36-ii": {
+    "name": "B36 II",
+    "countryCode": "FRO",
+    "sourceName": "B36 Tórshavn",
+    "sourcePage": "https://football-logos.cc/faroe-islands/b36-torshavn/#webpage",
+    "logoUrl": "https://assets.football-logos.cc/logos/faroe-islands/700x700/b36-torshavn.30ccb33c.png",
+    "provider": "football-logos.cc",
+    "confidence": "relaxed-country-match",
+    "score": 90
+  },
+  "blr-2-bate-ii": {
+    "name": "BATE II",
+    "countryCode": "BLR",
+    "sourceName": "BATE Borisov",
+    "sourcePage": "https://football-logos.cc/belarus/bate-borisov/#webpage",
+    "logoUrl": "https://assets.football-logos.cc/logos/belarus/700x700/bate-borisov.a4a84ed6.png",
+    "provider": "football-logos.cc",
+    "confidence": "relaxed-country-match",
+    "score": 90
+  },
+  "geo-1-gareji": {
+    "name": "Gareji",
+    "countryCode": "GEO",
+    "sourceName": "Gareji",
+    "sourcePage": "",
+    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/kfh9161617286784.png",
+    "provider": "TheSportsDB",
+    "providerId": "141187",
+    "confidence": "sportsdb-final",
+    "score": 100
+  },
+  "geo-2-aragvi-dusheti": {
+    "name": "Aragvi Dusheti",
+    "countryCode": "GEO",
+    "sourceName": "Aragvi Dusheti",
+    "sourcePage": "",
+    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/pbkchi1735403745.png",
+    "provider": "TheSportsDB",
+    "providerId": "148049",
+    "confidence": "sportsdb-final",
+    "score": 100
+  },
+  "geo-2-gonio": {
+    "name": "Gonio",
+    "countryCode": "GEO",
+    "sourceName": "Gonio",
+    "sourcePage": "",
+    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/3ebj3o1735404520.png",
+    "provider": "TheSportsDB",
+    "providerId": "150494",
+    "confidence": "sportsdb-final",
+    "score": 100
+  },
+  "arm-1-west-armenia": {
+    "name": "West Armenia",
+    "countryCode": "ARM",
+    "sourceName": "West Armenia",
+    "sourcePage": "",
+    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/hz774e1614284517.png",
+    "provider": "TheSportsDB",
+    "providerId": "140695",
+    "confidence": "sportsdb-final",
+    "score": 100
+  },
+  "arm-2-lernayin-artsakh": {
+    "name": "Lernayin Artsakh",
+    "countryCode": "ARM",
+    "sourceName": "Lernayin Artsakh",
+    "sourcePage": "",
+    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/mbvhf11742400713.png",
+    "provider": "TheSportsDB",
+    "providerId": "140689",
+    "confidence": "sportsdb-final",
+    "score": 100
+  },
+  "arm-2-andranik": {
+    "name": "Andranik",
+    "countryCode": "ARM",
+    "sourceName": "Andranik",
+    "sourcePage": "",
+    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/6wd8p31742400922.png",
+    "provider": "TheSportsDB",
+    "providerId": "147557",
+    "confidence": "sportsdb-final",
+    "score": 100
+  },
+  "aze-2-difai-agsu": {
+    "name": "Difai Ağsu",
+    "countryCode": "AZE",
+    "sourceName": "Difai Ağsu",
+    "sourcePage": "",
+    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/xeb10k1730772003.png",
+    "provider": "TheSportsDB",
+    "providerId": "149535",
+    "confidence": "sportsdb-final",
+    "score": 100
+  },
+  "aze-2-zaqatala": {
+    "name": "Zaqatala",
+    "countryCode": "AZE",
+    "sourceName": "Zaqatala",
+    "sourcePage": "",
+    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/mhha7m1614284714.png",
+    "provider": "TheSportsDB",
+    "providerId": "140705",
+    "confidence": "sportsdb-final",
+    "score": 100
+  },
+  "mda-1-balti": {
+    "name": "Bălți",
+    "countryCode": "MDA",
+    "sourceName": "Bălți",
+    "sourcePage": "fcbalti.md",
+    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/yt6su91624645317.png",
+    "provider": "TheSportsDB",
+    "providerId": "141803",
+    "confidence": "sportsdb-final",
+    "score": 100
+  },
+  "mda-2-victoria-chisinau": {
+    "name": "Victoria Chișinău",
+    "countryCode": "MDA",
+    "sourceName": "Victoria Chișinău",
+    "sourcePage": "",
+    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/36f5161682086672.png",
+    "provider": "TheSportsDB",
+    "providerId": "147342",
+    "confidence": "sportsdb-final",
+    "score": 100
+  },
+  "mda-2-falesti": {
+    "name": "Fălești",
+    "countryCode": "MDA",
+    "sourceName": "Făleşti",
+    "sourcePage": "",
+    "logoUrl": "https://r2.thesportsdb.com/images/media/team/badge/rhu3hw1682086674.png",
+    "provider": "TheSportsDB",
+    "providerId": "147343",
+    "confidence": "sportsdb-final",
+    "score": 100
+  },
+  "bul-2-fratria": {
+    "name": "Fratria",
+    "countryCode": "BUL",
+    "sourceName": "FC Fratria",
+    "sourcePage": "https://en.wikipedia.org/wiki/FC_Fratria",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/FC_Fratria_logo.png/330px-FC_Fratria_logo.png?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "73865123",
+    "confidence": "wikipedia-final",
+    "score": 100
+  },
+  "bul-2-nesebar": {
+    "name": "Nesebar",
+    "countryCode": "BUL",
+    "sourceName": "Nesebar",
+    "sourcePage": "https://en.wikipedia.org/wiki/Nesebar",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Nessebar_lead_collage.jpg/330px-Nessebar_lead_collage.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "369943",
+    "confidence": "wikipedia-final",
+    "score": 100
+  },
+  "hun-2-csakvar": {
+    "name": "Csákvár",
+    "countryCode": "HUN",
+    "sourceName": "Csákvár",
+    "sourcePage": "https://en.wikipedia.org/wiki/Cs%C3%A1kv%C3%A1r",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Csakv%C3%A1r_-_Palace.jpg/330px-Csakv%C3%A1r_-_Palace.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "5376657",
+    "confidence": "wikipedia-final",
+    "score": 100
+  },
+  "hun-2-kozarmisleny": {
+    "name": "Kozármisleny",
+    "countryCode": "HUN",
+    "sourceName": "Kozármisleny",
+    "sourcePage": "https://en.wikipedia.org/wiki/Koz%C3%A1rmisleny",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Reform%C3%A1tus_templom_Koz%C3%A1rmislenyben.jpg/330px-Reform%C3%A1tus_templom_Koz%C3%A1rmislenyben.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "14892700",
+    "confidence": "wikipedia-final",
+    "score": 100
+  },
+  "svk-2-petrzalka": {
+    "name": "Petržalka",
+    "countryCode": "SVK",
+    "sourceName": "Petržalka",
+    "sourcePage": "https://en.wikipedia.org/wiki/Petr%C5%BEalka",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Bratislava_Petrzalka_R01.jpg/330px-Bratislava_Petrzalka_R01.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "970577",
+    "confidence": "wikipedia-final",
+    "score": 100
+  },
+  "svk-2-humenne": {
+    "name": "Humenné",
+    "countryCode": "SVK",
+    "sourceName": "Humenné",
+    "sourcePage": "https://en.wikipedia.org/wiki/Humenn%C3%A9",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Humenn%C3%A9_panor%C3%A1ma_001.jpg/330px-Humenn%C3%A9_panor%C3%A1ma_001.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "634959",
+    "confidence": "wikipedia-final",
+    "score": 100
+  },
+  "svk-2-povazska-bystrica": {
+    "name": "Považská Bystrica",
+    "countryCode": "SVK",
+    "sourceName": "Považská Bystrica",
+    "sourcePage": "https://en.wikipedia.org/wiki/Pova%C5%BEsk%C3%A1_Bystrica",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Povazska_bystrica2.jpg/330px-Povazska_bystrica2.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "962894",
+    "confidence": "wikipedia-final",
+    "score": 100
   },
   "svk-2-zvolen": {
     "name": "Zvolen",
@@ -9699,7 +9978,29 @@ export const OFFICIAL_CLUB_LOGO_MANIFEST = Object.freeze({
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Zvolen_%28Z%C3%B3lyom%2C_Altsohl%29_-_city_center.jpg/330px-Zvolen_%28Z%C3%B3lyom%2C_Altsohl%29_-_city_center.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
     "provider": "Wikipedia",
     "providerId": "349033",
-    "confidence": "wikipedia",
+    "confidence": "wikipedia-final",
+    "score": 100
+  },
+  "bih-2-laktasi": {
+    "name": "Laktaši",
+    "countryCode": "BIH",
+    "sourceName": "Laktaši",
+    "sourcePage": "https://en.wikipedia.org/wiki/Lakta%C5%A1i",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Orthodox_church_in_Lakta%C5%A1i.jpg/330px-Orthodox_church_in_Lakta%C5%A1i.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "4359037",
+    "confidence": "wikipedia-final",
+    "score": 100
+  },
+  "mkd-1-gostivar": {
+    "name": "Gostivar",
+    "countryCode": "MKD",
+    "sourceName": "Gostivar",
+    "sourcePage": "https://en.wikipedia.org/wiki/Gostivar",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Church_Gostivar_Macedonia.jpg/330px-Church_Gostivar_Macedonia.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "provider": "Wikipedia",
+    "providerId": "1352272",
+    "confidence": "wikipedia-final",
     "score": 100
   }
 });

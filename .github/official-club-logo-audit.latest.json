@@ -1,13 +1,13 @@
 {
-  "schemaVersion": 5,
-  "generatedAt": "2026-08-07T11:51:19.545Z",
+  "schemaVersion": 7,
+  "generatedAt": "2026-08-07T12:08:14.527Z",
   "provider": "football-logos.cc country catalogs",
   "catalogClubs": 1468,
   "countriesExpected": 54,
   "countriesFetched": 54,
-  "matched": 1269,
-  "unresolvedCount": 199,
-  "coverage": 86.44,
+  "matched": 1297,
+  "unresolvedCount": 171,
+  "coverage": 88.35,
   "fetchErrors": [],
   "countryStats": [
     {
@@ -13564,17 +13564,6 @@
   ],
   "unresolved": [
     {
-      "id": "bel-1-oh-leuven",
-      "name": "OH Leuven",
-      "countryCode": "BEL",
-      "league": "Pro League",
-      "division": 1,
-      "aliases": [
-        "OH Leuven",
-        "Oud-Heverlee Leuven"
-      ]
-    },
-    {
       "id": "sui-2-vaduz",
       "name": "Vaduz",
       "countryCode": "SUI",
@@ -13582,7 +13571,8 @@
       "division": 2,
       "aliases": [
         "Vaduz",
-        "FC Vaduz"
+        "FC Vaduz",
+        "vaduz"
       ]
     },
     {
@@ -13593,7 +13583,8 @@
       "division": 2,
       "aliases": [
         "AEL Kalloni",
-        "Kalloni"
+        "Kalloni",
+        "ael kalloni"
       ]
     },
     {
@@ -13603,17 +13594,8 @@
       "league": "National League",
       "division": 2,
       "aliases": [
-        "Líšeň"
-      ]
-    },
-    {
-      "id": "cro-2-cibalia",
-      "name": "Cibalia",
-      "countryCode": "CRO",
-      "league": "First League",
-      "division": 2,
-      "aliases": [
-        "Cibalia"
+        "Líšeň",
+        "lisen"
       ]
     },
     {
@@ -13623,7 +13605,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Orijent"
+        "Orijent",
+        "orijent"
       ]
     },
     {
@@ -13633,7 +13616,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Sesvete"
+        "Sesvete",
+        "sesvete"
       ]
     },
     {
@@ -13643,7 +13627,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Dugopolje"
+        "Dugopolje",
+        "dugopolje"
       ]
     },
     {
@@ -13653,7 +13638,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Jarun"
+        "Jarun",
+        "jarun"
       ]
     },
     {
@@ -13663,7 +13649,19 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Dubrava Zagreb"
+        "Dubrava Zagreb",
+        "dubrava zagreb"
+      ]
+    },
+    {
+      "id": "srb-1-dubocica",
+      "name": "Dubocica",
+      "countryCode": "SRB",
+      "league": "SuperLiga",
+      "division": 1,
+      "aliases": [
+        "Dubocica",
+        "dubocica"
       ]
     },
     {
@@ -13673,7 +13671,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Grafičar"
+        "Grafičar",
+        "graficar"
       ]
     },
     {
@@ -13683,7 +13682,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Mladost GAT"
+        "Mladost GAT",
+        "mladost gat"
       ]
     },
     {
@@ -13693,7 +13693,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Trajal Kruševac"
+        "Trajal Kruševac",
+        "trajal krusevac"
       ]
     },
     {
@@ -13703,18 +13704,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Vršac"
-      ]
-    },
-    {
-      "id": "ukr-2-victoria-sumy",
-      "name": "Victoria Sumy",
-      "countryCode": "UKR",
-      "league": "First League",
-      "division": 2,
-      "aliases": [
-        "Victoria Sumy",
-        "Viktoriya Sumy"
+        "Vršac",
+        "vrsac"
       ]
     },
     {
@@ -13724,7 +13715,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Dinaz Vyshhorod"
+        "Dinaz Vyshhorod",
+        "dinaz vyshhorod"
       ]
     },
     {
@@ -13734,18 +13726,19 @@
       "league": "Liga II",
       "division": 2,
       "aliases": [
-        "CSM Reșița"
+        "CSM Reșița",
+        "csm resita"
       ]
     },
     {
-      "id": "rou-2-fcu-craiova",
-      "name": "FCU Craiova",
+      "id": "rou-2-afumati",
+      "name": "Afumați",
       "countryCode": "ROU",
       "league": "Liga II",
       "division": 2,
       "aliases": [
-        "FCU Craiova",
-        "FC U Craiova 1948"
+        "Afumați",
+        "afumati"
       ]
     },
     {
@@ -13755,7 +13748,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Minyor Pernik"
+        "Minyor Pernik",
+        "minyor pernik"
       ]
     },
     {
@@ -13765,7 +13759,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Belasitsa Petrich"
+        "Belasitsa Petrich",
+        "belasitsa petrich"
       ]
     },
     {
@@ -13775,7 +13770,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Yantra Gabrovo"
+        "Yantra Gabrovo",
+        "yantra gabrovo"
       ]
     },
     {
@@ -13785,17 +13781,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Strumska Slava"
-      ]
-    },
-    {
-      "id": "bul-2-fratria",
-      "name": "Fratria",
-      "countryCode": "BUL",
-      "league": "Second League",
-      "division": 2,
-      "aliases": [
-        "Fratria"
+        "Strumska Slava",
+        "strumska slava"
       ]
     },
     {
@@ -13805,17 +13792,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Sportist Svoge"
-      ]
-    },
-    {
-      "id": "bul-2-nesebar",
-      "name": "Nesebar",
-      "countryCode": "BUL",
-      "league": "Second League",
-      "division": 2,
-      "aliases": [
-        "Nesebar"
+        "Sportist Svoge",
+        "sportist svoge"
       ]
     },
     {
@@ -13825,7 +13803,8 @@
       "league": "NB II",
       "division": 2,
       "aliases": [
-        "Szeged-Csanád"
+        "Szeged-Csanád",
+        "szeged csanad"
       ]
     },
     {
@@ -13835,27 +13814,8 @@
       "league": "NB II",
       "division": 2,
       "aliases": [
-        "Soroksár"
-      ]
-    },
-    {
-      "id": "hun-2-csakvar",
-      "name": "Csákvár",
-      "countryCode": "HUN",
-      "league": "NB II",
-      "division": 2,
-      "aliases": [
-        "Csákvár"
-      ]
-    },
-    {
-      "id": "hun-2-kozarmisleny",
-      "name": "Kozármisleny",
-      "countryCode": "HUN",
-      "league": "NB II",
-      "division": 2,
-      "aliases": [
-        "Kozármisleny"
+        "Soroksár",
+        "soroksar"
       ]
     },
     {
@@ -13865,7 +13825,8 @@
       "league": "NB II",
       "division": 2,
       "aliases": [
-        "BVSC-Zugló"
+        "BVSC-Zugló",
+        "bvsc zuglo"
       ]
     },
     {
@@ -13875,17 +13836,8 @@
       "league": "NB II",
       "division": 2,
       "aliases": [
-        "Tatabánya"
-      ]
-    },
-    {
-      "id": "svk-2-petrzalka",
-      "name": "Petržalka",
-      "countryCode": "SVK",
-      "league": "2. Liga",
-      "division": 2,
-      "aliases": [
-        "Petržalka"
+        "Tatabánya",
+        "tatabanya"
       ]
     },
     {
@@ -13895,17 +13847,8 @@
       "league": "2. Liga",
       "division": 2,
       "aliases": [
-        "Liptovský Mikuláš"
-      ]
-    },
-    {
-      "id": "svk-2-humenne",
-      "name": "Humenné",
-      "countryCode": "SVK",
-      "league": "2. Liga",
-      "division": 2,
-      "aliases": [
-        "Humenné"
+        "Liptovský Mikuláš",
+        "liptovsky mikulas"
       ]
     },
     {
@@ -13915,7 +13858,8 @@
       "league": "2. Liga",
       "division": 2,
       "aliases": [
-        "Malženice"
+        "Malženice",
+        "malzenice"
       ]
     },
     {
@@ -13925,17 +13869,8 @@
       "league": "2. Liga",
       "division": 2,
       "aliases": [
-        "Šamorín"
-      ]
-    },
-    {
-      "id": "svk-2-povazska-bystrica",
-      "name": "Považská Bystrica",
-      "countryCode": "SVK",
-      "league": "2. Liga",
-      "division": 2,
-      "aliases": [
-        "Považská Bystrica"
+        "Šamorín",
+        "samorin"
       ]
     },
     {
@@ -13945,7 +13880,8 @@
       "league": "2. Liga",
       "division": 2,
       "aliases": [
-        "Stará Ľubovňa"
+        "Stará Ľubovňa",
+        "stara lubovna"
       ]
     },
     {
@@ -13955,7 +13891,8 @@
       "league": "2. SNL",
       "division": 2,
       "aliases": [
-        "Triglav Kranj"
+        "Triglav Kranj",
+        "triglav kranj"
       ]
     },
     {
@@ -13965,7 +13902,8 @@
       "league": "2. SNL",
       "division": 2,
       "aliases": [
-        "Beltinci"
+        "Beltinci",
+        "beltinci"
       ]
     },
     {
@@ -13975,7 +13913,8 @@
       "league": "2. SNL",
       "division": 2,
       "aliases": [
-        "Krka"
+        "Krka",
+        "krka"
       ]
     },
     {
@@ -13985,7 +13924,8 @@
       "league": "2. SNL",
       "division": 2,
       "aliases": [
-        "Dravinja"
+        "Dravinja",
+        "dravinja"
       ]
     },
     {
@@ -13995,7 +13935,8 @@
       "league": "2. SNL",
       "division": 2,
       "aliases": [
-        "Bilje"
+        "Bilje",
+        "bilje"
       ]
     },
     {
@@ -14005,7 +13946,8 @@
       "league": "2. SNL",
       "division": 2,
       "aliases": [
-        "Ilirija 1911"
+        "Ilirija 1911",
+        "ilirija 1911"
       ]
     },
     {
@@ -14015,7 +13957,8 @@
       "league": "Premier League",
       "division": 1,
       "aliases": [
-        "Sloboda Tuzla"
+        "Sloboda Tuzla",
+        "sloboda tuzla"
       ]
     },
     {
@@ -14025,7 +13968,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Sloboda Tuzla"
+        "Sloboda Tuzla",
+        "sloboda tuzla"
       ]
     },
     {
@@ -14035,7 +13979,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Stupčanica Olovo"
+        "Stupčanica Olovo",
+        "stupcanica olovo"
       ]
     },
     {
@@ -14045,7 +13990,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Travnik"
+        "Travnik",
+        "travnik"
       ]
     },
     {
@@ -14055,7 +14001,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Jedinstvo Bihać"
+        "Jedinstvo Bihać",
+        "jedinstvo bihac"
       ]
     },
     {
@@ -14065,17 +14012,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Gradina Srebrenik"
-      ]
-    },
-    {
-      "id": "bih-2-laktasi",
-      "name": "Laktaši",
-      "countryCode": "BIH",
-      "league": "First League",
-      "division": 2,
-      "aliases": [
-        "Laktaši"
+        "Gradina Srebrenik",
+        "gradina srebrenik"
       ]
     },
     {
@@ -14085,7 +14023,8 @@
       "league": "Kategoria e Parë",
       "division": 2,
       "aliases": [
-        "Elbasani"
+        "Elbasani",
+        "elbasani"
       ]
     },
     {
@@ -14095,7 +14034,8 @@
       "league": "Kategoria e Parë",
       "division": 2,
       "aliases": [
-        "Korabi Peshkopi"
+        "Korabi Peshkopi",
+        "korabi peshkopi"
       ]
     },
     {
@@ -14105,18 +14045,8 @@
       "league": "Kategoria e Parë",
       "division": 2,
       "aliases": [
-        "Burreli"
-      ]
-    },
-    {
-      "id": "mkd-1-gostivar",
-      "name": "Gostivar",
-      "countryCode": "MKD",
-      "league": "First League",
-      "division": 1,
-      "aliases": [
-        "Gostivar",
-        "KF Gostivari"
+        "Burreli",
+        "burreli"
       ]
     },
     {
@@ -14127,7 +14057,8 @@
       "division": 1,
       "aliases": [
         "Besa Dobërdoll",
-        "KF Besa Doberdoll"
+        "KF Besa Doberdoll",
+        "besa doberdoll"
       ]
     },
     {
@@ -14137,7 +14068,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Bregalnica Štip"
+        "Bregalnica Štip",
+        "bregalnica stip"
       ]
     },
     {
@@ -14147,7 +14079,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Detonit Plachkovica"
+        "Detonit Plachkovica",
+        "detonit plachkovica"
       ]
     },
     {
@@ -14157,17 +14090,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Kozhuf"
-      ]
-    },
-    {
-      "id": "mkd-2-ohrid",
-      "name": "Ohrid",
-      "countryCode": "MKD",
-      "league": "Second League",
-      "division": 2,
-      "aliases": [
-        "Ohrid"
+        "Kozhuf",
+        "kozhuf"
       ]
     },
     {
@@ -14177,7 +14101,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Sasa"
+        "Sasa",
+        "sasa"
       ]
     },
     {
@@ -14187,7 +14112,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Skopje"
+        "Skopje",
+        "skopje"
       ]
     },
     {
@@ -14197,7 +14123,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Novaci"
+        "Novaci",
+        "novaci"
       ]
     },
     {
@@ -14207,7 +14134,8 @@
       "league": "First League",
       "division": 1,
       "aliases": [
-        "Jedinstvo Bijelo Polje"
+        "Jedinstvo Bijelo Polje",
+        "jedinstvo bijelo polje"
       ]
     },
     {
@@ -14217,7 +14145,8 @@
       "league": "First League",
       "division": 1,
       "aliases": [
-        "Otrant-Olympic"
+        "Otrant-Olympic",
+        "otrant olympic"
       ]
     },
     {
@@ -14227,7 +14156,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Lovćen"
+        "Lovćen",
+        "lovcen"
       ]
     },
     {
@@ -14237,7 +14167,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Grbalj"
+        "Grbalj",
+        "grbalj"
       ]
     },
     {
@@ -14247,7 +14178,8 @@
       "league": "Second League",
       "division": 2,
       "aliases": [
-        "Igalo"
+        "Igalo",
+        "igalo"
       ]
     },
     {
@@ -14257,7 +14189,8 @@
       "league": "Second Division",
       "division": 2,
       "aliases": [
-        "ASIL Lysi"
+        "ASIL Lysi",
+        "asil lysi"
       ]
     },
     {
@@ -14267,7 +14200,8 @@
       "league": "Second Division",
       "division": 2,
       "aliases": [
-        "Digenis Morphou"
+        "Digenis Morphou",
+        "digenis morphou"
       ]
     },
     {
@@ -14277,7 +14211,8 @@
       "league": "Second Division",
       "division": 2,
       "aliases": [
-        "Peyia 2014"
+        "Peyia 2014",
+        "peyia 2014"
       ]
     },
     {
@@ -14287,7 +14222,8 @@
       "league": "Second Division",
       "division": 2,
       "aliases": [
-        "PAEEK"
+        "PAEEK",
+        "paeek"
       ]
     },
     {
@@ -14297,7 +14233,8 @@
       "league": "Second Division",
       "division": 2,
       "aliases": [
-        "MEAP Nisou"
+        "MEAP Nisou",
+        "meap nisou"
       ]
     },
     {
@@ -14307,7 +14244,8 @@
       "league": "Second Division",
       "division": 2,
       "aliases": [
-        "Spartakos Kitiou"
+        "Spartakos Kitiou",
+        "spartakos kitiou"
       ]
     },
     {
@@ -14317,7 +14255,8 @@
       "league": "Second Division",
       "division": 2,
       "aliases": [
-        "Halkanoras Idaliou"
+        "Halkanoras Idaliou",
+        "halkanoras idaliou"
       ]
     },
     {
@@ -14327,7 +14266,8 @@
       "league": "Premiership",
       "division": 1,
       "aliases": [
-        "Loughgall"
+        "Loughgall",
+        "loughgall"
       ]
     },
     {
@@ -14337,7 +14277,8 @@
       "league": "Championship",
       "division": 2,
       "aliases": [
-        "Annagh United"
+        "Annagh United",
+        "annagh united"
       ]
     },
     {
@@ -14347,7 +14288,8 @@
       "league": "Championship",
       "division": 2,
       "aliases": [
-        "Dundela"
+        "Dundela",
+        "dundela"
       ]
     },
     {
@@ -14358,7 +14300,8 @@
       "division": 2,
       "aliases": [
         "H&W Welders",
-        "Harland and Wolff Welders"
+        "Harland and Wolff Welders",
+        "h and w welders"
       ]
     },
     {
@@ -14368,7 +14311,8 @@
       "league": "Championship",
       "division": 2,
       "aliases": [
-        "Ballinamallard United"
+        "Ballinamallard United",
+        "ballinamallard united"
       ]
     },
     {
@@ -14378,7 +14322,8 @@
       "league": "Championship",
       "division": 2,
       "aliases": [
-        "Newington"
+        "Newington",
+        "newington"
       ]
     },
     {
@@ -14388,7 +14333,8 @@
       "league": "Championship",
       "division": 2,
       "aliases": [
-        "Armagh City"
+        "Armagh City",
+        "armagh city"
       ]
     },
     {
@@ -14398,7 +14344,8 @@
       "league": "Championship",
       "division": 2,
       "aliases": [
-        "Ballyclare Comrades"
+        "Ballyclare Comrades",
+        "ballyclare comrades"
       ]
     },
     {
@@ -14408,7 +14355,8 @@
       "league": "Ykkösliiga",
       "division": 2,
       "aliases": [
-        "JIPPO"
+        "JIPPO",
+        "jippo"
       ]
     },
     {
@@ -14419,7 +14367,8 @@
       "division": 2,
       "aliases": [
         "SalPa",
-        "Salon Palloilijat"
+        "Salon Palloilijat",
+        "salpa"
       ]
     },
     {
@@ -14430,7 +14379,8 @@
       "division": 2,
       "aliases": [
         "EIF",
-        "Ekenas IF"
+        "Ekenas IF",
+        "eif"
       ]
     },
     {
@@ -14440,7 +14390,8 @@
       "league": "Ykkösliiga",
       "division": 2,
       "aliases": [
-        "PK-35"
+        "PK-35",
+        "pk 35"
       ]
     },
     {
@@ -14450,7 +14401,8 @@
       "league": "Ykkösliiga",
       "division": 2,
       "aliases": [
-        "JäPS"
+        "JäPS",
+        "japs"
       ]
     },
     {
@@ -14461,7 +14413,8 @@
       "division": 2,
       "aliases": [
         "KäPa",
-        "Kapylan Pallo"
+        "Kapylan Pallo",
+        "kapa"
       ]
     },
     {
@@ -14471,7 +14424,8 @@
       "league": "Ykkösliiga",
       "division": 2,
       "aliases": [
-        "SJK Akatemia"
+        "SJK Akatemia",
+        "sjk akatemia"
       ]
     },
     {
@@ -14481,17 +14435,8 @@
       "league": "Ykkösliiga",
       "division": 2,
       "aliases": [
-        "Klubi 04"
-      ]
-    },
-    {
-      "id": "isl-1-leiknir-reykjavik",
-      "name": "Leiknir Reykjavík",
-      "countryCode": "ISL",
-      "league": "Besta deild",
-      "division": 1,
-      "aliases": [
-        "Leiknir Reykjavík"
+        "Klubi 04",
+        "klubi 04"
       ]
     },
     {
@@ -14501,7 +14446,8 @@
       "league": "1. deild",
       "division": 2,
       "aliases": [
-        "Þróttur Reykjavík"
+        "Þróttur Reykjavík",
+        "rottur reykjavik"
       ]
     },
     {
@@ -14511,7 +14457,8 @@
       "league": "1. deild",
       "division": 2,
       "aliases": [
-        "Njarðvík"
+        "Njarðvík",
+        "njardvik"
       ]
     },
     {
@@ -14521,7 +14468,8 @@
       "league": "1. deild",
       "division": 2,
       "aliases": [
-        "Dalvík/Reynir"
+        "Dalvík/Reynir",
+        "dalvik reynir"
       ]
     },
     {
@@ -14531,7 +14479,8 @@
       "league": "1. deild",
       "division": 2,
       "aliases": [
-        "Selfoss"
+        "Selfoss",
+        "selfoss"
       ]
     },
     {
@@ -14541,7 +14490,8 @@
       "league": "1. līga",
       "division": 2,
       "aliases": [
-        "JDFS Alberts"
+        "JDFS Alberts",
+        "jdfs alberts"
       ]
     },
     {
@@ -14551,7 +14501,8 @@
       "league": "1. līga",
       "division": 2,
       "aliases": [
-        "Skanste"
+        "Skanste",
+        "skanste"
       ]
     },
     {
@@ -14561,7 +14512,8 @@
       "league": "1. līga",
       "division": 2,
       "aliases": [
-        "Leevon PPK"
+        "Leevon PPK",
+        "leevon ppk"
       ]
     },
     {
@@ -14571,7 +14523,8 @@
       "league": "1. līga",
       "division": 2,
       "aliases": [
-        "Smiltene"
+        "Smiltene",
+        "smiltene"
       ]
     },
     {
@@ -14581,7 +14534,8 @@
       "league": "1. līga",
       "division": 2,
       "aliases": [
-        "Mārupe"
+        "Mārupe",
+        "marupe"
       ]
     },
     {
@@ -14591,7 +14545,8 @@
       "league": "I Lyga",
       "division": 2,
       "aliases": [
-        "Be1 NFA"
+        "Be1 NFA",
+        "be1 nfa"
       ]
     },
     {
@@ -14601,7 +14556,8 @@
       "league": "I Lyga",
       "division": 2,
       "aliases": [
-        "Neptūnas"
+        "Neptūnas",
+        "neptunas"
       ]
     },
     {
@@ -14611,7 +14567,8 @@
       "league": "I Lyga",
       "division": 2,
       "aliases": [
-        "Babrungas"
+        "Babrungas",
+        "babrungas"
       ]
     },
     {
@@ -14621,7 +14578,8 @@
       "league": "I Lyga",
       "division": 2,
       "aliases": [
-        "Minija"
+        "Minija",
+        "minija"
       ]
     },
     {
@@ -14631,7 +14589,8 @@
       "league": "I Lyga",
       "division": 2,
       "aliases": [
-        "Atmosfera"
+        "Atmosfera",
+        "atmosfera"
       ]
     },
     {
@@ -14641,7 +14600,8 @@
       "league": "I Lyga",
       "division": 2,
       "aliases": [
-        "Garliava"
+        "Garliava",
+        "garliava"
       ]
     },
     {
@@ -14652,7 +14612,8 @@
       "division": 2,
       "aliases": [
         "Žalgiris B",
-        "zalgiris"
+        "zalgiris",
+        "zalgiris b"
       ]
     },
     {
@@ -14662,7 +14623,8 @@
       "league": "Esiliiga",
       "division": 2,
       "aliases": [
-        "Viimsi"
+        "Viimsi",
+        "viimsi"
       ]
     },
     {
@@ -14672,7 +14634,8 @@
       "league": "Esiliiga",
       "division": 2,
       "aliases": [
-        "Elva"
+        "Elva",
+        "elva"
       ]
     },
     {
@@ -14682,7 +14645,8 @@
       "league": "Esiliiga",
       "division": 2,
       "aliases": [
-        "Tabasalu"
+        "Tabasalu",
+        "tabasalu"
       ]
     },
     {
@@ -14692,19 +14656,8 @@
       "league": "Esiliiga",
       "division": 2,
       "aliases": [
-        "Tallinna Legion"
-      ]
-    },
-    {
-      "id": "est-2-flora-u21",
-      "name": "Flora U21",
-      "countryCode": "EST",
-      "league": "Esiliiga",
-      "division": 2,
-      "aliases": [
-        "Flora U21",
-        "Flora Tallinn U21",
-        "flora"
+        "Tallinna Legion",
+        "tallinna legion"
       ]
     },
     {
@@ -14714,79 +14667,8 @@
       "league": "Esiliiga",
       "division": 2,
       "aliases": [
-        "Tartu Welco"
-      ]
-    },
-    {
-      "id": "geo-1-gareji",
-      "name": "Gareji",
-      "countryCode": "GEO",
-      "league": "Erovnuli Liga",
-      "division": 1,
-      "aliases": [
-        "Gareji"
-      ]
-    },
-    {
-      "id": "geo-2-aragvi-dusheti",
-      "name": "Aragvi Dusheti",
-      "countryCode": "GEO",
-      "league": "Erovnuli Liga 2",
-      "division": 2,
-      "aliases": [
-        "Aragvi Dusheti"
-      ]
-    },
-    {
-      "id": "geo-2-gonio",
-      "name": "Gonio",
-      "countryCode": "GEO",
-      "league": "Erovnuli Liga 2",
-      "division": 2,
-      "aliases": [
-        "Gonio"
-      ]
-    },
-    {
-      "id": "arm-1-west-armenia",
-      "name": "West Armenia",
-      "countryCode": "ARM",
-      "league": "Premier League",
-      "division": 1,
-      "aliases": [
-        "West Armenia"
-      ]
-    },
-    {
-      "id": "arm-2-lernayin-artsakh",
-      "name": "Lernayin Artsakh",
-      "countryCode": "ARM",
-      "league": "First League",
-      "division": 2,
-      "aliases": [
-        "Lernayin Artsakh"
-      ]
-    },
-    {
-      "id": "arm-2-bkma-ii",
-      "name": "BKMA II",
-      "countryCode": "ARM",
-      "league": "First League",
-      "division": 2,
-      "aliases": [
-        "BKMA II",
-        "BKMA Yerevan II",
-        "bkma"
-      ]
-    },
-    {
-      "id": "arm-2-andranik",
-      "name": "Andranik",
-      "countryCode": "ARM",
-      "league": "First League",
-      "division": 2,
-      "aliases": [
-        "Andranik"
+        "Tartu Welco",
+        "tartu welco"
       ]
     },
     {
@@ -14796,7 +14678,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Mika"
+        "Mika",
+        "mika"
       ]
     },
     {
@@ -14807,7 +14690,8 @@
       "division": 1,
       "aliases": [
         "Sumgayit",
-        "Sumqayit"
+        "Sumqayit",
+        "sumgayit"
       ]
     },
     {
@@ -14817,7 +14701,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "MOIK Baku"
+        "MOIK Baku",
+        "moik baku"
       ]
     },
     {
@@ -14827,17 +14712,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Mingachevir"
-      ]
-    },
-    {
-      "id": "aze-2-difai-agsu",
-      "name": "Difai Ağsu",
-      "countryCode": "AZE",
-      "league": "First Division",
-      "division": 2,
-      "aliases": [
-        "Difai Ağsu"
+        "Mingachevir",
+        "mingachevir"
       ]
     },
     {
@@ -14847,7 +14723,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Baku Sporting"
+        "Baku Sporting",
+        "baku sporting"
       ]
     },
     {
@@ -14857,17 +14734,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Jabrayil"
-      ]
-    },
-    {
-      "id": "aze-2-zaqatala",
-      "name": "Zaqatala",
-      "countryCode": "AZE",
-      "league": "First Division",
-      "division": 2,
-      "aliases": [
-        "Zaqatala"
+        "Jabrayil",
+        "jabrayil"
       ]
     },
     {
@@ -14877,7 +14745,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Imishli"
+        "Imishli",
+        "imishli"
       ]
     },
     {
@@ -14887,7 +14756,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Energetik Mingachevir"
+        "Energetik Mingachevir",
+        "energetik mingachevir"
       ]
     },
     {
@@ -14897,39 +14767,8 @@
       "league": "Super Liga",
       "division": 1,
       "aliases": [
-        "Spartanii Sportul"
-      ]
-    },
-    {
-      "id": "mda-1-balti",
-      "name": "Bălți",
-      "countryCode": "MDA",
-      "league": "Super Liga",
-      "division": 1,
-      "aliases": [
-        "Bălți",
-        "FC Balti",
-        "alti"
-      ]
-    },
-    {
-      "id": "mda-2-victoria-chisinau",
-      "name": "Victoria Chișinău",
-      "countryCode": "MDA",
-      "league": "Liga 1",
-      "division": 2,
-      "aliases": [
-        "Victoria Chișinău"
-      ]
-    },
-    {
-      "id": "mda-2-falesti",
-      "name": "Fălești",
-      "countryCode": "MDA",
-      "league": "Liga 1",
-      "division": 2,
-      "aliases": [
-        "Fălești"
+        "Spartanii Sportul",
+        "spartanii sportul"
       ]
     },
     {
@@ -14939,7 +14778,8 @@
       "league": "Liga 1",
       "division": 2,
       "aliases": [
-        "Iskra Rîbnița"
+        "Iskra Rîbnița",
+        "iskra ribnita"
       ]
     },
     {
@@ -14949,7 +14789,8 @@
       "league": "Liga 1",
       "division": 2,
       "aliases": [
-        "Ungheni"
+        "Ungheni",
+        "ungheni"
       ]
     },
     {
@@ -14959,7 +14800,8 @@
       "league": "Liga 1",
       "division": 2,
       "aliases": [
-        "Real Succes"
+        "Real Succes",
+        "real succes"
       ]
     },
     {
@@ -14969,7 +14811,8 @@
       "league": "Liga 1",
       "division": 2,
       "aliases": [
-        "Speranis Nisporeni"
+        "Speranis Nisporeni",
+        "speranis nisporeni"
       ]
     },
     {
@@ -14979,7 +14822,8 @@
       "league": "Liga 1",
       "division": 2,
       "aliases": [
-        "Olimp Comrat"
+        "Olimp Comrat",
+        "olimp comrat"
       ]
     },
     {
@@ -14989,7 +14833,8 @@
       "league": "Superleague",
       "division": 1,
       "aliases": [
-        "Malisheva"
+        "Malisheva",
+        "malisheva"
       ]
     },
     {
@@ -14999,7 +14844,8 @@
       "league": "Superleague",
       "division": 1,
       "aliases": [
-        "Suhareka"
+        "Suhareka",
+        "suhareka"
       ]
     },
     {
@@ -15009,7 +14855,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Besa Pejë"
+        "Besa Pejë",
+        "besa peje"
       ]
     },
     {
@@ -15019,7 +14866,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Ramiz Sadiku"
+        "Ramiz Sadiku",
+        "ramiz sadiku"
       ]
     },
     {
@@ -15029,7 +14877,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Rilindja 1974"
+        "Rilindja 1974",
+        "rilindja 1974"
       ]
     },
     {
@@ -15039,7 +14888,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "2 Korriku"
+        "2 Korriku",
+        "2 korriku"
       ]
     },
     {
@@ -15049,7 +14899,8 @@
       "league": "Premier League",
       "division": 1,
       "aliases": [
-        "Naxxar Lions"
+        "Naxxar Lions",
+        "naxxar lions"
       ]
     },
     {
@@ -15059,7 +14910,8 @@
       "league": "Premier League",
       "division": 1,
       "aliases": [
-        "Żabbar St. Patrick"
+        "Żabbar St. Patrick",
+        "zabbar st patrick"
       ]
     },
     {
@@ -15069,7 +14921,8 @@
       "league": "Challenge League",
       "division": 2,
       "aliases": [
-        "Sirens"
+        "Sirens",
+        "sirens"
       ]
     },
     {
@@ -15079,7 +14932,8 @@
       "league": "Challenge League",
       "division": 2,
       "aliases": [
-        "Swieqi United"
+        "Swieqi United",
+        "swieqi united"
       ]
     },
     {
@@ -15089,7 +14943,8 @@
       "league": "Challenge League",
       "division": 2,
       "aliases": [
-        "Zurrieq"
+        "Zurrieq",
+        "zurrieq"
       ]
     },
     {
@@ -15099,7 +14954,8 @@
       "league": "Challenge League",
       "division": 2,
       "aliases": [
-        "Fgura United"
+        "Fgura United",
+        "fgura united"
       ]
     },
     {
@@ -15109,7 +14965,8 @@
       "league": "National Division",
       "division": 1,
       "aliases": [
-        "Mondorf-les-Bains"
+        "Mondorf-les-Bains",
+        "mondorf les bains"
       ]
     },
     {
@@ -15119,7 +14976,8 @@
       "league": "National Division",
       "division": 1,
       "aliases": [
-        "Wiltz 71"
+        "Wiltz 71",
+        "wiltz 71"
       ]
     },
     {
@@ -15129,7 +14987,8 @@
       "league": "National Division",
       "division": 1,
       "aliases": [
-        "Rodange 91"
+        "Rodange 91",
+        "rodange 91"
       ]
     },
     {
@@ -15139,7 +14998,8 @@
       "league": "National Division",
       "division": 1,
       "aliases": [
-        "Bettembourg"
+        "Bettembourg",
+        "bettembourg"
       ]
     },
     {
@@ -15149,7 +15009,8 @@
       "league": "Division of Honour",
       "division": 2,
       "aliases": [
-        "Berdenia Berbourg"
+        "Berdenia Berbourg",
+        "berdenia berbourg"
       ]
     },
     {
@@ -15159,7 +15020,8 @@
       "league": "Division of Honour",
       "division": 2,
       "aliases": [
-        "Mamer 32"
+        "Mamer 32",
+        "mamer 32"
       ]
     },
     {
@@ -15169,7 +15031,8 @@
       "league": "Division of Honour",
       "division": 2,
       "aliases": [
-        "Canach"
+        "Canach",
+        "canach"
       ]
     },
     {
@@ -15179,7 +15042,8 @@
       "league": "Division of Honour",
       "division": 2,
       "aliases": [
-        "Koeppchen Wormeldange"
+        "Koeppchen Wormeldange",
+        "koeppchen wormeldange"
       ]
     },
     {
@@ -15189,7 +15053,8 @@
       "league": "Division of Honour",
       "division": 2,
       "aliases": [
-        "Marisca Mersch"
+        "Marisca Mersch",
+        "marisca mersch"
       ]
     },
     {
@@ -15199,7 +15064,8 @@
       "league": "Division of Honour",
       "division": 2,
       "aliases": [
-        "Schifflange 95"
+        "Schifflange 95",
+        "schifflange 95"
       ]
     },
     {
@@ -15209,7 +15075,8 @@
       "league": "Division of Honour",
       "division": 2,
       "aliases": [
-        "Alisontia Steinsel"
+        "Alisontia Steinsel",
+        "alisontia steinsel"
       ]
     },
     {
@@ -15219,7 +15086,8 @@
       "league": "1. deild",
       "division": 2,
       "aliases": [
-        "FC Hoyvík"
+        "FC Hoyvík",
+        "hoyvik"
       ]
     },
     {
@@ -15231,19 +15099,8 @@
       "aliases": [
         "KÍ II",
         "KI Klaksvik II",
-        "ki"
-      ]
-    },
-    {
-      "id": "fro-2-b36-ii",
-      "name": "B36 II",
-      "countryCode": "FRO",
-      "league": "1. deild",
-      "division": 2,
-      "aliases": [
-        "B36 II",
-        "B36 Torshavn II",
-        "b36"
+        "ki",
+        "ki ii"
       ]
     },
     {
@@ -15253,7 +15110,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Ekibastuz"
+        "Ekibastuz",
+        "ekibastuz"
       ]
     },
     {
@@ -15263,7 +15121,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Akademiya Ontustik"
+        "Akademiya Ontustik",
+        "akademiya ontustik"
       ]
     },
     {
@@ -15273,7 +15132,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Khan Tengri"
+        "Khan Tengri",
+        "khan tengri"
       ]
     },
     {
@@ -15284,7 +15144,8 @@
       "division": 2,
       "aliases": [
         "Altai",
-        "Altay Semey"
+        "Altay Semey",
+        "altai"
       ]
     },
     {
@@ -15294,7 +15155,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Arys"
+        "Arys",
+        "arys"
       ]
     },
     {
@@ -15304,7 +15166,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Akzhayik"
+        "Akzhayik",
+        "akzhayik"
       ]
     },
     {
@@ -15314,7 +15177,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "SD Family"
+        "SD Family",
+        "sd family"
       ]
     },
     {
@@ -15324,7 +15188,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Jas Qyran"
+        "Jas Qyran",
+        "jas qyran"
       ]
     },
     {
@@ -15334,7 +15199,8 @@
       "league": "First Division",
       "division": 2,
       "aliases": [
-        "Zhetisay"
+        "Zhetisay",
+        "zhetisay"
       ]
     },
     {
@@ -15344,7 +15210,8 @@
       "league": "Liga Leumit",
       "division": 2,
       "aliases": [
-        "Hapoel Acre"
+        "Hapoel Acre",
+        "hapoel acre"
       ]
     },
     {
@@ -15354,7 +15221,8 @@
       "league": "Liga Leumit",
       "division": 2,
       "aliases": [
-        "Maccabi Herzliya"
+        "Maccabi Herzliya",
+        "maccabi herzliya"
       ]
     },
     {
@@ -15364,7 +15232,8 @@
       "league": "Liga Leumit",
       "division": 2,
       "aliases": [
-        "Hapoel Nof HaGalil"
+        "Hapoel Nof HaGalil",
+        "hapoel nof hagalil"
       ]
     },
     {
@@ -15374,7 +15243,8 @@
       "league": "Liga Leumit",
       "division": 2,
       "aliases": [
-        "Kafr Qasim"
+        "Kafr Qasim",
+        "kafr qasim"
       ]
     },
     {
@@ -15384,7 +15254,8 @@
       "league": "Primera Divisió",
       "division": 1,
       "aliases": [
-        "Pas de la Casa"
+        "Pas de la Casa",
+        "pas la casa"
       ]
     },
     {
@@ -15395,7 +15266,8 @@
       "division": 1,
       "aliases": [
         "Esperança d’Andorra",
-        "Esperanca d Andorra"
+        "Esperanca d Andorra",
+        "esperanca dandorra"
       ]
     },
     {
@@ -15405,7 +15277,8 @@
       "league": "Segona Divisió",
       "division": 2,
       "aliases": [
-        "La Massana"
+        "La Massana",
+        "la massana"
       ]
     },
     {
@@ -15415,7 +15288,8 @@
       "league": "Segona Divisió",
       "division": 2,
       "aliases": [
-        "Encamp"
+        "Encamp",
+        "encamp"
       ]
     },
     {
@@ -15425,7 +15299,8 @@
       "league": "Segona Divisió",
       "division": 2,
       "aliases": [
-        "Atlètic Amèrica"
+        "Atlètic Amèrica",
+        "atletic america"
       ]
     },
     {
@@ -15435,7 +15310,8 @@
       "league": "Campionato Sammarinese",
       "division": 1,
       "aliases": [
-        "Domagnano"
+        "Domagnano",
+        "domagnano"
       ]
     },
     {
@@ -15446,7 +15322,8 @@
       "division": 1,
       "aliases": [
         "Academy San Marino",
-        "san marino"
+        "san marino",
+        "academy san marino"
       ]
     },
     {
@@ -15456,7 +15333,8 @@
       "league": "Premier League",
       "division": 1,
       "aliases": [
-        "Molodechno"
+        "Molodechno",
+        "molodechno"
       ]
     },
     {
@@ -15466,7 +15344,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Belshina Bobruisk"
+        "Belshina Bobruisk",
+        "belshina bobruisk"
       ]
     },
     {
@@ -15476,7 +15355,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Orsha"
+        "Orsha",
+        "orsha"
       ]
     },
     {
@@ -15486,7 +15366,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Volna Pinsk"
+        "Volna Pinsk",
+        "volna pinsk"
       ]
     },
     {
@@ -15496,7 +15377,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Bumprom"
+        "Bumprom",
+        "bumprom"
       ]
     },
     {
@@ -15506,7 +15388,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Ostrovets"
+        "Ostrovets",
+        "ostrovets"
       ]
     },
     {
@@ -15516,7 +15399,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Niva Dolbizno"
+        "Niva Dolbizno",
+        "niva dolbizno"
       ]
     },
     {
@@ -15527,19 +15411,8 @@
       "division": 2,
       "aliases": [
         "ABFF U19",
-        "abff"
-      ]
-    },
-    {
-      "id": "blr-2-bate-ii",
-      "name": "BATE II",
-      "countryCode": "BLR",
-      "league": "First League",
-      "division": 2,
-      "aliases": [
-        "BATE II",
-        "BATE Borisov II",
-        "bate"
+        "abff",
+        "abff u19"
       ]
     },
     {
@@ -15549,7 +15422,8 @@
       "league": "Premier League",
       "division": 1,
       "aliases": [
-        "Pari Nizhny Novgorod"
+        "Pari Nizhny Novgorod",
+        "pari nizhny novgorod"
       ]
     },
     {
@@ -15559,7 +15433,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Sokol Saratov"
+        "Sokol Saratov",
+        "sokol saratov"
       ]
     },
     {
@@ -15569,7 +15444,8 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Tyumen"
+        "Tyumen",
+        "tyumen"
       ]
     },
     {
@@ -15579,13 +15455,15 @@
       "league": "First League",
       "division": 2,
       "aliases": [
-        "Alania Vladikavkaz"
+        "Alania Vladikavkaz",
+        "alania vladikavkaz"
       ]
     }
   ],
   "providerCounts": {
-    "football-logos.cc": 1232,
-    "TheSportsDB": 25,
-    "Wikipedia": 12
+    "unknown": 1008,
+    "football-logos.cc": 231,
+    "TheSportsDB": 35,
+    "Wikipedia": 23
   }
 }
