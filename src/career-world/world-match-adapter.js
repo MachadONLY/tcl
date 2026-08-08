@@ -7,6 +7,8 @@ import {
 import { WORLD_PLAYER_BY_ID, WORLD_TEAM_ELO } from './world-player-database.js';
 import { squadForWorld } from './world-selectors.js';
 import { aiTacticalPlan, selectAiLineup } from './clubs/ai-team-management.js';
+import { effectivePlayerStatus } from './world-employment-index.js';
+import { playerUnavailable } from './players/availability-engine.js';
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 const average = values => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
@@ -22,12 +24,18 @@ function fallbackLineup(players = [], shape = USER_FALLBACK_SHAPE) {
   return selected.slice(0, 11);
 }
 
+function availableSquad(career, code, fixtureDate) {
+  return squadForWorld(career, code, WORLD_PLAYER_BY_ID)
+    .filter(player => !playerUnavailable(effectivePlayerStatus(career.world, player), fixtureDate));
+}
+
 function lineupFor(career, code, fixture) {
-  const employed = squadForWorld(career, code, WORLD_PLAYER_BY_ID);
+  const employed = availableSquad(career, code, fixture.date);
   if (code !== career.clubCode) return selectAiLineup(career, code, employed, fixture);
+  const availableIds = new Set(employed.map(player => player.id));
   const selected = (career.lineup || [])
     .map(id => WORLD_PLAYER_BY_ID.get(id))
-    .filter(player => player && career.world?.employment?.[player.id] === code);
+    .filter(player => player && availableIds.has(player.id));
   const missing = Math.max(0, 11 - selected.length);
   if (!missing) {
     return {
@@ -58,11 +66,12 @@ function profile(career, code, home, fixture) {
     : normalizeTactics({ ...defaultTactics(), ...aiPlan });
   const metrics = analyzeTactics(tactics, players).metrics;
   const condition = user
-    ? average(players.map(player => career.playerState?.[player.id]?.condition || 94))
-    : 94;
+    ? average(players.map(player => career.playerState?.[player.id]?.condition || effectivePlayerStatus(career.world, player).worldCondition || 94))
+    : average(players.map(player => Number(effectivePlayerStatus(career.world, player).worldCondition) || 94));
+  const form = average(players.map(player => Number(effectivePlayerStatus(career.world, player).worldForm) || 65));
   const rating = average(players.map(player => Number(player.rating) || 65));
   const elo = Number(career.world?.clubs?.[code]?.elo) || Number(WORLD_TEAM_ELO[code]) || 1750;
-  const power = rating + (elo - 1750) / 62 + (home ? 1.65 : 0) + (condition - 90) / 8;
+  const power = rating + (elo - 1750) / 62 + (home ? 1.65 : 0) + (condition - 90) / 8 + (form - 65) / 25;
   const attack = power + (metrics.creation - 65) / 8 + (metrics.intensity - 60) / 18;
   const defence = power + (metrics.protection - 65) / 7 + (metrics.control - 60) / 24;
   return {
@@ -72,6 +81,7 @@ function profile(career, code, home, fixture) {
     tactics,
     metrics,
     condition,
+    form,
     rating,
     power,
     attack,
