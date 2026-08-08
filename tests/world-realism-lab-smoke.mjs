@@ -1,3 +1,4 @@
+import './no-scripted-world-smoke.mjs';
 import assert from 'node:assert/strict';
 import { simulateRealismSave } from '../scripts/world-realism-lab.mjs';
 
@@ -17,6 +18,7 @@ assert.ok(saveA.audit.metrics.playersEmployed >= 600, 'lab must audit the active
 
 console.log(JSON.stringify({
   ok: true,
+  noScriptedWorldGuard: true,
   sameSeedReproducible: true,
   differentSaveDiverges: true,
   hardViolations: saveA.audit.hardViolations.length + saveB.audit.hardViolations.length,
