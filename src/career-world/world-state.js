@@ -76,6 +76,7 @@ function normalizeWorldShape(world) {
   world.dailySummaries ||= {};
   world.employment ||= {};
   world.contracts ||= {};
+  world.freeAgents ||= {};
   world.playerStatus ||= {};
   world.clubs ||= {};
   world.transferMarket ||= {};
@@ -84,6 +85,12 @@ function normalizeWorldShape(world) {
   world.transferMarket.rumors ||= [];
   world.transferMarket.cooldowns ||= {};
   world.transferMarket.lastActivityByClub ||= {};
+  world.contractMarket ||= {};
+  world.contractMarket.renewals ||= {};
+  world.contractMarket.preContracts ||= {};
+  world.contractMarket.reviewed ||= {};
+  world.contractMarket.userNotifications ||= {};
+  world.contractMarket.sequence = Number(world.contractMarket.sequence) || 0;
   world.migrations ||= [];
   world.database ||= {};
   rebuildEmploymentIndex(world);
@@ -232,9 +239,11 @@ export function createWorldState({ career, clubs = [], squads = {}, teamBudgets 
     eventSequence: 0,
     employment: {},
     contracts: {},
+    freeAgents: {},
     playerStatus: {},
     clubs: {},
     transferMarket: { negotiations: {}, history: [], rumors: [], cooldowns: {}, lastActivityByClub: {} },
+    contractMarket: { renewals: {}, preContracts: {}, reviewed: {}, userNotifications: {}, sequence: 0 },
     migrations: [],
     database: { ...worldMeta, attachedAtCareerDate: startDate }
   };
