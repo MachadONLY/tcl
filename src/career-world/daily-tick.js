@@ -3,8 +3,9 @@ import { squadForWorld } from './world-selectors.js';
 import { evaluateClubSquad, surplusCandidates } from './clubs/squad-analysis.js';
 import { processTransferMarketDay } from './transfers/transfer-engine.js';
 import { processRumorMarketDay, reconcileRumorsAfterTransfers } from './transfers/rumor-engine.js';
+import { processContractExpirations, processContractMarketDay } from './contracts/contract-engine.js';
 import { randomUnit } from './deterministic-rng.js';
-import { effectivePlayerStatus, ensurePlayerStatus, removePlayerEmployment } from './world-employment-index.js';
+import { effectivePlayerStatus, ensurePlayerStatus } from './world-employment-index.js';
 
 function maybeListAiSurplus({ career, date, playerById, analyses }) {
   const world = career.world;
@@ -30,31 +31,6 @@ function maybeListAiSurplus({ career, date, playerById, analyses }) {
   return listed;
 }
 
-function processExpiredContracts({ career, date }) {
-  const world = career.world;
-  let expired = 0;
-  for (const [playerId, contract] of Object.entries(world.contracts || {})) {
-    if (contract.status !== 'active' || !contract.endDate || contract.endDate >= date) continue;
-    const clubCode = world.employment[playerId];
-    contract.status = 'expired';
-    removePlayerEmployment(world, playerId);
-    if (world.playerStatus[playerId]) {
-      world.playerStatus[playerId].transferListed = false;
-      world.playerStatus[playerId].loanListed = false;
-    }
-    world.freeAgents ||= {};
-    world.freeAgents[playerId] = { since: date, previousClubCode: clubCode || contract.clubCode || null };
-    appendWorldEvent(world, {
-      date,
-      type: 'CONTRACT_EXPIRED',
-      entities: { playerId, clubCode },
-      payload: { endDate: contract.endDate, freeAgent: true }
-    });
-    expired += 1;
-  }
-  return expired;
-}
-
 export function processDailyTick({ career, date, playerById }) {
   const world = career.world;
   if (world.processedDays?.[date]) return world.dailySummaries[date];
@@ -71,7 +47,8 @@ export function processDailyTick({ career, date, playerById }) {
     clubState.recruitment.lastEvaluatedDate = date;
   }
 
-  const contractsExpired = processExpiredContracts({ career, date });
+  const contractMarket = processContractMarketDay({ career, date, playerById });
+  const contractExpirations = processContractExpirations({ career, date, playerById });
   const playersListed = maybeListAiSurplus({ career, date, playerById, analyses });
   const rumorMarket = processRumorMarketDay({ career, date, playerById, squadAnalyses: analyses });
   const transferMarket = processTransferMarketDay({ career, date, playerById, squadAnalyses: analyses });
@@ -80,7 +57,9 @@ export function processDailyTick({ career, date, playerById }) {
   const summary = {
     date,
     clubsEvaluated: Object.keys(analyses).length,
-    contractsExpired,
+    contractsExpired: contractExpirations.expired,
+    bosmanMoves: contractExpirations.bosmanMoves,
+    contractMarket,
     playersListed,
     rumorMarket: { ...rumorMarket, ...rumorReconciliation },
     transferMarket,
@@ -93,7 +72,12 @@ export function processDailyTick({ career, date, playerById }) {
     entities: {},
     payload: {
       clubsEvaluated: summary.clubsEvaluated,
-      contractsExpired,
+      contractsExpired: contractExpirations.expired,
+      contractRenewalsOpened: contractMarket.opened,
+      contractsRenewed: contractMarket.renewed,
+      contractRenewalsRejected: contractMarket.rejected,
+      bosmanAgreements: contractMarket.bosman.agreed,
+      bosmanMoves: contractExpirations.bosmanMoves,
       playersListed,
       rumorsStarted: rumorMarket.started,
       rumorsActive: rumorMarket.active,
