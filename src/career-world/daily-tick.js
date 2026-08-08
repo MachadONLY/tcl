@@ -2,6 +2,7 @@ import { appendWorldEvent, eventsOnDate } from './world-events.js';
 import { squadForWorld } from './world-selectors.js';
 import { evaluateClubSquad, surplusCandidates } from './clubs/squad-analysis.js';
 import { processTransferMarketDay } from './transfers/transfer-engine.js';
+import { processRumorMarketDay, reconcileRumorsAfterTransfers } from './transfers/rumor-engine.js';
 import { randomUnit } from './deterministic-rng.js';
 import { effectivePlayerStatus, ensurePlayerStatus, removePlayerEmployment } from './world-employment-index.js';
 
@@ -72,13 +73,16 @@ export function processDailyTick({ career, date, playerById }) {
 
   const contractsExpired = processExpiredContracts({ career, date });
   const playersListed = maybeListAiSurplus({ career, date, playerById, analyses });
+  const rumorMarket = processRumorMarketDay({ career, date, playerById, squadAnalyses: analyses });
   const transferMarket = processTransferMarketDay({ career, date, playerById, squadAnalyses: analyses });
+  const rumorReconciliation = reconcileRumorsAfterTransfers({ career, date });
   const dayEventsBeforeClose = eventsOnDate(world, date).length;
   const summary = {
     date,
     clubsEvaluated: Object.keys(analyses).length,
     contractsExpired,
     playersListed,
+    rumorMarket: { ...rumorMarket, ...rumorReconciliation },
     transferMarket,
     events: dayEventsBeforeClose
   };
@@ -91,6 +95,9 @@ export function processDailyTick({ career, date, playerById }) {
       clubsEvaluated: summary.clubsEvaluated,
       contractsExpired,
       playersListed,
+      rumorsStarted: rumorMarket.started,
+      rumorsActive: rumorMarket.active,
+      rumorCompetitions: rumorMarket.competitionStarted,
       transfersOpened: transferMarket.opened,
       transfersCompleted: transferMarket.completed
     },

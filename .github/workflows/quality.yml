@@ -60,6 +60,9 @@ jobs:
           node --check src/career-world/clubs/european-brain-registry.js
           node --check src/career-world/clubs/squad-analysis.js
           node --check src/career-world/clubs/ai-team-management.js
+          node --check src/career-world/transfers/player-brain.js
+          node --check src/career-world/transfers/competition-engine.js
+          node --check src/career-world/transfers/rumor-engine.js
           node --check src/career-world/transfers/recruitment-ai.js
           node --check src/career-world/transfers/transfer-engine.js
           node --check src/career-world/transfers/valuation-engine.js
@@ -67,12 +70,16 @@ jobs:
           node --check scripts/sync-world-player-database.mjs
           node --check scripts/ensure-world-player-database.mjs
           node --check tests/world-player-database-smoke.mjs
+          node --check tests/living-market-v2-smoke.mjs
 
       - name: Build production bundle and run all integrity tests
         run: npm run build
 
       - name: Test World Player Database builder
         run: node tests/world-player-database-smoke.mjs
+
+      - name: Test living rumor and competition market
+        run: node tests/living-market-v2-smoke.mjs
 
       - name: Test FM-style calendar processing
         run: node tests/career-home-processing-smoke.mjs
