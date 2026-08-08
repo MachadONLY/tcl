@@ -4,6 +4,7 @@ import { evaluateClubSquad, surplusCandidates } from './clubs/squad-analysis.js'
 import { processTransferMarketDay } from './transfers/transfer-engine.js';
 import { processRumorMarketDay, reconcileRumorsAfterTransfers } from './transfers/rumor-engine.js';
 import { processContractExpirations, processContractMarketDay } from './contracts/contract-engine.js';
+import { processLoanMarketDay } from './loans/loan-engine.js';
 import { randomUnit } from './deterministic-rng.js';
 import { effectivePlayerStatus, ensurePlayerStatus } from './world-employment-index.js';
 
@@ -50,6 +51,7 @@ export function processDailyTick({ career, date, playerById }) {
   const contractMarket = processContractMarketDay({ career, date, playerById });
   const contractExpirations = processContractExpirations({ career, date, playerById });
   const playersListed = maybeListAiSurplus({ career, date, playerById, analyses });
+  const loanMarket = processLoanMarketDay({ career, date, playerById, squadAnalyses: analyses });
   const rumorMarket = processRumorMarketDay({ career, date, playerById, squadAnalyses: analyses });
   const transferMarket = processTransferMarketDay({ career, date, playerById, squadAnalyses: analyses });
   const rumorReconciliation = reconcileRumorsAfterTransfers({ career, date });
@@ -61,6 +63,7 @@ export function processDailyTick({ career, date, playerById }) {
     bosmanMoves: contractExpirations.bosmanMoves,
     contractMarket,
     playersListed,
+    loanMarket,
     rumorMarket: { ...rumorMarket, ...rumorReconciliation },
     transferMarket,
     events: dayEventsBeforeClose
@@ -79,6 +82,13 @@ export function processDailyTick({ career, date, playerById }) {
       bosmanAgreements: contractMarket.bosman.agreed,
       bosmanMoves: contractExpirations.bosmanMoves,
       playersListed,
+      loansListed: loanMarket.listed,
+      loanProposalsOpened: loanMarket.opened,
+      loansActivated: loanMarket.activated,
+      loansReturned: loanMarket.returned,
+      loansRecalled: loanMarket.recalled,
+      loanOptionsExercised: loanMarket.converted,
+      activeLoans: loanMarket.active,
       rumorsStarted: rumorMarket.started,
       rumorsActive: rumorMarket.active,
       rumorCompetitions: rumorMarket.competitionStarted,
