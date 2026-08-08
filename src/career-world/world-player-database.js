@@ -1,5 +1,5 @@
 import { PLAYER_BY_ID as PREMIER_PLAYER_BY_ID, SQUADS as PREMIER_SQUADS } from '../career-core/career-core.js';
-import { CLUB_CATALOG, TEAM_BUDGETS, TEAM_ELO } from '../career-core/season-2026-27-live.js';
+import { CLUB_BY_CODE as SHARED_CLUB_BY_CODE, CLUB_CATALOG, TEAM_BUDGETS, TEAM_ELO } from '../career-core/season-2026-27-live.js';
 
 const EMPTY_SNAPSHOT = Object.freeze({
   meta: Object.freeze({ schemaVersion: 1, complete: false, playerCount: 0, clubCount: 0, countryCount: 0, source: 'PREMIER_LEAGUE_ONLY' }),
@@ -34,9 +34,15 @@ for (const rows of Object.values(externalSquadsMutable)) {
   Object.freeze(rows);
 }
 
-const worldPlayerById = new Map(PREMIER_PLAYER_BY_ID);
+// The historic read maps are deliberately enriched in-place. Several UI bridges still
+// resolve names through PLAYER_BY_ID / CLUB_BY_CODE; sharing the same objects keeps
+// news, inbox and match reports aware of European entities without duplicating lookups.
+const worldPlayerById = PREMIER_PLAYER_BY_ID;
 for (const rows of Object.values(externalSquadsMutable)) {
   for (const player of rows) worldPlayerById.set(player.id, player);
+}
+for (const club of externalClubs) {
+  if (!SHARED_CLUB_BY_CODE.has(club.code)) SHARED_CLUB_BY_CODE.set(club.code, club);
 }
 
 export const WORLD_DB_META = Object.freeze({
