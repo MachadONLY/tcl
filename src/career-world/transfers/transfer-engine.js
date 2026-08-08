@@ -1,6 +1,12 @@
 import { appendWorldEvent } from '../world-events.js';
 import { addWorldDays } from '../world-time.js';
 import { randomInt, randomUnit } from '../deterministic-rng.js';
+import {
+  effectivePlayerContract,
+  effectivePlayerStatus,
+  ensurePlayerStatus,
+  setPlayerEmployment
+} from '../world-employment-index.js';
 import { chooseRecruitmentTarget, playerMoveInterest, shouldRecruitToday, transferWindowState } from './recruitment-ai.js';
 import { estimateSellingPosition, wageExpectation } from './valuation-engine.js';
 
@@ -13,9 +19,15 @@ function activeForClub(world, clubCode) {
     .filter(negotiation => negotiation.buyerCode === clubCode || negotiation.sellerCode === clubCode);
 }
 
+function activeIncomingForUser(world, userClubCode) {
+  return Object.values(world.transferMarket.negotiations || {})
+    .filter(negotiation => !TERMINAL.has(negotiation.status))
+    .filter(negotiation => negotiation.sellerCode === userClubCode).length;
+}
+
 function negotiationId(world, date, buyerCode, playerId) {
   const sequence = Object.keys(world.transferMarket.negotiations || {}).length + 1;
-  return `neg-${date}-${buyerCode.toLowerCase()}-${playerId}-${sequence}`;
+  return `neg-${date}-${String(buyerCode).toLowerCase()}-${playerId}-${sequence}`;
 }
 
 function setNextRecruitmentDate(world, clubCode, date, salt = 'cooldown') {
@@ -25,21 +37,16 @@ function setNextRecruitmentDate(world, clubCode, date, salt = 'cooldown') {
   world.transferMarket.lastActivityByClub[clubCode] = date;
 }
 
-function createNegotiation({ career, date, buyerCode, need, target, playerById }) {
+function createNegotiation({ career, date, buyerCode, need, target }) {
   const world = career.world;
   const player = target.player;
   const sellerCode = world.employment[player.id];
   const buyerClub = world.clubs[buyerCode];
   const sellerClub = world.clubs[sellerCode];
-  const status = world.playerStatus[player.id] || {};
-  const contract = world.contracts[player.id] || {};
-  const selling = estimateSellingPosition({
-    player, status, contract, date, sellingClub: sellerClub,
-    shortage: false
-  });
-  if (Number(status.askingPrice) > 0) {
-    selling.askingPrice = Math.max(selling.minimumAcceptableFee, Number(status.askingPrice));
-  }
+  const status = effectivePlayerStatus(world, player);
+  const contract = effectivePlayerContract(world, player);
+  const selling = estimateSellingPosition({ player, status, contract, date, sellingClub: sellerClub, shortage: false });
+  if (Number(status.askingPrice) > 0) selling.askingPrice = Math.max(selling.minimumAcceptableFee, Number(status.askingPrice));
   const id = negotiationId(world, date, buyerCode, player.id);
   const negotiation = {
     id,
@@ -47,6 +54,8 @@ function createNegotiation({ career, date, buyerCode, need, target, playerById }
     buyerCode,
     sellerCode,
     group: player.group,
+    position: need.position || null,
+    role: need.role || null,
     openedAt: date,
     updatedAt: date,
     stage: 'scouting',
@@ -60,7 +69,14 @@ function createNegotiation({ career, date, buyerCode, need, target, playerById }
     attempts: 0,
     playerInterest: playerMoveInterest({ player, status, contract, buyerClub, sellerClub, need }),
     requiresUserDecision: sellerCode === career.clubCode,
-    need: { group: need.group, priority: need.priority, reason: need.reason }
+    need: {
+      group: need.group,
+      position: need.position || null,
+      role: need.role || null,
+      priority: need.priority,
+      reason: need.reason,
+      expectedPlayingTime: need.expectedPlayingTime || null
+    }
   };
   world.transferMarket.negotiations[id] = negotiation;
   setNextRecruitmentDate(world, buyerCode, date, 'opened');
@@ -68,7 +84,7 @@ function createNegotiation({ career, date, buyerCode, need, target, playerById }
     date,
     type: 'TRANSFER_INTEREST_REGISTERED',
     entities: { playerId: player.id, buyerCode, sellerCode, negotiationId: id },
-    payload: { marketValue: selling.marketValue, group: player.group }
+    payload: { marketValue: selling.marketValue, group: player.group, position: need.position || null, role: need.role || null }
   });
   return negotiation;
 }
@@ -82,12 +98,7 @@ function rejectNegotiation(world, negotiation, date, reason) {
   appendWorldEvent(world, {
     date,
     type: 'TRANSFER_NEGOTIATION_ENDED',
-    entities: {
-      playerId: negotiation.playerId,
-      buyerCode: negotiation.buyerCode,
-      sellerCode: negotiation.sellerCode,
-      negotiationId: negotiation.id
-    },
+    entities: { playerId: negotiation.playerId, buyerCode: negotiation.buyerCode, sellerCode: negotiation.sellerCode, negotiationId: negotiation.id },
     payload: { reason, fee: negotiation.proposedFee }
   });
 }
@@ -100,22 +111,24 @@ function completeTransfer(career, negotiation, date, playerById) {
   const seller = world.clubs[negotiation.sellerCode];
   const fee = Math.max(250_000, Number(negotiation.proposedFee) || Number(negotiation.counterFee) || negotiation.minimumAcceptableFee);
   if (!buyer || !seller || buyer.transferBudget < fee) return rejectNegotiation(world, negotiation, date, 'budget-changed');
-  const oldContract = world.contracts[player.id] || {};
+  const oldContract = effectivePlayerContract(world, player);
   const weeklyWage = wageExpectation({ player, contract: oldContract, buyerClub: buyer });
   buyer.transferBudget = Math.max(0, buyer.transferBudget - fee);
-  buyer.transferSpent += fee;
-  seller.transferIncome += fee;
-  seller.transferBudget += Math.round(fee * 0.72);
-  world.employment[player.id] = buyer.code;
-  world.playerStatus[player.id] = {
-    ...(world.playerStatus[player.id] || {}),
+  buyer.transferSpent = (Number(buyer.transferSpent) || 0) + fee;
+  seller.transferIncome = (Number(seller.transferIncome) || 0) + fee;
+  seller.transferBudget = (Number(seller.transferBudget) || 0) + Math.round(fee * .72);
+  setPlayerEmployment(world, player.id, buyer.code);
+  const status = ensurePlayerStatus(world, player);
+  Object.assign(status, {
     transferListed: false,
     loanListed: false,
     askingPrice: null,
     squadRole: 'rotation',
     lastMoveAt: date,
-    joinedAt: date
-  };
+    joinedAt: date,
+    happiness: Math.max(68, Number(status.happiness) || 70),
+    playingTimeExpectation: negotiation.need?.expectedPlayingTime || 'squad-player'
+  });
   const years = player.age >= 32 ? 2 : player.age >= 29 ? 3 : player.age <= 22 ? 5 : 4;
   world.contracts[player.id] = {
     playerId: player.id,
@@ -171,8 +184,8 @@ function progressNegotiation(career, negotiation, date, playerById) {
   }
 
   if (negotiation.stage === 'enquiry') {
-    const aggression = Number(buyer.policy?.negotiationAggression) || 0.55;
-    const startRatio = 0.83 + aggression * 0.12 + randomUnit(world.seed, negotiation.id, 'opening-offer') * 0.09;
+    const aggression = Number(buyer.policy?.negotiationAggression) || .55;
+    const startRatio = .83 + aggression * .12 + randomUnit(world.seed, negotiation.id, 'opening-offer') * .09;
     negotiation.proposedFee = roundMoney(Math.min(buyer.transferBudget, negotiation.askingPrice * startRatio));
     negotiation.attempts = 1;
     negotiation.updatedAt = date;
@@ -192,12 +205,12 @@ function progressNegotiation(career, negotiation, date, playerById) {
         date,
         sender: 'Diretor de futebol',
         subject: `Proposta recebida por ${player.name}`,
-        body: `${buyer.code} apresentou uma proposta de £${Math.round(negotiation.proposedFee / 1_000_000 * 10) / 10}M. A negociação aguarda sua decisão.`,
+        body: `${buyer.name || buyer.code} apresentou uma proposta de £${Math.round(negotiation.proposedFee / 1_000_000 * 10) / 10}M. A negociação aguarda sua decisão.`,
         read: false
       });
       return;
     }
-    if (negotiation.proposedFee < negotiation.minimumAcceptableFee * 0.9) {
+    if (negotiation.proposedFee < negotiation.minimumAcceptableFee * .9) {
       negotiation.counterFee = negotiation.minimumAcceptableFee;
       negotiation.stage = 'counter';
       negotiation.nextActionDate = addWorldDays(date, 1);
@@ -215,7 +228,7 @@ function progressNegotiation(career, negotiation, date, playerById) {
   }
 
   if (negotiation.stage === 'counter') {
-    const ceiling = Math.min(buyer.transferBudget, negotiation.marketValue * (1.22 + (negotiation.need?.priority || 0) * 0.18));
+    const ceiling = Math.min(buyer.transferBudget, negotiation.marketValue * (1.22 + (negotiation.need?.priority || 0) * .18));
     if (negotiation.counterFee > ceiling) return rejectNegotiation(world, negotiation, date, 'price-too-high');
     negotiation.proposedFee = roundMoney(Math.min(negotiation.counterFee, ceiling));
     negotiation.attempts += 1;
@@ -233,16 +246,31 @@ function progressNegotiation(career, negotiation, date, playerById) {
 
   if (negotiation.stage === 'personal-terms') {
     const interest = Number(negotiation.playerInterest) || 0;
-    const acceptance = interest + randomUnit(world.seed, date, negotiation.id, 'personal-terms') * 0.22;
-    if (acceptance < 0.48) return rejectNegotiation(world, negotiation, date, 'player-declined');
+    const acceptance = interest + randomUnit(world.seed, date, negotiation.id, 'personal-terms') * .22;
+    if (acceptance < .48) return rejectNegotiation(world, negotiation, date, 'player-declined');
     completeTransfer(career, negotiation, date, playerById);
   }
+}
+
+function recruitmentQueue(world, career, date, squadAnalyses) {
+  return Object.entries(squadAnalyses || {})
+    .filter(([clubCode]) => clubCode !== career.clubCode)
+    .map(([clubCode, analysis]) => {
+      const need = analysis.requirements?.[0] || analysis.needs?.[0] || null;
+      const priority = Number(need?.priority) || 0;
+      const noise = randomUnit(world.seed, date, clubCode, need?.position || need?.group || 'none', 'market-queue') * .08;
+      return { clubCode, analysis, need, score: priority + noise };
+    })
+    .filter(row => row.need)
+    .sort((left, right) => right.score - left.score || left.clubCode.localeCompare(right.clubCode));
 }
 
 export function processTransferMarketDay({ career, date, playerById, squadAnalyses }) {
   const world = career.world;
   const window = transferWindowState(date);
-  const summary = { window, progressed: 0, opened: 0, completed: 0 };
+  const clubCount = Object.keys(world.clubs || {}).length;
+  const globalDailyCap = Math.min(32, Math.max(3, Math.ceil(clubCount / 35)));
+  const summary = { window, progressed: 0, opened: 0, completed: 0, globalDailyCap };
   if (!window.open) return summary;
 
   const completedBefore = world.transferMarket.history.length;
@@ -252,10 +280,9 @@ export function processTransferMarketDay({ career, date, playerById, squadAnalys
     if (`${negotiation.stage}:${negotiation.status}` !== before) summary.progressed += 1;
   }
 
-  for (const [clubCode, analysis] of Object.entries(squadAnalyses || {})) {
-    if (clubCode === career.clubCode) continue;
+  for (const row of recruitmentQueue(world, career, date, squadAnalyses)) {
+    const { clubCode, need } = row;
     const clubState = world.clubs[clubCode];
-    const need = analysis.needs?.[0];
     const active = activeForClub(world, clubCode).filter(negotiation => negotiation.buyerCode === clubCode).length;
     if (!shouldRecruitToday({ world, clubState, date, need, activeNegotiations: active })) continue;
     const target = chooseRecruitmentTarget({ world, date, buyerCode: clubCode, need, playerById });
@@ -263,11 +290,15 @@ export function processTransferMarketDay({ career, date, playerById, squadAnalys
       setNextRecruitmentDate(world, clubCode, date, 'no-target');
       continue;
     }
+    if (world.employment[target.player.id] === career.clubCode && activeIncomingForUser(world, career.clubCode) >= 2) {
+      setNextRecruitmentDate(world, clubCode, date, 'user-inbox-protection');
+      continue;
+    }
     const cooldown = world.transferMarket.cooldowns[`${clubCode}:${target.player.id}`];
     if (cooldown && cooldown > date) continue;
-    createNegotiation({ career, date, buyerCode: clubCode, need, target, playerById });
+    createNegotiation({ career, date, buyerCode: clubCode, need, target });
     summary.opened += 1;
-    if (summary.opened >= 3) break;
+    if (summary.opened >= globalDailyCap) break;
   }
   summary.completed = world.transferMarket.history.length - completedBefore;
   return summary;
