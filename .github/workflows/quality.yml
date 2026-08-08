@@ -51,6 +51,8 @@ jobs:
           node --check src/career-home-processing.js
           node --check src/career-world/deterministic-rng.js
           node --check src/career-world/world-state.js
+          node --check src/career-world/world-employment-index.js
+          node --check src/career-world/world-player-database.js
           node --check src/career-world/daily-tick.js
           node --check src/career-world/world-engine.js
           node --check src/career-world/world-match-adapter.js
@@ -61,9 +63,16 @@ jobs:
           node --check src/career-world/transfers/recruitment-ai.js
           node --check src/career-world/transfers/transfer-engine.js
           node --check src/career-world/transfers/valuation-engine.js
+          node --check scripts/official-ea-ratings.mjs
+          node --check scripts/sync-world-player-database.mjs
+          node --check scripts/ensure-world-player-database.mjs
+          node --check tests/world-player-database-smoke.mjs
 
       - name: Build production bundle and run all integrity tests
         run: npm run build
+
+      - name: Test World Player Database builder
+        run: node tests/world-player-database-smoke.mjs
 
       - name: Test FM-style calendar processing
         run: node tests/career-home-processing-smoke.mjs
