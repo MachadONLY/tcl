@@ -8,6 +8,8 @@ import { processLoanMarketDay } from './loans/loan-engine.js';
 import { randomUnit } from './deterministic-rng.js';
 import { effectivePlayerStatus, ensurePlayerStatus } from './world-employment-index.js';
 
+const TRANSFER_TERMINAL = new Set(['completed', 'rejected', 'withdrawn', 'expired']);
+
 function maybeListAiSurplus({ career, date, playerById, analyses }) {
   const world = career.world;
   if (String(date).slice(-2) !== '01' && String(date).slice(-2) !== '15') return 0;
@@ -32,6 +34,32 @@ function maybeListAiSurplus({ career, date, playerById, analyses }) {
   return listed;
 }
 
+function reconcilePermanentDealsWithLoans(world, date) {
+  const activeLoanPlayerIds = new Set(
+    Object.values(world.loanMarket?.deals || {})
+      .filter(deal => deal.status === 'active')
+      .map(deal => deal.playerId)
+  );
+  let withdrawn = 0;
+  for (const negotiation of Object.values(world.transferMarket?.negotiations || {})) {
+    if (TRANSFER_TERMINAL.has(negotiation.status) || !activeLoanPlayerIds.has(negotiation.playerId)) continue;
+    negotiation.status = 'withdrawn';
+    negotiation.stage = 'closed';
+    negotiation.updatedAt = date;
+    negotiation.nextActionDate = null;
+    negotiation.withdrawalReason = 'player-on-loan';
+    appendWorldEvent(world, {
+      date,
+      type: 'TRANSFER_NEGOTIATION_ENDED',
+      entities: { playerId: negotiation.playerId, buyerCode: negotiation.buyerCode, sellerCode: negotiation.sellerCode, negotiationId: negotiation.id },
+      payload: { reason: 'player-on-loan' },
+      visibility: 'system'
+    });
+    withdrawn += 1;
+  }
+  return withdrawn;
+}
+
 export function processDailyTick({ career, date, playerById }) {
   const world = career.world;
   if (world.processedDays?.[date]) return world.dailySummaries[date];
@@ -52,6 +80,7 @@ export function processDailyTick({ career, date, playerById }) {
   const contractExpirations = processContractExpirations({ career, date, playerById });
   const playersListed = maybeListAiSurplus({ career, date, playerById, analyses });
   const loanMarket = processLoanMarketDay({ career, date, playerById, squadAnalyses: analyses });
+  const transferDealsWithdrawnForLoans = reconcilePermanentDealsWithLoans(world, date);
   const rumorMarket = processRumorMarketDay({ career, date, playerById, squadAnalyses: analyses });
   const transferMarket = processTransferMarketDay({ career, date, playerById, squadAnalyses: analyses });
   const rumorReconciliation = reconcileRumorsAfterTransfers({ career, date });
@@ -63,7 +92,7 @@ export function processDailyTick({ career, date, playerById }) {
     bosmanMoves: contractExpirations.bosmanMoves,
     contractMarket,
     playersListed,
-    loanMarket,
+    loanMarket: { ...loanMarket, transferDealsWithdrawn: transferDealsWithdrawnForLoans },
     rumorMarket: { ...rumorMarket, ...rumorReconciliation },
     transferMarket,
     events: dayEventsBeforeClose
@@ -89,6 +118,7 @@ export function processDailyTick({ career, date, playerById }) {
       loansRecalled: loanMarket.recalled,
       loanOptionsExercised: loanMarket.converted,
       activeLoans: loanMarket.active,
+      transferDealsWithdrawnForLoans,
       rumorsStarted: rumorMarket.started,
       rumorsActive: rumorMarket.active,
       rumorCompetitions: rumorMarket.competitionStarted,
