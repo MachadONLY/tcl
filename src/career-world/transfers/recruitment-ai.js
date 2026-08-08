@@ -48,9 +48,9 @@ function buyerRumors(world, buyerCode, need) {
   return (world.transferMarket?.rumors || []).filter(rumor => rumor.buyerCode === buyerCode && rumorMatchesNeed(rumor, need));
 }
 
-function matureRumor(world, buyerCode, need, date) {
+function matureRumor(world, buyerCode, need) {
   return buyerRumors(world, buyerCode, need)
-    .filter(rumor => rumor.stage === 'active-interest' && rumor.readyForApproach && (!rumor.nextActionDate || rumor.nextActionDate >= date || rumor.nextActionDate <= date))
+    .filter(rumor => rumor.stage === 'active-interest' && rumor.readyForApproach)
     .sort((left, right) => Number(right.heat) - Number(left.heat) || left.id.localeCompare(right.id))[0] || null;
 }
 
@@ -62,7 +62,7 @@ export function shouldRecruitToday({ world, clubState, date, need, activeNegotia
   if (budget < 2_000_000) return false;
   const priority = Number(need.priority) || 0;
   const rumors = buyerRumors(world, clubState.code, need);
-  const mature = matureRumor(world, clubState.code, need, date);
+  const mature = matureRumor(world, clubState.code, need);
   if (rumors.length && !mature) return false;
 
   const patience = Number(clubState.managerBrain?.negotiationPatience ?? clubState.policy?.patience) || .6;
@@ -191,6 +191,7 @@ function fitsNeed(player, need) {
 export function chooseRecruitmentTarget({ world, date, buyerCode, need, playerById, ignoreRumorPreference = false }) {
   const buyerClub = world.clubs[buyerCode];
   if (!buyerClub) return null;
+  const requiredRumor = ignoreRumorPreference ? null : matureRumor(world, buyerCode, need);
   const candidates = [];
   const sellerCache = new Map();
   for (const [playerId, sellerCode] of Object.entries(world.employment || {})) {
@@ -224,9 +225,9 @@ export function chooseRecruitmentTarget({ world, date, buyerCode, need, playerBy
   }
 
   candidates.sort((left, right) => right.score - left.score || right.player.rating - left.player.rating || left.player.age - right.player.age);
-  if (!ignoreRumorPreference) {
-    const mature = candidates.filter(candidate => candidate.matureRumor).sort((left, right) => right.score - left.score);
-    if (mature.length) return mature[0];
+  if (requiredRumor) {
+    const lockedTarget = candidates.find(candidate => candidate.player.id === requiredRumor.playerId && candidate.matureRumor);
+    return lockedTarget || null;
   }
   const finalists = candidates.slice(0, 5);
   return deterministicChoice(finalists, world.seed, date, buyerCode, need.position || need.group, 'target-choice') || null;
