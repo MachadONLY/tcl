@@ -11,20 +11,21 @@ function cleanUnselectedHeader() {
   if (!header) return;
 
   const scrollTools = header.querySelector('.tl-roster-scroll-tools');
+  scrollTools?.remove();
   const currentTitle = header.querySelector('[data-unselected-title]');
   const alreadyClean = Boolean(currentTitle)
     && currentTitle.textContent === TITLE
-    && !header.querySelector('nav, small, [data-roster-filter]');
+    && !header.querySelector('nav, small, [data-roster-filter], .tl-roster-scroll-tools');
 
   if (!alreadyClean) {
     const title = currentTitle || document.createElement('span');
     title.dataset.unselectedTitle = '';
     title.textContent = TITLE;
     header.replaceChildren(title);
-    if (scrollTools) header.append(scrollTools);
   }
 
   root.querySelectorAll('[data-roster-filter]').forEach(button => button.remove());
+  root.querySelectorAll('.tl-roster-scroll-tools').forEach(tools => tools.remove());
 }
 
 function scheduleCleanup() {

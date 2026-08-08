@@ -22,10 +22,6 @@ assert.ok(source.includes('stabilizeGeometry(root, geometry)'), 'the field posit
 assert.ok(source.includes('restoreScrollPositions'), 'all relevant scroll containers must retain their positions');
 assert.ok(source.includes('verticalScroller(root)'), 'viewport compensation must target the real vertical scroller');
 assert.ok(source.includes("root.dataset.geometryLock = 'true'"), 'the studio must expose its fixed-geometry state');
-assert.ok(source.includes('scrollRoster(grid, 1)'), 'reserve carousel must provide controlled forward navigation');
-assert.ok(source.includes('rosterMaximum(grid)'), 'carousel controls must use the exact final scroll position');
-assert.ok(source.includes("event.key === 'End'"), 'keyboard users must be able to reach the final player');
-assert.ok(source.includes('grid.scrollWidth - grid.clientWidth'), 'carousel controls must detect the true scroll range');
 assert.ok(!source.includes('root.replaceChildren('), 'live tactics updates must never replace the full studio root');
 
 assert.ok(hardSource.includes("document.addEventListener('pointerdown'"), 'stability layer must observe player pointer interactions');
@@ -39,6 +35,7 @@ assert.ok(hardSource.includes('data-hard-geometry'), 'lineup geometry must remai
 assert.ok(cleanupSource.includes("const TITLE = 'Não relacionados'"), 'unselected squad must use the correct Portuguese title');
 assert.ok(cleanupSource.includes('header.replaceChildren(title)'), 'legacy title, count and positional filters must be removed from the DOM');
 assert.ok(cleanupSource.includes("root.querySelectorAll('[data-roster-filter]')"), 'positional filter buttons must be removed after every render');
+assert.ok(cleanupSource.includes("root.querySelectorAll('.tl-roster-scroll-tools')"), 'obsolete horizontal carousel controls must be removed');
 assert.ok(!cleanupSource.includes('Goleiros'), 'cleanup runtime must not recreate goalkeeper filters');
 assert.ok(!cleanupSource.includes('Defensores'), 'cleanup runtime must not recreate defender filters');
 assert.ok(!cleanupSource.includes('Meio-campo'), 'cleanup runtime must not recreate midfield filters');
@@ -46,6 +43,13 @@ assert.ok(!cleanupSource.includes('Atacantes'), 'cleanup runtime must not recrea
 assert.ok(cleanupCss.includes('header > nav'), 'legacy positional navigation must be hidden before runtime cleanup');
 assert.ok(cleanupCss.includes('header small'), 'legacy unselected-player count must be hidden before runtime cleanup');
 assert.ok(cleanupCss.includes("content:'Não relacionados'"), 'correct title must be visible without a flash of legacy content');
+assert.ok(cleanupCss.includes('grid-template-columns:repeat(auto-fit,minmax(165px,1fr))!important'), 'unselected players must wrap into a responsive multi-row grid');
+assert.ok(cleanupCss.includes('overflow-x:hidden!important'), 'horizontal reserve scrolling must be disabled');
+assert.ok(cleanupCss.includes('overflow-y:auto!important'), 'very large squads must remain fully reachable vertically');
+assert.ok(cleanupCss.includes('.tl-roster-scroll-tools'), 'carousel controls must have an explicit cleanup override');
+assert.ok(cleanupCss.includes('display:none!important'), 'obsolete carousel controls must stay hidden before runtime cleanup');
+assert.ok(cleanupCss.includes('content:none!important'), 'legacy carousel spacer pseudo-elements must be removed');
+assert.ok(cleanupCss.includes('height:clamp(150px,18vh,176px)!important'), 'the lower squad area must reserve enough room for two visible rows on desktop');
 
 assert.ok(css.includes('[data-live-dom="true"]'), 'zero-flash state must disable entry animations after mount');
 assert.ok(css.includes('overflow-anchor:none!important'), 'browser scroll anchoring must be disabled in the tactics room');
@@ -53,12 +57,6 @@ assert.ok(css.includes('contain:layout paint'), 'the pitch must be isolated from
 assert.ok(css.includes('grid-template-rows:68px minmax(0,1fr)!important'), 'the right rail must keep a fixed navigation row');
 assert.ok(css.includes('.tl-player-node.selected'), 'selected players must have an explicit non-moving state');
 assert.ok(css.includes('transform:none!important'), 'selected squad cards must not shift vertically');
-assert.ok(css.includes('overflow-x:auto!important'), 'reserve carousel must remain horizontally scrollable');
-assert.ok(css.includes('padding:3px 78px 13px 18px!important'), 'carousel must leave enough trailing room for the final player');
-assert.ok(css.includes('flex-basis:72px'), 'the final carousel spacer must keep the final card fully visible');
-assert.ok(css.includes('flex:0 0 220px!important'), 'reserve cards must retain a stable readable width');
-assert.ok(css.includes('scroll-snap-type:none!important'), 'native free scrolling must not stop before the final card');
-assert.ok(css.includes('.tl-roster-scroll-tools'), 'compact previous and next controls must exist');
 assert.ok(hardCss.includes('--tl-locked-field-height'), 'hard stability CSS must keep the field height fixed');
 
 assert.ok(index.includes('career-tactics-live-dom.css'), 'live DOM CSS must load after the formation styles');
@@ -82,11 +80,11 @@ console.log(JSON.stringify({
   browserScrollAnchoring: false,
   pitchGeometry: 'captured-and-restored-same-frame',
   playerImagesReused: true,
-  reserveCarousel: 'first-to-last-exact-reach',
+  reserveLayout: 'responsive-multi-row-grid',
+  reserveHorizontalScroll: false,
+  largeSquadOverflow: 'vertical-inside-panel',
   unselectedHeader: 'Não relacionados',
   unselectedCountVisible: false,
   positionalFiltersVisible: false,
-  scrollMethods: ['native-scrollbar', 'wheel', 'buttons', 'home-end'],
-  trailingCarouselSpace: 72,
-  cardWidth: 220
+  desktopMinimumCardWidth: 165
 }, null, 2));

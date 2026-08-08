@@ -1,10 +1,11 @@
-/* The lower squad strip has one purpose: show players outside the match squad. */
+/* The lower squad area has one purpose: show every player outside the match squad. */
 .tl-tactics-studio .tl-squad-manager > header{
-  min-height:42px;
+  min-height:30px;
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:12px;
+  margin-bottom:7px!important;
 }
 
 /* Hide the legacy label, count and positional filters before the cleanup runtime runs. */
@@ -32,6 +33,102 @@
   line-height:1;
 }
 
+/* The old horizontal carousel hid part of the squad. It is deliberately disabled. */
 .tl-tactics-studio .tl-squad-manager > header .tl-roster-scroll-tools{
-  margin-left:auto;
+  display:none!important;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-squad-manager{
+  height:clamp(150px,18vh,176px)!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(165px,1fr))!important;
+  grid-auto-flow:row!important;
+  align-content:start!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  gap:6px 8px!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  box-sizing:border-box!important;
+  padding:2px 4px 6px!important;
+  scroll-padding:0!important;
+  scrollbar-gutter:stable!important;
+  overscroll-behavior:contain!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves::before,
+.tl-tactics-studio .tl-roster-grid.reserves::after{
+  content:none!important;
+  display:none!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card{
+  width:auto!important;
+  min-width:0!important;
+  min-height:40px!important;
+  flex:initial!important;
+  grid-template-columns:30px minmax(0,1fr) 28px!important;
+  gap:7px!important;
+  padding:4px 6px!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card .tl-squad-photo{
+  width:30px!important;
+  height:30px!important;
+  border-radius:8px!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card .tl-squad-copy strong{
+  font-size:8.5px!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card .tl-squad-copy small{
+  margin-top:2px!important;
+  font-size:7.5px!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card .tl-card-overall{
+  width:28px!important;
+  height:28px!important;
+  border-radius:7px!important;
+  font-size:10px!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves{
+  scrollbar-width:thin;
+  scrollbar-color:#5a6570 transparent;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves::-webkit-scrollbar{
+  width:6px!important;
+  height:0!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves::-webkit-scrollbar-track{
+  border-radius:999px;
+  background:rgba(255,255,255,.035);
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves::-webkit-scrollbar-thumb{
+  border-radius:999px;
+  background:#5e6974;
+}
+
+@media(max-width:1320px){
+  .tl-tactics-studio .tl-roster-grid.reserves{
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;
+  }
+}
+
+@media(max-width:900px){
+  .tl-tactics-studio[data-tactics-view="lineup"] .tl-squad-manager{
+    height:190px!important;
+  }
+  .tl-tactics-studio .tl-roster-grid.reserves{
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important;
+  }
 }
