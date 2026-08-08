@@ -12,6 +12,7 @@ import { estimateMarketValue } from './valuation-engine.js';
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 const MIN_GROUP_DEPTH = Object.freeze({ GK: 2, DEF: 7, MID: 7, FWD: 4 });
 const MIN_POSITION_DEPTH = Object.freeze({ GK: 2, CB: 3, FB: 3, DM: 1, CM: 2, W: 2, ST: 2 });
+const FREE_AGENT_CLUB = Object.freeze({ code: null, name: 'Free Agents', countryCode: null, elo: 1550, policy: {}, brain: { recruitment: {} } });
 
 export function transferWindowState(date) {
   const year = Number(String(date).slice(0, 4)) || 2026;
@@ -33,7 +34,7 @@ export function transferWindowState(date) {
 
 export function playerMoveInterest({ player, status = {}, contract = {}, buyerClub = {}, sellerClub = {}, need = {} }) {
   const buyerElo = Number(buyerClub.elo) || 1750;
-  const sellerElo = Number(sellerClub.elo) || 1750;
+  const sellerElo = Number(sellerClub.elo) || 1550;
   const reputationDelta = (buyerElo - sellerElo) / 350;
   const role = status.squadRole || 'rotation';
   const roleResistance = role === 'key' ? -.22 : role === 'important' ? -.1 : role === 'fringe' ? .15 : 0;
@@ -78,7 +79,8 @@ function roleFitScore(player, need) {
   return compatible.has(`${bucket}:${need.position}`) ? .62 : player.group === need.group ? .48 : .18;
 }
 
-function availabilityScore(status = {}, sellerSquadSize = 25) {
+function availabilityScore(status = {}, sellerSquadSize = 25, freeAgent = false) {
+  if (freeAgent) return 1;
   if (status.transferListed) return .98;
   if (status.squadRole === 'fringe') return .86;
   if (status.squadRole === 'rotation') return .68;
@@ -86,12 +88,12 @@ function availabilityScore(status = {}, sellerSquadSize = 25) {
   return .20;
 }
 
-function candidateScore({ player, need, buyerClub, sellerClub, status, contract, date, world, sellerSquadSize }) {
+function candidateScore({ player, need, buyerClub, sellerClub, status, contract, date, world, sellerSquadSize, freeAgent = false }) {
   const marketValue = estimateMarketValue({ player, status, contract, date, sellingClub: sellerClub });
   const budget = Number(buyerClub.transferBudget) || 0;
   const brain = buyerClub.brain?.recruitment || {};
   const maxRatio = Number(brain.maxFeeToBudgetRatio) || (need.priority >= .7 ? .82 : .62);
-  if (marketValue > budget * Math.max(.24, maxRatio * (need.priority >= .72 ? 1 : .82))) return null;
+  if (!freeAgent && marketValue > budget * Math.max(.24, maxRatio * (need.priority >= .72 ? 1 : .82))) return null;
   const age = Number(player.age) || 24;
   const maxAge = Number(need.preferredAgeMax ?? brain.preferredAgeMax) || 29;
   if (age > maxAge + (player.group === 'GK' ? 3 : 1) && Number(brain.starBias || 0) < .8) return null;
@@ -102,17 +104,18 @@ function candidateScore({ player, need, buyerClub, sellerClub, status, contract,
   const interest = playerMoveInterest({ player, status, contract, buyerClub, sellerClub, need });
   if (interest < .28) return null;
 
-  const valueEfficiency = clamp(1 - marketValue / Math.max(1, budget), 0, 1);
+  const valueEfficiency = freeAgent ? 1 : clamp(1 - marketValue / Math.max(1, budget), 0, 1);
   const preferredMid = (Number(need.preferredAgeMin || 18) + maxAge) / 2;
   const ageFit = clamp(1 - Math.abs(age - preferredMid) / 18, 0, 1);
   const qualityFit = clamp(.55 + (rating - Number(need.targetRating || rating)) * .045, .25, 1);
   const potentialFit = potentialScore(player, buyerClub);
-  const marketFit = marketAffinity(buyerClub.brain, sellerClub.countryCode);
-  const availability = availabilityScore(status, sellerSquadSize);
+  const marketFit = freeAgent ? .62 : marketAffinity(buyerClub.brain, sellerClub.countryCode);
+  const availability = availabilityScore(status, sellerSquadSize, freeAgent);
   const tacticalWeight = Number(brain.tacticalFitWeight) || .65;
   const potentialWeight = Number(brain.potentialWeight) || .65;
   const currentWeight = Number(brain.currentAbilityWeight) || .65;
   const resaleWeight = Number(brain.resaleBias) || .6;
+  const freeAgentBias = Number(brain.freeAgentBias) || .4;
   const noise = randomUnit(world.seed, date, buyerClub.code, player.id, need.position || need.group, 'candidate-tie') * .045;
 
   const score = (
@@ -124,9 +127,10 @@ function candidateScore({ player, need, buyerClub, sellerClub, status, contract,
     + marketFit * .08
     + valueEfficiency * .07
     + availability * .06
+    + (freeAgent ? freeAgentBias * .08 : 0)
     + noise
   );
-  return { player, marketValue, interest, roleFit, marketFit, availability, score };
+  return { player, marketValue, interest, roleFit, marketFit, availability, freeAgent, score };
 }
 
 function sellerContext(world, sellerCode, playerById, cache) {
@@ -146,6 +150,12 @@ function sellerContext(world, sellerCode, playerById, cache) {
   return context;
 }
 
+function fitsNeed(player, need) {
+  if (need.position && positionBucket(player) !== need.position && player.group !== need.group) return false;
+  if (!need.position && player.group !== need.group) return false;
+  return true;
+}
+
 export function chooseRecruitmentTarget({ world, date, buyerCode, need, playerById }) {
   const buyerClub = world.clubs[buyerCode];
   if (!buyerClub) return null;
@@ -154,9 +164,7 @@ export function chooseRecruitmentTarget({ world, date, buyerCode, need, playerBy
   for (const [playerId, sellerCode] of Object.entries(world.employment || {})) {
     if (!sellerCode || sellerCode === buyerCode) continue;
     const player = playerById.get(playerId);
-    if (!player) continue;
-    if (need.position && positionBucket(player) !== need.position && player.group !== need.group) continue;
-    if (!need.position && player.group !== need.group) continue;
+    if (!player || !fitsNeed(player, need)) continue;
     const sellerClub = world.clubs[sellerCode];
     if (!sellerClub) continue;
     const status = effectivePlayerStatus(world, player);
@@ -179,6 +187,28 @@ export function chooseRecruitmentTarget({ world, date, buyerCode, need, playerBy
     });
     if (scored) candidates.push(scored);
   }
+
+  for (const playerId of Object.keys(world.freeAgents || {})) {
+    const player = playerById.get(playerId);
+    if (!player || !fitsNeed(player, need)) continue;
+    const baseStatus = effectivePlayerStatus(world, player);
+    const status = { ...baseStatus, transferListed: true, squadRole: 'fringe' };
+    const contract = { ...effectivePlayerContract(world, player), endDate: date, status: 'expired' };
+    const scored = candidateScore({
+      player,
+      need,
+      buyerClub,
+      sellerClub: FREE_AGENT_CLUB,
+      status,
+      contract,
+      date,
+      world,
+      sellerSquadSize: 0,
+      freeAgent: true
+    });
+    if (scored) candidates.push(scored);
+  }
+
   candidates.sort((left, right) => right.score - left.score || right.player.rating - left.player.rating || left.player.age - right.player.age);
   const finalists = candidates.slice(0, 5);
   return deterministicChoice(finalists, world.seed, date, buyerCode, need.position || need.group, 'target-choice') || null;
