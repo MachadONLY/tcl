@@ -32,13 +32,13 @@ career.world.events.push(preservedEvent);
 career.world.transferMarket.history.push(preservedTransfer);
 const oldSeed = career.world.seed;
 ensureLivingWorld(career);
-assert.equal(career.world.schemaVersion, 2, 'legacy world save must migrate to v2');
+assert.equal(career.world.schemaVersion, 3, 'legacy world save must migrate to v3');
 assert.equal(career.world.seed, oldSeed, 'migration must preserve deterministic seed');
 assert.ok(career.world.events.some(event => event.id === preservedEvent.id), 'migration must preserve event ledger');
 assert.ok(career.world.transferMarket.history.some(row => row.id === preservedTransfer.id), 'migration must preserve transfer history');
 assert.ok(career.world.clubs.ARS.brain, 'migration must enrich existing clubs with ClubBrain');
 assert.ok(career.world.clubs.ARS.managerBrain, 'migration must enrich existing clubs with ManagerBrain');
-assert.ok(career.world.migrations.some(row => row.to === 2), 'migration must be auditable');
+assert.ok(career.world.migrations.some(row => row.to === 3), 'migration must be auditable');
 
 console.log(JSON.stringify({
   ok: true,
