@@ -75,6 +75,10 @@ function normalizeWorldShape(world) {
   world.processedDays ||= {};
   world.dailySummaries ||= {};
   world.employment ||= {};
+  world.ownership ||= {};
+  for (const [playerId, clubCode] of Object.entries(world.employment)) {
+    if (!world.ownership[playerId]) world.ownership[playerId] = world.contracts?.[playerId]?.clubCode || clubCode;
+  }
   world.contracts ||= {};
   world.freeAgents ||= {};
   world.playerStatus ||= {};
@@ -146,6 +150,7 @@ function buildClubState(career, club, seed, dependencies, existing = null) {
 
 function seedPersistentPlayerState(world, player, code, peers, seed, startYear) {
   world.employment[player.id] = code;
+  world.ownership[player.id] = code;
   if (player.worldExternal) return;
   const role = squadRole(player, peers);
   const joinedAt = joinedAtFor(player, seed, startYear);
@@ -182,6 +187,7 @@ function migrateExistingWorld(career, dependencies) {
   world.createdAt ||= career.createdAt || new Date().toISOString();
   world.clubs ||= {};
   world.employment ||= {};
+  world.ownership ||= {};
   world.playerStatus ||= {};
   world.contracts ||= {};
 
@@ -200,10 +206,14 @@ function migrateExistingWorld(career, dependencies) {
     }
   }
 
+  for (const [playerId, clubCode] of Object.entries(world.employment || {})) {
+    if (!world.ownership[playerId]) world.ownership[playerId] = world.contracts[playerId]?.clubCode || clubCode;
+  }
+
   for (const [playerId, status] of Object.entries(world.playerStatus || {})) {
     status.happiness = Number.isFinite(Number(status.happiness)) ? Number(status.happiness) : 70;
     if (!status.playingTimeExpectation) status.playingTimeExpectation = playingTimeForRole(status.squadRole || 'rotation');
-    if (world.contracts[playerId] && !world.contracts[playerId].clubCode) world.contracts[playerId].clubCode = world.employment[playerId] || null;
+    if (world.contracts[playerId] && !world.contracts[playerId].clubCode) world.contracts[playerId].clubCode = world.ownership[playerId] || world.employment[playerId] || null;
   }
 
   world.database = {
@@ -238,6 +248,7 @@ export function createWorldState({ career, clubs = [], squads = {}, teamBudgets 
     events: [],
     eventSequence: 0,
     employment: {},
+    ownership: {},
     contracts: {},
     freeAgents: {},
     playerStatus: {},
