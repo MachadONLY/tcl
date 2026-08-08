@@ -1,38 +1,13 @@
 import { appendWorldEvent, eventsOnDate } from './world-events.js';
 import { squadForWorld } from './world-selectors.js';
-import { evaluateClubSquad, surplusCandidates } from './clubs/squad-analysis.js';
+import { evaluateClubSquad } from './clubs/squad-analysis.js';
+import { processSellingAiDay } from './clubs/selling-ai.js';
 import { processTransferMarketDay } from './transfers/transfer-engine.js';
 import { processRumorMarketDay, reconcileRumorsAfterTransfers } from './transfers/rumor-engine.js';
 import { processContractExpirations, processContractMarketDay } from './contracts/contract-engine.js';
 import { processLoanMarketDay } from './loans/loan-engine.js';
-import { randomUnit } from './deterministic-rng.js';
-import { effectivePlayerStatus, ensurePlayerStatus } from './world-employment-index.js';
 
 const TRANSFER_TERMINAL = new Set(['completed', 'rejected', 'withdrawn', 'expired']);
-
-function maybeListAiSurplus({ career, date, playerById, analyses }) {
-  const world = career.world;
-  if (String(date).slice(-2) !== '01' && String(date).slice(-2) !== '15') return 0;
-  let listed = 0;
-  for (const [clubCode] of Object.entries(analyses)) {
-    if (clubCode === career.clubCode) continue;
-    const players = squadForWorld(career, clubCode, playerById);
-    const statusView = Object.fromEntries(players.map(player => [player.id, effectivePlayerStatus(world, player)]));
-    const candidates = surplusCandidates({ players, clubState: world.clubs[clubCode], playerStatus: statusView });
-    const candidate = candidates[0]?.player;
-    if (!candidate || effectivePlayerStatus(world, candidate).transferListed) continue;
-    if (randomUnit(world.seed, date, clubCode, candidate.id, 'surplus-list') > .28) continue;
-    ensurePlayerStatus(world, candidate).transferListed = true;
-    appendWorldEvent(world, {
-      date,
-      type: 'PLAYER_TRANSFER_LISTED',
-      entities: { playerId: candidate.id, clubCode },
-      payload: { reason: candidates[0].reason, ai: true }
-    });
-    listed += 1;
-  }
-  return listed;
-}
 
 function reconcilePermanentDealsWithLoans(world, date) {
   const activeLoanPlayerIds = new Set(
@@ -78,7 +53,7 @@ export function processDailyTick({ career, date, playerById }) {
 
   const contractMarket = processContractMarketDay({ career, date, playerById });
   const contractExpirations = processContractExpirations({ career, date, playerById });
-  const playersListed = maybeListAiSurplus({ career, date, playerById, analyses });
+  const sellingMarket = processSellingAiDay({ career, date, playerById, squadAnalyses: analyses });
   const loanMarket = processLoanMarketDay({ career, date, playerById, squadAnalyses: analyses });
   const transferDealsWithdrawnForLoans = reconcilePermanentDealsWithLoans(world, date);
   const rumorMarket = processRumorMarketDay({ career, date, playerById, squadAnalyses: analyses });
@@ -91,7 +66,7 @@ export function processDailyTick({ career, date, playerById }) {
     contractsExpired: contractExpirations.expired,
     bosmanMoves: contractExpirations.bosmanMoves,
     contractMarket,
-    playersListed,
+    sellingMarket,
     loanMarket: { ...loanMarket, transferDealsWithdrawn: transferDealsWithdrawnForLoans },
     rumorMarket: { ...rumorMarket, ...rumorReconciliation },
     transferMarket,
@@ -110,7 +85,10 @@ export function processDailyTick({ career, date, playerById }) {
       contractRenewalsRejected: contractMarket.rejected,
       bosmanAgreements: contractMarket.bosman.agreed,
       bosmanMoves: contractExpirations.bosmanMoves,
-      playersListed,
+      sellingReviews: sellingMarket.reviewed,
+      sellingDispositionsChanged: sellingMarket.changed,
+      playersTransferListed: sellingMarket.transferListed,
+      playersLoanListed: sellingMarket.loanListed,
       loansListed: loanMarket.listed,
       loanProposalsOpened: loanMarket.opened,
       loansActivated: loanMarket.activated,
