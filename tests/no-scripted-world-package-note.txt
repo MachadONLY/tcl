@@ -1,1 +1,0 @@
-Temporary gate note: no-scripted-world-smoke.mjs is enforced by CI in the next package script update.
