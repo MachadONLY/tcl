@@ -7,6 +7,8 @@ import { processRumorMarketDay, reconcileRumorsAfterTransfers } from './transfer
 import { processContractExpirations, processContractMarketDay } from './contracts/contract-engine.js';
 import { processLoanMarketDay } from './loans/loan-engine.js';
 import { processPlayerLifeDay } from './players/player-life-engine.js';
+import { playerUnavailable, processAvailabilityDay } from './players/availability-engine.js';
+import { effectivePlayerStatus } from './world-employment-index.js';
 
 const TRANSFER_TERMINAL = new Set(['completed', 'rejected', 'withdrawn', 'expired']);
 
@@ -41,11 +43,15 @@ export function processDailyTick({ career, date, playerById }) {
   if (world.processedDays?.[date]) return world.dailySummaries[date];
 
   world.currentDate = date;
+  const availability = processAvailabilityDay({ career, date, playerById });
   const analyses = {};
   for (const [clubCode, clubState] of Object.entries(world.clubs || {})) {
-    const players = squadForWorld(career, clubCode, playerById);
-    if (players.length < 11) continue;
-    const analysis = evaluateClubSquad({ clubCode, players, clubState });
+    const registeredPlayers = squadForWorld(career, clubCode, playerById);
+    const availablePlayers = registeredPlayers.filter(player => !playerUnavailable(effectivePlayerStatus(world, player), date));
+    if (registeredPlayers.length < 11) continue;
+    const analysis = evaluateClubSquad({ clubCode, players: availablePlayers, clubState });
+    analysis.registeredSquadSize = registeredPlayers.length;
+    analysis.unavailableCount = registeredPlayers.length - availablePlayers.length;
     analyses[clubCode] = analysis;
     clubState.recruitment.needs = analysis.needs.map(need => ({ ...need }));
     clubState.recruitment.requirements = analysis.requirements.map(requirement => ({ ...requirement }));
@@ -65,6 +71,7 @@ export function processDailyTick({ career, date, playerById }) {
   const summary = {
     date,
     clubsEvaluated: Object.keys(analyses).length,
+    availability,
     playerLife,
     contractsExpired: contractExpirations.expired,
     bosmanMoves: contractExpirations.bosmanMoves,
@@ -82,6 +89,9 @@ export function processDailyTick({ career, date, playerById }) {
     entities: {},
     payload: {
       clubsEvaluated: summary.clubsEvaluated,
+      injuriesFromRecentMatches: availability.injuries,
+      playersReturnedFromInjury: availability.returnedFromInjury,
+      suspensionsServed: availability.suspensionsServed,
       playersLifeReviewed: playerLife.reviewed,
       playerConcernsRaised: playerLife.concernsRaised,
       promisesResolved: playerLife.promisesResolved,
