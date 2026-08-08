@@ -1,6 +1,7 @@
 import { positionBucket } from '../clubs/squad-analysis.js';
 
 const TERMINAL_NEGOTIATIONS = new Set(['completed', 'rejected', 'withdrawn', 'expired']);
+const TERMINAL_RENEWALS = new Set(['renewed', 'rejected', 'withdrawn']);
 const sum = values => values.reduce((total, value) => total + (Number(value) || 0), 0);
 const average = values => values.length ? sum(values) / values.length : 0;
 const round = (value, digits = 2) => Number(Number(value || 0).toFixed(digits));
@@ -26,7 +27,9 @@ function marketFingerprint(career) {
   return JSON.stringify({
     rumors: (world.transferMarket?.rumors || []).map(row => [row.buyerCode, row.playerId, row.createdAt, row.stage, row.status, round(row.heat, 3)]),
     transfers: (world.transferMarket?.history || []).map(row => [row.date, row.playerId, row.fromClubCode, row.toClubCode, row.fee]),
-    negotiations: Object.values(world.transferMarket?.negotiations || {}).map(row => [row.openedAt, row.buyerCode, row.playerId, row.stage, row.status])
+    negotiations: Object.values(world.transferMarket?.negotiations || {}).map(row => [row.openedAt, row.buyerCode, row.playerId, row.stage, row.status]),
+    renewals: Object.values(world.contractMarket?.renewals || {}).map(row => [row.openedAt, row.clubCode, row.playerId, row.stage, row.status, row.offer?.weeklyWage || 0]),
+    preContracts: Object.values(world.contractMarket?.preContracts || {}).map(row => [row.agreedAt, row.playerId, row.fromClubCode, row.toClubCode, row.status])
   });
 }
 
@@ -50,6 +53,8 @@ function hardViolations(career, playerById) {
     if (contract.clubCode && employer && contract.clubCode !== employer) {
       violations.push({ code: 'CONTRACT_EMPLOYMENT_MISMATCH', playerId, contractClub: contract.clubCode, employer });
     }
+    if (!contract.endDate) violations.push({ code: 'ACTIVE_CONTRACT_WITHOUT_END_DATE', playerId, clubCode: contract.clubCode || employer });
+    if (Number(contract.weeklyWage) < 0) violations.push({ code: 'NEGATIVE_CONTRACT_WAGE', playerId, weeklyWage: contract.weeklyWage });
   }
 
   for (const [playerId, freeAgent] of Object.entries(world.freeAgents || {})) {
@@ -60,6 +65,20 @@ function hardViolations(career, playerById) {
     if (TERMINAL_NEGOTIATIONS.has(negotiation.status)) continue;
     if (!playerById.has(negotiation.playerId)) violations.push({ code: 'ACTIVE_NEGOTIATION_PLAYER_MISSING', negotiationId: negotiation.id, playerId: negotiation.playerId });
     if (!world.clubs?.[negotiation.buyerCode]) violations.push({ code: 'ACTIVE_NEGOTIATION_BUYER_MISSING', negotiationId: negotiation.id, clubCode: negotiation.buyerCode });
+  }
+
+  for (const renewal of Object.values(world.contractMarket?.renewals || {})) {
+    if (!playerById.has(renewal.playerId)) violations.push({ code: 'RENEWAL_PLAYER_MISSING', renewalId: renewal.id, playerId: renewal.playerId });
+    if (!world.clubs?.[renewal.clubCode]) violations.push({ code: 'RENEWAL_CLUB_MISSING', renewalId: renewal.id, clubCode: renewal.clubCode });
+    if (!TERMINAL_RENEWALS.has(renewal.status) && world.employment?.[renewal.playerId] !== renewal.clubCode) {
+      violations.push({ code: 'ACTIVE_RENEWAL_WRONG_EMPLOYER', renewalId: renewal.id, playerId: renewal.playerId, clubCode: renewal.clubCode, employer: world.employment?.[renewal.playerId] || null });
+    }
+  }
+
+  for (const preContract of Object.values(world.contractMarket?.preContracts || {})) {
+    if (!playerById.has(preContract.playerId)) violations.push({ code: 'PRECONTRACT_PLAYER_MISSING', playerId: preContract.playerId });
+    if (!world.clubs?.[preContract.toClubCode]) violations.push({ code: 'PRECONTRACT_BUYER_MISSING', playerId: preContract.playerId, clubCode: preContract.toClubCode });
+    if (preContract.status === 'agreed' && preContract.fromClubCode === preContract.toClubCode) violations.push({ code: 'PRECONTRACT_SAME_CLUB', playerId: preContract.playerId, clubCode: preContract.toClubCode });
   }
 
   return violations;
@@ -110,12 +129,18 @@ export function auditCareerWorld(career, playerById) {
   const history = world.transferMarket?.history || [];
   const rumors = world.transferMarket?.rumors || [];
   const negotiations = Object.values(world.transferMarket?.negotiations || {});
+  const renewals = Object.values(world.contractMarket?.renewals || {});
+  const preContracts = Object.values(world.contractMarket?.preContracts || {});
   const squads = squadRows(career, playerById);
   const fees = history.map(row => Number(row.fee) || 0).filter(value => value > 0);
   const ages = history.map(row => Number(playerById.get(row.playerId)?.age)).filter(Number.isFinite);
   const activeCompetitionCases = Object.values(world.transferMarket?.competition || {}).filter(row => Array.isArray(row.clubs) && row.clubs.length > 1).length;
   const rumorEnded = rumors.filter(row => row.status === 'ended').length;
   const rumorConverted = rumors.filter(row => row.status === 'converted').length;
+  const contractsRenewed = renewals.filter(row => row.status === 'renewed').length;
+  const renewalsRejected = renewals.filter(row => row.status === 'rejected').length;
+  const bosmanAgreements = preContracts.filter(row => ['agreed', 'completed'].includes(row.status)).length;
+  const bosmanMoves = preContracts.filter(row => row.status === 'completed').length;
 
   const hard = hardViolations(career, playerById);
   const warnings = softWarnings(career, playerById, squads);
@@ -135,6 +160,11 @@ export function auditCareerWorld(career, playerById) {
       medianFee: fees.length ? [...fees].sort((a, b) => a - b)[Math.floor(fees.length / 2)] : 0,
       averageTransferAge: round(average(ages), 2),
       freeAgents: Object.keys(world.freeAgents || {}).length,
+      contractRenewalThreads: renewals.length,
+      contractsRenewed,
+      renewalsRejected,
+      bosmanAgreements,
+      bosmanMoves,
       activeCompetitionCases,
       minimumSquadSize: squads.length ? Math.min(...squads.map(row => row.size)) : 0,
       maximumSquadSize: squads.length ? Math.max(...squads.map(row => row.size)) : 0,
@@ -161,6 +191,11 @@ export function aggregateRealismRuns(runs = []) {
       completedTransfers: sum(metric('completedTransfers')),
       rumors: sum(metric('rumors')),
       formalNegotiations: sum(metric('formalNegotiations')),
+      contractRenewalThreads: sum(metric('contractRenewalThreads')),
+      contractsRenewed: sum(metric('contractsRenewed')),
+      renewalsRejected: sum(metric('renewalsRejected')),
+      bosmanAgreements: sum(metric('bosmanAgreements')),
+      bosmanMoves: sum(metric('bosmanMoves')),
       hardViolations: hardViolations.length,
       warnings: warnings.length
     },
@@ -168,6 +203,9 @@ export function aggregateRealismRuns(runs = []) {
       completedTransfers: round(average(metric('completedTransfers')), 2),
       rumors: round(average(metric('rumors')), 2),
       formalNegotiations: round(average(metric('formalNegotiations')), 2),
+      contractRenewalThreads: round(average(metric('contractRenewalThreads')), 2),
+      contractsRenewed: round(average(metric('contractsRenewed')), 2),
+      renewalsRejected: round(average(metric('renewalsRejected')), 2),
       transferAge: round(average(metric('averageTransferAge')), 2),
       transferFee: Math.round(average(metric('averageFee')))
     },
