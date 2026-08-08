@@ -78,6 +78,58 @@ function normalizeWorldShape(world) {
   return world;
 }
 
+function brainForClub(club, clubState, seed, teamElo) {
+  const elo = Number(clubState?.elo ?? teamElo?.[club.code] ?? club.elo) || 1750;
+  const enriched = { ...club, countryCode: club.countryCode || clubState?.countryCode || 'ENG', elo };
+  const brain = clubState?.brain || createClubBrain(enriched, seed);
+  const managerBrain = clubState?.managerBrain || createManagerBrain(enriched, seed, brain);
+  return { elo, brain, managerBrain, enriched };
+}
+
+function migrateExistingWorld(career, dependencies) {
+  const world = career.world;
+  const previousVersion = Number(world.schemaVersion) || 1;
+  const clubs = dependencies.clubs || [];
+  const byCode = new Map(clubs.map(club => [club.code, club]));
+  const seed = Number(world.seed) || hashString(seedFromParts(career.saveId, career.seasonId, career.clubCode, career.createdAt));
+  world.seed = seed;
+  world.userClubCode ||= career.clubCode || null;
+  world.createdAt ||= career.createdAt || new Date().toISOString();
+
+  for (const [code, existing] of Object.entries(world.clubs || {})) {
+    const club = byCode.get(code) || { code, name: existing.name || code };
+    const { elo, brain, managerBrain } = brainForClub(club, existing, seed, dependencies.teamElo);
+    existing.name ||= club.name;
+    existing.countryCode ||= club.countryCode || 'ENG';
+    existing.league ||= club.league || 'Premier League';
+    existing.elo = elo;
+    existing.brain = brain;
+    existing.managerBrain = managerBrain;
+    existing.recruitment ||= {};
+    existing.recruitment.needs ||= [];
+    existing.recruitment.requirements ||= [];
+    existing.recruitment.shortlist ||= [];
+    existing.recruitment.lastEvaluatedDate ||= null;
+    existing.recruitment.nextRecruitmentDate ||= world.currentDate || career.currentDate || seasonStart(career);
+    existing.policy = { ...compatibilityPolicy(brain, managerBrain), ...(existing.policy || {}) };
+  }
+
+  for (const [playerId, status] of Object.entries(world.playerStatus || {})) {
+    status.happiness = Number.isFinite(Number(status.happiness)) ? Number(status.happiness) : 70;
+    if (!status.playingTimeExpectation) {
+      const role = status.squadRole || 'rotation';
+      status.playingTimeExpectation = role === 'key' ? 'star-player' : role === 'important' ? 'important-player' : role === 'rotation' ? 'squad-player' : 'prospect';
+    }
+  }
+
+  normalizeWorldShape(world);
+  world.migrations ||= [];
+  if (!world.migrations.some(row => row?.to === WORLD_SCHEMA_VERSION)) {
+    world.migrations.push({ from: previousVersion, to: WORLD_SCHEMA_VERSION, atCareerDate: career.currentDate || world.currentDate || null });
+  }
+  return world;
+}
+
 export function createWorldState({ career, clubs = [], squads = {}, teamBudgets = {}, teamElo = {} }) {
   const startDate = seasonStart(career);
   const startYear = Number(startDate.slice(0, 4));
@@ -101,9 +153,8 @@ export function createWorldState({ career, clubs = [], squads = {}, teamBudgets 
     contracts: {},
     playerStatus: {},
     clubs: {},
-    transferMarket: {
-      negotiations: {}, history: [], rumors: [], cooldowns: {}, lastActivityByClub: {}
-    }
+    transferMarket: { negotiations: {}, history: [], rumors: [], cooldowns: {}, lastActivityByClub: {} },
+    migrations: []
   });
 
   for (const club of clubs) {
@@ -127,13 +178,7 @@ export function createWorldState({ career, clubs = [], squads = {}, teamBudgets 
       transferIncome: 0,
       brain,
       managerBrain,
-      recruitment: {
-        needs: [],
-        requirements: [],
-        shortlist: [],
-        lastEvaluatedDate: null,
-        nextRecruitmentDate: startDate
-      },
+      recruitment: { needs: [], requirements: [], shortlist: [], lastEvaluatedDate: null, nextRecruitmentDate: startDate },
       policy: compatibilityPolicy(brain, managerBrain)
     };
 
@@ -166,8 +211,10 @@ export function createWorldState({ career, clubs = [], squads = {}, teamBudgets 
 }
 
 export function ensureWorldState(career, dependencies) {
-  if (!career.world || career.world.schemaVersion !== WORLD_SCHEMA_VERSION) {
+  if (!career.world) {
     career.world = createWorldState({ career, ...dependencies });
+  } else if (Number(career.world.schemaVersion) !== WORLD_SCHEMA_VERSION) {
+    career.world = migrateExistingWorld(career, dependencies);
   } else {
     normalizeWorldShape(career.world);
   }

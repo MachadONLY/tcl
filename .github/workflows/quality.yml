@@ -57,6 +57,7 @@ jobs:
           node --check src/career-world/clubs/club-brain.js
           node --check src/career-world/clubs/european-brain-registry.js
           node --check src/career-world/clubs/squad-analysis.js
+          node --check src/career-world/clubs/ai-team-management.js
           node --check src/career-world/transfers/recruitment-ai.js
           node --check src/career-world/transfers/transfer-engine.js
           node --check src/career-world/transfers/valuation-engine.js
@@ -72,6 +73,9 @@ jobs:
 
       - name: Test individual club intelligence
         run: node tests/club-brain-smoke.mjs
+
+      - name: Test AI manager rotation and tactics
+        run: node tests/ai-team-management-smoke.mjs
 
       - name: Audit FC 26 ratings for all 20 clubs
         run: npm run sync:ratings:fc26
