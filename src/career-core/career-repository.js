@@ -5,6 +5,7 @@ const DB_NAME = "touchline-career-v5";
 const DB_VERSION = 1;
 const STORE_NAME = "saves";
 const FALLBACK_PREFIX = "touchline.career.v5.";
+const LOCAL_FALLBACK_SOFT_LIMIT = 3_600_000;
 
 function openDatabase() {
   return new Promise((resolve, reject) => {
@@ -12,9 +13,7 @@ function openDatabase() {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = () => {
       const database = request.result;
-      if (!database.objectStoreNames.contains(STORE_NAME)) {
-        database.createObjectStore(STORE_NAME, { keyPath: "saveId" });
-      }
+      if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME, { keyPath: "saveId" });
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error || new Error("Unable to open career database"));
@@ -43,18 +42,47 @@ function fallbackKey(saveId) {
 
 function readFallback(saveId) {
   try {
-    return JSON.parse(localStorage.getItem(fallbackKey(saveId)) || "null");
+    const value = JSON.parse(localStorage.getItem(fallbackKey(saveId)) || "null");
+    return value?.fallbackSummaryOnly ? null : value;
   } catch {
     return null;
   }
 }
 
+function compactFallback(save) {
+  return {
+    schemaVersion: save.schemaVersion,
+    saveId: save.saveId,
+    clubCode: save.clubCode,
+    clubName: save.clubName || save.clubCode,
+    managerName: save.managerName,
+    seasonId: save.seasonId,
+    seasonLabel: save.seasonLabel,
+    currentDate: save.currentDate,
+    status: save.status,
+    createdAt: save.createdAt,
+    updatedAt: save.updatedAt,
+    fallbackSummaryOnly: true,
+    storageMode: "indexeddb-primary"
+  };
+}
+
 function writeFallback(save) {
   try {
-    localStorage.setItem(fallbackKey(save.saveId), JSON.stringify(save));
-    return true;
+    const serialized = JSON.stringify(save);
+    if (serialized.length <= LOCAL_FALLBACK_SOFT_LIMIT) {
+      localStorage.setItem(fallbackKey(save.saveId), serialized);
+      return "full";
+    }
+    localStorage.setItem(fallbackKey(save.saveId), JSON.stringify(compactFallback(save)));
+    return "summary";
   } catch {
-    return false;
+    try {
+      localStorage.setItem(fallbackKey(save.saveId), JSON.stringify(compactFallback(save)));
+      return "summary";
+    } catch {
+      return "failed";
+    }
   }
 }
 
@@ -79,11 +107,7 @@ function mergeFormationDraft(save) {
   if (!save || !draft || typeof draft !== "object") return save;
   if (draft.saveId !== save.saveId || draft.clubCode !== save.clubCode) return save;
   if (!draft.formation || !draft.tacticalLayouts) return save;
-  return {
-    ...save,
-    formation: draft.formation,
-    tacticalLayouts: structuredClone(draft.tacticalLayouts)
-  };
+  return { ...save, formation: draft.formation, tacticalLayouts: structuredClone(draft.tacticalLayouts) };
 }
 
 function reconcileStoredCareer(save) {
@@ -106,29 +130,21 @@ export const CareerRepository = Object.freeze({
 
   async save(save) {
     const merged = reconcileStoredCareer(mergeFormationDraft(consumeCareerDraft(save)));
-    const snapshot = structuredClone({
-      ...merged,
-      updatedAt: new Date().toISOString()
-    });
-    writeFallback(snapshot);
+    const snapshot = structuredClone({ ...merged, updatedAt: new Date().toISOString() });
+    const fallbackMode = writeFallback(snapshot);
     try {
       await withStore("readwrite", store => store.put(snapshot));
-    } catch {
-      // localStorage fallback already contains the same transactional snapshot.
+    } catch (error) {
+      if (fallbackMode !== "full") throw error;
+      // A complete localStorage fallback already contains the same transactional snapshot.
     }
     return snapshot;
   },
 
   async remove(saveId = "primary") {
-    if (globalThis.__touchlineFormationDraft?.saveId === saveId) {
-      delete globalThis.__touchlineFormationDraft;
-    }
-    try {
-      localStorage.removeItem(fallbackKey(saveId));
-    } catch {}
-    try {
-      await withStore("readwrite", store => store.delete(saveId));
-    } catch {}
+    if (globalThis.__touchlineFormationDraft?.saveId === saveId) delete globalThis.__touchlineFormationDraft;
+    try { localStorage.removeItem(fallbackKey(saveId)); } catch {}
+    try { await withStore("readwrite", store => store.delete(saveId)); } catch {}
   }
 });
 
