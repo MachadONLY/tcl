@@ -1,23 +1,30 @@
+import {
+  effectivePlayerContract,
+  effectivePlayerStatus,
+  playerIdsForClubState
+} from './world-employment-index.js';
+
 export function clubCodeForPlayer(career, playerOrId) {
   const id = typeof playerOrId === 'string' ? playerOrId : playerOrId?.id;
   const fallback = typeof playerOrId === 'object' ? playerOrId?.clubCode : null;
   return career?.world?.employment?.[id] || fallback || null;
 }
 
-export function playerStatusFor(career, playerId) {
-  return career?.world?.playerStatus?.[playerId] || null;
+export function playerStatusFor(career, playerOrId, playerById = null) {
+  const id = typeof playerOrId === 'string' ? playerOrId : playerOrId?.id;
+  const player = typeof playerOrId === 'object' ? playerOrId : playerById?.get(id);
+  return player ? effectivePlayerStatus(career?.world, player) : career?.world?.playerStatus?.[id] || null;
 }
 
-export function contractFor(career, playerId) {
-  return career?.world?.contracts?.[playerId] || null;
+export function contractFor(career, playerOrId, playerById = null) {
+  const id = typeof playerOrId === 'string' ? playerOrId : playerOrId?.id;
+  const player = typeof playerOrId === 'object' ? playerOrId : playerById?.get(id);
+  return player ? effectivePlayerContract(career?.world, player) : career?.world?.contracts?.[id] || null;
 }
 
 export function playerIdsForClub(career, clubCode) {
-  const employment = career?.world?.employment;
-  if (!employment) return [];
-  return Object.entries(employment)
-    .filter(([, code]) => code === clubCode)
-    .map(([playerId]) => playerId);
+  if (!career?.world) return [];
+  return playerIdsForClubState(career.world, clubCode);
 }
 
 export function squadForWorld(career, clubCode, playerById) {
@@ -27,17 +34,17 @@ export function squadForWorld(career, clubCode, playerById) {
 }
 
 export function transferListedPlayers(career, playerById) {
-  return Object.entries(career?.world?.playerStatus || {})
-    .filter(([, status]) => status?.transferListed)
-    .map(([id]) => playerById?.get(id))
-    .filter(Boolean);
+  return [...(playerById?.values?.() || [])]
+    .filter(player => effectivePlayerStatus(career?.world, player).transferListed)
+    .filter(player => career?.world?.employment?.[player.id])
+    .sort((left, right) => right.rating - left.rating || left.age - right.age);
 }
 
 export function loanListedPlayers(career, playerById) {
-  return Object.entries(career?.world?.playerStatus || {})
-    .filter(([, status]) => status?.loanListed)
-    .map(([id]) => playerById?.get(id))
-    .filter(Boolean);
+  return [...(playerById?.values?.() || [])]
+    .filter(player => effectivePlayerStatus(career?.world, player).loanListed)
+    .filter(player => career?.world?.employment?.[player.id])
+    .sort((left, right) => right.rating - left.rating || left.age - right.age);
 }
 
 export function activeNegotiations(career, predicate = null) {
@@ -64,13 +71,14 @@ export function marketSearch(career, playerById, filters = {}) {
   const excludedClub = filters.excludeClubCode || null;
 
   return [...(playerById?.values?.() || [])]
+    .filter(player => career?.world?.employment?.[player.id])
     .filter(player => clubCodeForPlayer(career, player) !== excludedClub)
     .filter(player => !query || String(player.name).toLowerCase().includes(query))
     .filter(player => !group || player.group === group)
     .filter(player => Number(player.age) >= minAge && Number(player.age) <= maxAge)
     .filter(player => Number(player.rating) >= minRating)
     .filter(player => Number(player.value || 0) <= maxValue)
-    .filter(player => !listedOnly || playerStatusFor(career, player.id)?.transferListed)
-    .filter(player => !loanOnly || playerStatusFor(career, player.id)?.loanListed)
+    .filter(player => !listedOnly || effectivePlayerStatus(career?.world, player).transferListed)
+    .filter(player => !loanOnly || effectivePlayerStatus(career?.world, player).loanListed)
     .sort((left, right) => right.rating - left.rating || left.age - right.age || left.name.localeCompare(right.name));
 }
