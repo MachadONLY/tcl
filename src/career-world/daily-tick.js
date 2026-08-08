@@ -3,22 +3,21 @@ import { squadForWorld } from './world-selectors.js';
 import { evaluateClubSquad, surplusCandidates } from './clubs/squad-analysis.js';
 import { processTransferMarketDay } from './transfers/transfer-engine.js';
 import { randomUnit } from './deterministic-rng.js';
+import { effectivePlayerStatus, ensurePlayerStatus, removePlayerEmployment } from './world-employment-index.js';
 
 function maybeListAiSurplus({ career, date, playerById, analyses }) {
   const world = career.world;
   if (String(date).slice(-2) !== '01' && String(date).slice(-2) !== '15') return 0;
   let listed = 0;
-  for (const [clubCode, analysis] of Object.entries(analyses)) {
+  for (const [clubCode] of Object.entries(analyses)) {
     if (clubCode === career.clubCode) continue;
-    const candidates = surplusCandidates({
-      players: squadForWorld(career, clubCode, playerById),
-      clubState: world.clubs[clubCode],
-      playerStatus: world.playerStatus
-    });
+    const players = squadForWorld(career, clubCode, playerById);
+    const statusView = Object.fromEntries(players.map(player => [player.id, effectivePlayerStatus(world, player)]));
+    const candidates = surplusCandidates({ players, clubState: world.clubs[clubCode], playerStatus: statusView });
     const candidate = candidates[0]?.player;
-    if (!candidate || world.playerStatus[candidate.id]?.transferListed) continue;
+    if (!candidate || effectivePlayerStatus(world, candidate).transferListed) continue;
     if (randomUnit(world.seed, date, clubCode, candidate.id, 'surplus-list') > .28) continue;
-    world.playerStatus[candidate.id].transferListed = true;
+    ensurePlayerStatus(world, candidate).transferListed = true;
     appendWorldEvent(world, {
       date,
       type: 'PLAYER_TRANSFER_LISTED',
@@ -37,16 +36,18 @@ function processExpiredContracts({ career, date }) {
     if (contract.status !== 'active' || !contract.endDate || contract.endDate >= date) continue;
     const clubCode = world.employment[playerId];
     contract.status = 'expired';
-    delete world.employment[playerId];
+    removePlayerEmployment(world, playerId);
     if (world.playerStatus[playerId]) {
       world.playerStatus[playerId].transferListed = false;
       world.playerStatus[playerId].loanListed = false;
     }
+    world.freeAgents ||= {};
+    world.freeAgents[playerId] = { since: date, previousClubCode: clubCode || contract.clubCode || null };
     appendWorldEvent(world, {
       date,
       type: 'CONTRACT_EXPIRED',
       entities: { playerId, clubCode },
-      payload: { endDate: contract.endDate }
+      payload: { endDate: contract.endDate, freeAgent: true }
     });
     expired += 1;
   }
@@ -61,6 +62,7 @@ export function processDailyTick({ career, date, playerById }) {
   const analyses = {};
   for (const [clubCode, clubState] of Object.entries(world.clubs || {})) {
     const players = squadForWorld(career, clubCode, playerById);
+    if (players.length < 11) continue;
     const analysis = evaluateClubSquad({ clubCode, players, clubState });
     analyses[clubCode] = analysis;
     clubState.recruitment.needs = analysis.needs.map(need => ({ ...need }));
