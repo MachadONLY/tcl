@@ -14,7 +14,8 @@ const algorithmFiles = [
   'src/career-world/transfers/valuation-engine.js',
   'src/career-world/contracts/agent-engine.js',
   'src/career-world/contracts/renewal-ai.js',
-  'src/career-world/contracts/contract-engine.js'
+  'src/career-world/contracts/contract-engine.js',
+  'src/career-world/loans/loan-engine.js'
 ];
 
 const clubCodes = [
@@ -22,7 +23,7 @@ const clubCodes = [
 ];
 
 const scriptedPatterns = clubCodes.flatMap(code => [
-  new RegExp(`(?:clubCode|buyerCode|sellerCode|code)\\s*(?:===|==|!==|!=)\\s*['\"]${code}['\"]`, 'g'),
+  new RegExp(`(?:clubCode|buyerCode|sellerCode|parentClubCode|borrowerClubCode|code)\\s*(?:===|==|!==|!=)\\s*['\"]${code}['\"]`, 'g'),
   new RegExp(`case\\s+['\"]${code}['\"]`, 'g')
 ]);
 
