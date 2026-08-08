@@ -11,7 +11,10 @@ const algorithmFiles = [
   'src/career-world/transfers/competition-engine.js',
   'src/career-world/transfers/recruitment-ai.js',
   'src/career-world/transfers/transfer-engine.js',
-  'src/career-world/transfers/valuation-engine.js'
+  'src/career-world/transfers/valuation-engine.js',
+  'src/career-world/contracts/agent-engine.js',
+  'src/career-world/contracts/renewal-ai.js',
+  'src/career-world/contracts/contract-engine.js'
 ];
 
 const clubCodes = [
@@ -30,7 +33,7 @@ for (const path of algorithmFiles) {
     if (pattern.test(source)) violations.push({ path, pattern: pattern.source });
     pattern.lastIndex = 0;
   }
-  assert.ok(!/SCRIPTED_(TRANSFER|RESULT|MANAGER|INJURY)/.test(source), `${path} must not contain scripted outcome escape hatches`);
+  assert.ok(!/SCRIPTED_(TRANSFER|RESULT|MANAGER|INJURY|CONTRACT|LOAN)/.test(source), `${path} must not contain scripted outcome escape hatches`);
 }
 
 assert.deepEqual(violations, [], `living-world algorithm files must not branch on specific club identities: ${JSON.stringify(violations)}`);
