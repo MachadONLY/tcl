@@ -1,4 +1,16 @@
 export * from './career-core.js';
+export {
+  recentLivingWorldEvents,
+  respondToWorldTransferOffer,
+  setLoanListing,
+  setPlayerAskingPrice,
+  setTransferListing,
+  worldActiveNegotiations,
+  worldMarketSearch,
+  worldPlayerStatus,
+  worldSquadFor,
+  worldTransferHistory
+} from '../career-world/world-engine.js';
 
 import * as Base from './career-core.js';
 import { FIXTURES, SEASON_END_DATE } from './season-2026-27-live.js';
@@ -12,6 +24,9 @@ import {
   recordFriendlyResult,
   resolveFriendlyClub
 } from './friendly-engine.js';
+import { ensureLivingWorld, processWorldDay } from '../career-world/world-engine.js';
+import { simulateWorldFixture } from '../career-world/world-match-adapter.js';
+import { clubCodeForPlayer } from '../career-world/world-selectors.js';
 
 const DAY_MS = 86_400_000;
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
@@ -74,7 +89,9 @@ function sideProfile(career, reference, home) {
   const club = resolveFriendlyClub(career, reference);
   const user = reference === career.clubCode;
   const players = user
-    ? career.lineup.map(id => Base.PLAYER_BY_ID.get(id)).filter(Boolean)
+    ? career.lineup
+      .map(id => Base.PLAYER_BY_ID.get(id))
+      .filter(player => player && clubCodeForPlayer(career, player) === career.clubCode)
     : generatedLineup(club);
   const average = players.length ? players.reduce((sum, player) => sum + player.rating, 0) / players.length : club.rating || 70;
   const condition = user
@@ -112,7 +129,8 @@ function friendlyEvents(random, goals, side, players) {
 }
 
 export function simulateFixture(career, fixture) {
-  if (!isFriendlyFixture(fixture)) return Base.simulateFixture(career, fixture);
+  ensureLivingWorld(career);
+  if (!isFriendlyFixture(fixture)) return simulateWorldFixture(career, fixture);
   const random = randomFor(`${career.friendlySeed}:${fixture.id}:${JSON.stringify(career.tactics)}`);
   const home = sideProfile(career, fixture.home, true);
   const away = sideProfile(career, fixture.away, false);
@@ -184,23 +202,24 @@ function commitFriendlyResult(career, result, world = false) {
 
 export function createCareer(code = 'MUN', now = new Date().toISOString()) {
   const career = Base.createCareer(code, now);
-  career.schemaVersion = 4;
+  career.schemaVersion = 5;
   career.currentDate = seasonStartDate(career.seasonLabel);
   career.inbox = (career.inbox || []).map(message => ({ ...message, date: career.currentDate }));
   ensureFriendlyWorld(career);
+  ensureLivingWorld(career);
   return career;
 }
 
 export function normalizeCareer(source, code = 'MUN') {
   let career;
-  if (!source || ![2, 3, 4].includes(source.schemaVersion)) career = createCareer(code);
-  else {
+  if (!source || source.schemaVersion !== 5) {
+    career = createCareer(code);
+  } else {
     career = Base.normalizeCareer({ ...source, schemaVersion: 3 }, code);
-    career.schemaVersion = 4;
-    if (career.currentDate === '2026-08-10' && Object.keys(career.results || {}).length === 0 && Object.keys(career.friendlyResults || {}).length === 0) {
-      career.currentDate = seasonStartDate(career.seasonLabel);
-    }
+    career.schemaVersion = 5;
+    career.currentDate ||= seasonStartDate(career.seasonLabel);
     ensureFriendlyWorld(career);
+    ensureLivingWorld(career);
   }
   return career;
 }
@@ -209,28 +228,43 @@ export const userFixtures = career => combinedUserFixtures(career, FIXTURES);
 export const fixturesOnDate = (date, career = null) => career ? allFixturesOnDate(career, date) : FIXTURES.filter(fixture => fixture.date === date);
 export const nextUserFixture = career => nextCombinedUserFixture(career);
 
+export function topScorers(career, number = 10) {
+  ensureLivingWorld(career);
+  return Base.topScorers(career, number).map(row => ({
+    ...row,
+    player: row.player ? { ...row.player, clubCode: clubCodeForPlayer(career, row.player) || row.player.clubCode } : row.player
+  }));
+}
+
 function simulateOtherMatches(career, date, userFixture = null) {
   ensureFriendlyWorld(career);
+  ensureLivingWorld(career);
   for (const fixture of FIXTURES.filter(item => item.date === date)) {
-    if (!career.results[fixture.id] && fixture.id !== userFixture?.id) Base.commitResult(career, Base.simulateFixture(career, fixture));
+    if (!career.results[fixture.id] && fixture.id !== userFixture?.id) Base.commitResult(career, simulateFixture(career, fixture));
   }
   for (const fixture of career.worldFriendlies.filter(item => item.date === date)) {
     if (!career.worldFriendlyResults[fixture.id]) commitFriendlyResult(career, simulateFixture(career, fixture), true);
   }
 }
 
-export function advanceOneDay(career) {
-  ensureFriendlyWorld(career);
-  const userFixture = userFixtures(career).find(fixture => fixture.date === career.currentDate && !friendlyResultFor(career, fixture));
-  simulateOtherMatches(career, career.currentDate, userFixture);
-  if (userFixture) return { career, ready: true, fixture: userFixture };
-  recover(career);
-  career.currentDate = nextDay(career.currentDate);
+function finishSeasonIfNeeded(career) {
   if (career.currentDate > SEASON_END_DATE && Object.keys(career.results || {}).length === FIXTURES.length) {
     career.status = 'complete';
     career.seasonSummary = Base.buildSeasonSummary(career);
   }
-  return { career, ready: false, fixture: null };
+}
+
+export function advanceOneDay(career) {
+  ensureFriendlyWorld(career);
+  ensureLivingWorld(career);
+  const daySummary = processWorldDay(career, career.currentDate);
+  const userFixture = userFixtures(career).find(fixture => fixture.date === career.currentDate && !friendlyResultFor(career, fixture));
+  simulateOtherMatches(career, career.currentDate, userFixture);
+  if (userFixture) return { career, ready: true, fixture: userFixture, daySummary };
+  recover(career);
+  career.currentDate = nextDay(career.currentDate);
+  finishSeasonIfNeeded(career);
+  return { career, ready: false, fixture: null, daySummary };
 }
 
 export function continueToNextMatch(career) {
@@ -243,6 +277,7 @@ export function continueToNextMatch(career) {
 
 export function completePreparedUserMatch(career, result) {
   ensureFriendlyWorld(career);
+  ensureLivingWorld(career);
   const fixture = userFixtures(career).find(item => item.id === result?.fixtureId);
   if (!fixture) return { career, fixture: null, result: null };
   if (isFriendlyFixture(fixture)) {
@@ -252,9 +287,12 @@ export function completePreparedUserMatch(career, result) {
     career.currentDate = nextDay(career.currentDate);
     return { career, fixture, result };
   }
-  const completed = Base.completePreparedUserMatch(career, result);
+  if (!career.results[fixture.id]) Base.commitResult(career, result);
   simulateOtherMatches(career, fixture.date, fixture);
-  return completed;
+  recover(career, 3);
+  career.currentDate = nextDay(career.currentDate);
+  finishSeasonIfNeeded(career);
+  return { career, fixture, result: career.results[fixture.id] || result };
 }
 
 export function playCurrentUserFixture(career) {

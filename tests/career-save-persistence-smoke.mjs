@@ -8,16 +8,24 @@ globalThis.localStorage = {
   clear() { values.clear(); }
 };
 
+localStorage.setItem("touchline.career.v2.primary", JSON.stringify({ schemaVersion: 3, saveId: "primary", clubCode: "OLD" }));
+localStorage.setItem("touchline.career.mode.v1", JSON.stringify({ onboardingComplete: true, selectedClubCode: "OLD" }));
+
 const {
   CAREER_FALLBACK_KEY,
   LEGACY_CAREER_KEY,
   MANAGER_PROFILE_KEY,
+  SAVE_RESET_MARKER_KEY,
   activateCareerProfile,
   ensureLegacyCareerPointer,
   readCareerSummary,
   readManagerProfile,
   recordCareerRoute
 } = await import("../src/career-save-profile.js");
+
+assert.equal(localStorage.getItem("touchline.career.v2.primary"), null, "legacy v2 fallback must be reset once");
+assert.equal(localStorage.getItem(LEGACY_CAREER_KEY), null, "legacy career pointer must be reset once");
+assert.equal(localStorage.getItem(SAVE_RESET_MARKER_KEY), "done");
 
 const profile = readManagerProfile();
 assert.equal(profile.managerName, "Gabriel Machado");
@@ -26,14 +34,14 @@ assert.ok(localStorage.getItem(MANAGER_PROFILE_KEY));
 assert.equal(readCareerSummary().hasCareer, false);
 
 const career = {
-  schemaVersion: 3,
+  schemaVersion: 5,
   saveId: "primary",
   clubCode: "MUN",
   managerName: "Gabriel Machado",
   seasonLabel: "2026/27",
-  currentDate: "2026-08-15",
-  createdAt: "2026-08-06T20:00:00.000Z",
-  updatedAt: "2026-08-06T20:05:00.000Z"
+  currentDate: "2026-07-01",
+  createdAt: "2026-08-08T18:00:00.000Z",
+  updatedAt: "2026-08-08T18:05:00.000Z"
 };
 
 localStorage.setItem(CAREER_FALLBACK_KEY, JSON.stringify(career));
@@ -49,7 +57,7 @@ let summary = readCareerSummary();
 assert.equal(summary.hasCareer, true);
 assert.equal(summary.clubCode, "MUN");
 assert.equal(summary.clubName, "Manchester United");
-assert.equal(summary.currentDate, "2026-08-15");
+assert.equal(summary.currentDate, "2026-07-01");
 
 recordCareerRoute("calendar");
 summary = readCareerSummary();
@@ -70,5 +78,7 @@ console.log(JSON.stringify({
   ok: true,
   managerName: profile.managerName,
   resumedRoute: "calendar",
+  saveSchema: 5,
+  legacyReset: true,
   durableStores: ["IndexedDB", "localStorage"]
 }, null, 2));

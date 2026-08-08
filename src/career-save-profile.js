@@ -1,6 +1,7 @@
 export const MANAGER_PROFILE_KEY = "touchline.manager.profile.v1";
 export const LEGACY_CAREER_KEY = "touchline.career.mode.v1";
-export const CAREER_FALLBACK_KEY = "touchline.career.v2.primary";
+export const CAREER_FALLBACK_KEY = "touchline.career.v5.primary";
+export const SAVE_RESET_MARKER_KEY = "touchline.career.reset.v5";
 
 const VALID_ROUTES = new Set(["home", "squad", "tactics", "calendar", "league", "inbox", "club"]);
 const DEFAULT_MANAGER_NAME = "Gabriel Machado";
@@ -75,6 +76,36 @@ function normalizeProfile(profile) {
   };
 }
 
+function resetLegacyCareerStorageOnce() {
+  try {
+    if (localStorage.getItem(SAVE_RESET_MARKER_KEY) === "done") return;
+    const profile = normalizeProfile(readLocal(MANAGER_PROFILE_KEY));
+    [
+      LEGACY_CAREER_KEY,
+      "touchline.career.v2.primary",
+      "touchline.career.v3.primary",
+      "touchline.career.v4.primary",
+      CAREER_FALLBACK_KEY
+    ].forEach(key => localStorage.removeItem(key));
+    writeLocal(MANAGER_PROFILE_KEY, {
+      ...profile,
+      activeSaveId: null,
+      activeClubCode: null,
+      activeClubName: null,
+      currentDate: null,
+      lastRoute: "home",
+      lastPlayedAt: null,
+      updatedAt: nowIso()
+    });
+    localStorage.setItem(SAVE_RESET_MARKER_KEY, "done");
+  } catch {}
+  try {
+    if ("indexedDB" in globalThis) indexedDB.deleteDatabase("touchline-career");
+  } catch {}
+}
+
+resetLegacyCareerStorageOnce();
+
 export function readManagerProfile() {
   const stored = readLocal(MANAGER_PROFILE_KEY);
   const profile = normalizeProfile(stored);
@@ -97,28 +128,23 @@ export function readCareerSummary() {
   const profile = readManagerProfile();
   const legacy = readLocal(LEGACY_CAREER_KEY, {}) || {};
   const career = readLocal(CAREER_FALLBACK_KEY, null);
-  const clubCode = career?.clubCode || legacy.selectedClubCode || profile.activeClubCode || null;
-  const clubName = legacy.selectedClubName || profile.activeClubName || clubCode;
-  const hasCareer = Boolean(
-    clubCode && (
-      career?.saveId === "primary" ||
-      legacy.onboardingComplete
-    )
-  );
+  const validCareer = Boolean([3, 4, 5].includes(career?.schemaVersion) && career?.saveId === "primary" && career?.clubCode);
+  const clubCode = validCareer ? career.clubCode : legacy.selectedClubCode || profile.activeClubCode || null;
+  const clubName = validCareer ? (legacy.selectedClubName || profile.activeClubName || career.clubCode) : legacy.selectedClubName || profile.activeClubName || clubCode;
 
   return {
-    hasCareer,
-    saveId: hasCareer ? (career?.saveId || "primary") : null,
+    hasCareer: validCareer,
+    saveId: validCareer ? career.saveId : null,
     clubCode,
     clubName,
-    managerName: career?.managerName || profile.managerName,
-    seasonLabel: career?.seasonLabel || legacy.careerSeason || profile.seasonLabel || "2026/27",
-    currentDate: career?.currentDate || profile.currentDate || null,
-    updatedAt: career?.updatedAt || profile.updatedAt || null,
+    managerName: validCareer ? (career.managerName || profile.managerName) : profile.managerName,
+    seasonLabel: validCareer ? (career.seasonLabel || "2026/27") : profile.seasonLabel || "2026/27",
+    currentDate: validCareer ? (career.currentDate || null) : null,
+    updatedAt: validCareer ? (career.updatedAt || null) : profile.updatedAt || null,
     lastRoute: normalizeRoute(profile.lastRoute),
     profile,
     legacy,
-    career
+    career: validCareer ? career : null
   };
 }
 

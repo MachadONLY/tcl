@@ -1,10 +1,10 @@
 import { reconcileCareerData } from './result-integrity.js';
 import { reconcileMailbox } from './mailbox-core.js';
 
-const DB_NAME = "touchline-career";
+const DB_NAME = "touchline-career-v5";
 const DB_VERSION = 1;
 const STORE_NAME = "saves";
-const FALLBACK_PREFIX = "touchline.career.v2.";
+const FALLBACK_PREFIX = "touchline.career.v5.";
 
 function openDatabase() {
   return new Promise((resolve, reject) => {
@@ -69,7 +69,8 @@ function consumeCareerDraft(save) {
     tactics: { ...(save.tactics || {}), ...(draft.tactics || {}) },
     results: { ...(save.results || {}), ...(draft.results || {}) },
     playerState: { ...(save.playerState || {}), ...(draft.playerState || {}) },
-    playerStats: { ...(save.playerStats || {}), ...(draft.playerStats || {}) }
+    playerStats: { ...(save.playerStats || {}), ...(draft.playerStats || {}) },
+    world: draft.world ? structuredClone(draft.world) : save.world
   };
 }
 

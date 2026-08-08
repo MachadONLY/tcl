@@ -48,9 +48,20 @@ jobs:
           node --check src/career-core/league-hub-data.js
           node --check src/career-mailbox.js
           node --check src/career-league-hub.js
+          node --check src/career-world/deterministic-rng.js
+          node --check src/career-world/world-state.js
+          node --check src/career-world/daily-tick.js
+          node --check src/career-world/world-engine.js
+          node --check src/career-world/world-match-adapter.js
+          node --check src/career-world/transfers/recruitment-ai.js
+          node --check src/career-world/transfers/transfer-engine.js
+          node --check src/career-world/transfers/valuation-engine.js
 
       - name: Build production bundle and run all integrity tests
         run: npm run build
+
+      - name: Test Living World engine
+        run: node tests/career-world-smoke.mjs
 
       - name: Audit FC 26 ratings for all 20 clubs
         run: npm run sync:ratings:fc26
