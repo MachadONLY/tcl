@@ -8,6 +8,7 @@ import { processContractExpirations, processContractMarketDay } from './contract
 import { processLoanMarketDay } from './loans/loan-engine.js';
 import { processPlayerLifeDay } from './players/player-life-engine.js';
 import { playerUnavailable, processAvailabilityDay } from './players/availability-engine.js';
+import { processManagerMarketDay } from './managers/manager-market.js';
 import { effectivePlayerStatus } from './world-employment-index.js';
 
 const TRANSFER_TERMINAL = new Set(['completed', 'rejected', 'withdrawn', 'expired']);
@@ -44,6 +45,8 @@ export function processDailyTick({ career, date, playerById }) {
 
   world.currentDate = date;
   const availability = processAvailabilityDay({ career, date, playerById });
+  const managerMarket = processManagerMarketDay({ career, date });
+
   const analyses = {};
   for (const [clubCode, clubState] of Object.entries(world.clubs || {})) {
     const registeredPlayers = squadForWorld(career, clubCode, playerById);
@@ -72,6 +75,7 @@ export function processDailyTick({ career, date, playerById }) {
     date,
     clubsEvaluated: Object.keys(analyses).length,
     availability,
+    managerMarket,
     playerLife,
     contractsExpired: contractExpirations.expired,
     bosmanMoves: contractExpirations.bosmanMoves,
@@ -89,6 +93,10 @@ export function processDailyTick({ career, date, playerById }) {
     entities: {},
     payload: {
       clubsEvaluated: summary.clubsEvaluated,
+      managersReviewed: managerMarket.reviewed,
+      managersSacked: managerMarket.sacked,
+      managersHired: managerMarket.hired,
+      managerVacancies: managerMarket.vacancies,
       injuriesFromRecentMatches: availability.injuries,
       playersReturnedFromInjury: availability.returnedFromInjury,
       suspensionsServed: availability.suspensionsServed,
