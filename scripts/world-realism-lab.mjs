@@ -1,7 +1,7 @@
 import { createCareer } from '../src/career-core/career-runtime.js';
 import { processWorldDay } from '../src/career-world/world-engine.js';
 import { WORLD_PLAYER_BY_ID, worldDatabaseCoverage } from '../src/career-world/world-player-database.js';
-import { auditCareerWorld, aggregateRealismRuns } from '../src/career-world/realism/realism-audit.js';
+import { auditCareerWorld, aggregateRealismRuns } from '../src/career-world/realism/realism-audit-v2.js';
 
 const DAY_MS = 86_400_000;
 
@@ -34,7 +34,7 @@ export function runRealismLab({ saves = 25, clubCode = 'MUN', start = '2026-07-0
   const summary = aggregateRealismRuns(runs);
   return {
     meta: {
-      version: 1,
+      version: 2,
       clubCode,
       start,
       days,
@@ -57,7 +57,7 @@ function humanMoney(value) {
 
 function printReport(report) {
   const { meta, summary } = report;
-  console.log('\nTOUCHLINE WORLD REALISM LAB v1');
+  console.log('\nTOUCHLINE WORLD REALISM LAB v2');
   console.log('================================');
   console.log(`Coverage : ${meta.database.mode} · ${meta.database.clubs} clubs · ${meta.database.players} players`);
   console.log(`Scenario : ${meta.saves} saves · ${meta.start} · ${meta.days} days · user club ${meta.clubCode}`);
@@ -67,6 +67,10 @@ function printReport(report) {
   console.log(`Average rumors/save       : ${summary.averages.rumors}`);
   console.log(`Average negotiations/save : ${summary.averages.formalNegotiations}`);
   console.log(`Average transfers/save    : ${summary.averages.completedTransfers}`);
+  console.log(`Average renewals/save     : ${summary.averages.contractRenewalThreads ?? 0}`);
+  console.log(`Average loan threads/save : ${summary.averages.loanThreads ?? 0}`);
+  console.log(`Average active loans/save : ${summary.averages.activeLoans ?? 0}`);
+  console.log(`Average loan wage share   : ${Math.round((summary.averages.loanWageContribution || 0) * 100)}%`);
   console.log(`Average transfer age      : ${summary.averages.transferAge}`);
   console.log(`Average fee               : ${humanMoney(summary.averages.transferFee)}`);
   console.log(`Hard violations           : ${summary.totals.hardViolations}`);
