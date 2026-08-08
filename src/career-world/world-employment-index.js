@@ -37,6 +37,7 @@ export function setPlayerEmployment(world, playerId, clubCode) {
     if (position >= 0) bucket.splice(position, 1);
   }
   world.employment[playerId] = clubCode;
+  if (world.freeAgents) delete world.freeAgents[playerId];
   const next = index.get(clubCode) || [];
   if (!next.includes(playerId)) next.push(playerId);
   index.set(clubCode, next);
@@ -57,20 +58,21 @@ export function removePlayerEmployment(world, playerId) {
 export function effectivePlayerStatus(world, player) {
   const current = world?.playerStatus?.[player?.id];
   if (current) return current;
+  const role = defaultSquadRole(player);
   return {
     transferListed: false,
     loanListed: false,
     askingPrice: null,
-    squadRole: defaultSquadRole(player),
+    squadRole: role,
     joinedAt: player?.joinedAt || null,
     lastMoveAt: null,
     unavailableUntil: null,
     happiness: 70,
-    playingTimeExpectation: defaultSquadRole(player) === 'key'
+    playingTimeExpectation: role === 'key'
       ? 'star-player'
-      : defaultSquadRole(player) === 'important'
+      : role === 'important'
         ? 'important-player'
-        : defaultSquadRole(player) === 'rotation'
+        : role === 'rotation'
           ? 'squad-player'
           : 'prospect'
   };
