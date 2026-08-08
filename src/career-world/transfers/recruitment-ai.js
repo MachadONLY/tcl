@@ -2,6 +2,11 @@ import { randomUnit, deterministicChoice } from '../deterministic-rng.js';
 import { daysBetween } from '../world-time.js';
 import { marketAffinity } from '../clubs/club-brain.js';
 import { positionBucket } from '../clubs/squad-analysis.js';
+import {
+  effectivePlayerContract,
+  effectivePlayerStatus,
+  playerIdsForClubState
+} from '../world-employment-index.js';
 import { estimateMarketValue } from './valuation-engine.js';
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
@@ -69,13 +74,11 @@ function roleFitScore(player, need) {
   if (!need?.position) return player.group === need.group ? .78 : .35;
   const bucket = positionBucket(player);
   if (bucket === need.position) return 1;
-  const compatible = new Set([
-    'CB:FB', 'FB:CB', 'DM:CM', 'CM:DM', 'CM:W', 'W:CM', 'W:ST', 'ST:W'
-  ]);
+  const compatible = new Set(['CB:FB', 'FB:CB', 'DM:CM', 'CM:DM', 'CM:W', 'W:CM', 'W:ST', 'ST:W']);
   return compatible.has(`${bucket}:${need.position}`) ? .62 : player.group === need.group ? .48 : .18;
 }
 
-function availabilityScore(status = {}, sellerClub = {}, sellerSquadSize = 25) {
+function availabilityScore(status = {}, sellerSquadSize = 25) {
   if (status.transferListed) return .98;
   if (status.squadRole === 'fringe') return .86;
   if (status.squadRole === 'rotation') return .68;
@@ -105,7 +108,7 @@ function candidateScore({ player, need, buyerClub, sellerClub, status, contract,
   const qualityFit = clamp(.55 + (rating - Number(need.targetRating || rating)) * .045, .25, 1);
   const potentialFit = potentialScore(player, buyerClub);
   const marketFit = marketAffinity(buyerClub.brain, sellerClub.countryCode);
-  const availability = availabilityScore(status, sellerClub, sellerSquadSize);
+  const availability = availabilityScore(status, sellerSquadSize);
   const tacticalWeight = Number(brain.tacticalFitWeight) || .65;
   const potentialWeight = Number(brain.potentialWeight) || .65;
   const currentWeight = Number(brain.currentAbilityWeight) || .65;
@@ -126,10 +129,28 @@ function candidateScore({ player, need, buyerClub, sellerClub, status, contract,
   return { player, marketValue, interest, roleFit, marketFit, availability, score };
 }
 
+function sellerContext(world, sellerCode, playerById, cache) {
+  if (cache.has(sellerCode)) return cache.get(sellerCode);
+  const ids = playerIdsForClubState(world, sellerCode);
+  const groups = {};
+  const positions = {};
+  for (const id of ids) {
+    const player = playerById.get(id);
+    if (!player) continue;
+    groups[player.group] = (groups[player.group] || 0) + 1;
+    const position = positionBucket(player);
+    positions[position] = (positions[position] || 0) + 1;
+  }
+  const context = { ids, size: ids.length, groups, positions };
+  cache.set(sellerCode, context);
+  return context;
+}
+
 export function chooseRecruitmentTarget({ world, date, buyerCode, need, playerById }) {
   const buyerClub = world.clubs[buyerCode];
   if (!buyerClub) return null;
   const candidates = [];
+  const sellerCache = new Map();
   for (const [playerId, sellerCode] of Object.entries(world.employment || {})) {
     if (!sellerCode || sellerCode === buyerCode) continue;
     const player = playerById.get(playerId);
@@ -138,18 +159,23 @@ export function chooseRecruitmentTarget({ world, date, buyerCode, need, playerBy
     if (!need.position && player.group !== need.group) continue;
     const sellerClub = world.clubs[sellerCode];
     if (!sellerClub) continue;
-    const status = world.playerStatus[playerId] || {};
-    const sellerSquadIds = Object.entries(world.employment || {}).filter(([, code]) => code === sellerCode).map(([id]) => id);
-    const sellerGroupCount = sellerSquadIds.reduce((count, id) => count + (playerById.get(id)?.group === player.group ? 1 : 0), 0);
-    const sellerPositionCount = sellerSquadIds.reduce((count, id) => count + (positionBucket(playerById.get(id)) === positionBucket(player) ? 1 : 0), 0);
-    if (!status.transferListed && sellerSquadIds.length <= Number(sellerClub.brain?.recruitment?.minSquadSize || sellerClub.policy?.minSquadSize || 22)) continue;
-    if (!status.transferListed && sellerGroupCount <= (MIN_GROUP_DEPTH[player.group] || 2)) continue;
-    if (!status.transferListed && sellerPositionCount <= (MIN_POSITION_DEPTH[positionBucket(player)] || 1)) continue;
+    const status = effectivePlayerStatus(world, player);
+    const seller = sellerContext(world, sellerCode, playerById, sellerCache);
+    const playerPosition = positionBucket(player);
+    if (!status.transferListed && seller.size <= Number(sellerClub.brain?.recruitment?.minSquadSize || sellerClub.policy?.minSquadSize || 22)) continue;
+    if (!status.transferListed && (seller.groups[player.group] || 0) <= (MIN_GROUP_DEPTH[player.group] || 2)) continue;
+    if (!status.transferListed && (seller.positions[playerPosition] || 0) <= (MIN_POSITION_DEPTH[playerPosition] || 1)) continue;
     if (status.lastMoveAt && daysBetween(status.lastMoveAt, date) < 120 && !status.transferListed) continue;
     const scored = candidateScore({
-      player, need, buyerClub, sellerClub, status,
-      contract: world.contracts[playerId] || {}, date, world,
-      sellerSquadSize: sellerSquadIds.length
+      player,
+      need,
+      buyerClub,
+      sellerClub,
+      status,
+      contract: effectivePlayerContract(world, player),
+      date,
+      world,
+      sellerSquadSize: seller.size
     });
     if (scored) candidates.push(scored);
   }
