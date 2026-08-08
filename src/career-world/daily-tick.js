@@ -6,6 +6,7 @@ import { processTransferMarketDay } from './transfers/transfer-engine.js';
 import { processRumorMarketDay, reconcileRumorsAfterTransfers } from './transfers/rumor-engine.js';
 import { processContractExpirations, processContractMarketDay } from './contracts/contract-engine.js';
 import { processLoanMarketDay } from './loans/loan-engine.js';
+import { processPlayerLifeDay } from './players/player-life-engine.js';
 
 const TRANSFER_TERMINAL = new Set(['completed', 'rejected', 'withdrawn', 'expired']);
 
@@ -51,6 +52,7 @@ export function processDailyTick({ career, date, playerById }) {
     clubState.recruitment.lastEvaluatedDate = date;
   }
 
+  const playerLife = processPlayerLifeDay({ career, date, playerById });
   const contractMarket = processContractMarketDay({ career, date, playerById });
   const contractExpirations = processContractExpirations({ career, date, playerById });
   const sellingMarket = processSellingAiDay({ career, date, playerById, squadAnalyses: analyses });
@@ -63,6 +65,7 @@ export function processDailyTick({ career, date, playerById }) {
   const summary = {
     date,
     clubsEvaluated: Object.keys(analyses).length,
+    playerLife,
     contractsExpired: contractExpirations.expired,
     bosmanMoves: contractExpirations.bosmanMoves,
     contractMarket,
@@ -79,6 +82,9 @@ export function processDailyTick({ career, date, playerById }) {
     entities: {},
     payload: {
       clubsEvaluated: summary.clubsEvaluated,
+      playersLifeReviewed: playerLife.reviewed,
+      playerConcernsRaised: playerLife.concernsRaised,
+      promisesResolved: playerLife.promisesResolved,
       contractsExpired: contractExpirations.expired,
       contractRenewalsOpened: contractMarket.opened,
       contractsRenewed: contractMarket.renewed,
