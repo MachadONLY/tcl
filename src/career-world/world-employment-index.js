@@ -27,9 +27,32 @@ export function playerIdsForClubState(world, clubCode) {
   return employmentIndex(world).get(clubCode) || [];
 }
 
-export function setPlayerEmployment(world, playerId, clubCode) {
+export function ownerClubForPlayerState(world, playerId) {
+  return world?.ownership?.[playerId]
+    || world?.contracts?.[playerId]?.clubCode
+    || world?.employment?.[playerId]
+    || null;
+}
+
+export function setPlayerOwnership(world, playerId, clubCode) {
+  world.ownership ||= {};
+  if (clubCode) world.ownership[playerId] = clubCode;
+  else delete world.ownership[playerId];
+  if (world.contracts?.[playerId]) world.contracts[playerId].clubCode = clubCode || null;
+  return clubCode || null;
+}
+
+export function removePlayerOwnership(world, playerId) {
+  const previous = ownerClubForPlayerState(world, playerId);
+  world.ownership ||= {};
+  delete world.ownership[playerId];
+  return previous;
+}
+
+export function setPlayerEmployment(world, playerId, clubCode, options = {}) {
   const previous = world?.employment?.[playerId] || null;
   world.employment ||= {};
+  world.ownership ||= {};
   const index = employmentIndex(world);
   if (previous && index.has(previous)) {
     const bucket = index.get(previous);
@@ -37,6 +60,7 @@ export function setPlayerEmployment(world, playerId, clubCode) {
     if (position >= 0) bucket.splice(position, 1);
   }
   world.employment[playerId] = clubCode;
+  if (!options.preserveOwnership) world.ownership[playerId] = clubCode;
   if (world.freeAgents) delete world.freeAgents[playerId];
   const next = index.get(clubCode) || [];
   if (!next.includes(playerId)) next.push(playerId);
@@ -89,7 +113,7 @@ export function effectivePlayerContract(world, player) {
   if (current) return current;
   return {
     playerId: player?.id || null,
-    clubCode: world?.employment?.[player?.id] || player?.clubCode || null,
+    clubCode: ownerClubForPlayerState(world, player?.id) || player?.clubCode || null,
     startDate: player?.joinedAt || null,
     endDate: player?.contractUntil || null,
     weeklyWage: Math.max(1_000, Number(player?.wage) || 8_000),
