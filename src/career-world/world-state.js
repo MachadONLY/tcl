@@ -1,8 +1,8 @@
-import { hashString, randomInt, randomUnit, seedFromParts } from './deterministic-rng.js';
+import { hashString, randomInt, seedFromParts } from './deterministic-rng.js';
+import { createClubBrain, createManagerBrain } from './clubs/club-brain.js';
 
-export const WORLD_SCHEMA_VERSION = 1;
+export const WORLD_SCHEMA_VERSION = 2;
 
-const GROUP_TARGET = Object.freeze({ GK: 3, DEF: 9, MID: 9, FWD: 5 });
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 
 function seasonStart(career) {
@@ -39,26 +39,23 @@ function squadRole(player, peers) {
   const sorted = [...peers].sort((left, right) => (right.rating || 0) - (left.rating || 0));
   const index = sorted.findIndex(candidate => candidate.id === player.id);
   const percentile = sorted.length <= 1 ? 0 : index / (sorted.length - 1);
-  if (percentile <= 0.17) return 'key';
-  if (percentile <= 0.45) return 'important';
-  if (percentile <= 0.72) return 'rotation';
+  if (percentile <= .17) return 'key';
+  if (percentile <= .45) return 'important';
+  if (percentile <= .72) return 'rotation';
   return player.age <= 21 && (player.potential || player.rating) > (player.rating || 0) + 2 ? 'prospect' : 'fringe';
 }
 
-function clubPolicy(club, elo, budget, seed) {
-  const elite = elo >= 1925;
-  const wealthy = budget >= 130_000_000;
-  const developmentBias = clamp(0.45 + randomUnit(seed, club.code, 'development') * 0.45, 0.35, 0.9);
+function compatibilityPolicy(brain, managerBrain) {
   return {
-    preferredAgeMin: 18,
-    preferredAgeMax: elite ? 27 : wealthy ? 28 : 29,
-    maxAgeForPermanent: elite ? 30 : 31,
-    developmentBias: +developmentBias.toFixed(2),
-    patience: +(0.45 + randomUnit(seed, club.code, 'patience') * 0.45).toFixed(2),
-    negotiationAggression: +(0.38 + randomUnit(seed, club.code, 'aggression') * 0.5).toFixed(2),
-    targetSquadSize: GROUP_TARGET.GK + GROUP_TARGET.DEF + GROUP_TARGET.MID + GROUP_TARGET.FWD,
-    minSquadSize: 22,
-    maxSquadSize: 31
+    preferredAgeMin: brain.recruitment.preferredAgeMin,
+    preferredAgeMax: brain.recruitment.preferredAgeMax,
+    maxAgeForPermanent: Math.max(28, brain.recruitment.preferredAgeMax + 2),
+    developmentBias: brain.recruitment.youthBias,
+    patience: managerBrain.negotiationPatience,
+    negotiationAggression: clamp(1 - brain.recruitment.feeDiscipline * .55, .30, .82),
+    targetSquadSize: brain.recruitment.targetSquadSize,
+    minSquadSize: brain.recruitment.minSquadSize,
+    maxSquadSize: brain.recruitment.maxSquadSize
   };
 }
 
@@ -105,11 +102,7 @@ export function createWorldState({ career, clubs = [], squads = {}, teamBudgets 
     playerStatus: {},
     clubs: {},
     transferMarket: {
-      negotiations: {},
-      history: [],
-      rumors: [],
-      cooldowns: {},
-      lastActivityByClub: {}
+      negotiations: {}, history: [], rumors: [], cooldowns: {}, lastActivityByClub: {}
     }
   });
 
@@ -117,23 +110,31 @@ export function createWorldState({ career, clubs = [], squads = {}, teamBudgets 
     const code = club.code;
     const players = Array.isArray(squads[code]) ? squads[code] : [];
     const budget = Number(code === career?.clubCode ? career?.transferBudget : teamBudgets[code]) || Number(club.budget) || 50_000_000;
-    const wageBudget = Number(code === career?.clubCode ? career?.wageBudget : Math.round(budget * 0.009)) || 500_000;
+    const wageBudget = Number(code === career?.clubCode ? career?.wageBudget : Math.round(budget * .009)) || 500_000;
     const elo = Number(teamElo[code] ?? club.elo) || 1750;
+    const brain = createClubBrain({ ...club, countryCode: club.countryCode || 'ENG', elo }, seed);
+    const managerBrain = createManagerBrain(club, seed, brain);
     world.clubs[code] = {
       code,
+      name: club.name,
+      countryCode: club.countryCode || 'ENG',
+      league: club.league || 'Premier League',
       elo,
       transferBudget: budget,
       startingTransferBudget: budget,
       wageBudget,
       transferSpent: 0,
       transferIncome: 0,
+      brain,
+      managerBrain,
       recruitment: {
         needs: [],
+        requirements: [],
         shortlist: [],
         lastEvaluatedDate: null,
         nextRecruitmentDate: startDate
       },
-      policy: clubPolicy(club, elo, budget, seed)
+      policy: compatibilityPolicy(brain, managerBrain)
     };
 
     for (const player of players) {
@@ -147,7 +148,9 @@ export function createWorldState({ career, clubs = [], squads = {}, teamBudgets 
         squadRole: role,
         joinedAt,
         lastMoveAt: null,
-        unavailableUntil: null
+        unavailableUntil: null,
+        happiness: 70,
+        playingTimeExpectation: role === 'key' ? 'star-player' : role === 'important' ? 'important-player' : role === 'rotation' ? 'squad-player' : 'prospect'
       };
       world.contracts[player.id] = {
         playerId: player.id,

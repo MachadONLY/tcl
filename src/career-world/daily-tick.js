@@ -17,7 +17,7 @@ function maybeListAiSurplus({ career, date, playerById, analyses }) {
     });
     const candidate = candidates[0]?.player;
     if (!candidate || world.playerStatus[candidate.id]?.transferListed) continue;
-    if (randomUnit(world.seed, date, clubCode, candidate.id, 'surplus-list') > 0.28) continue;
+    if (randomUnit(world.seed, date, clubCode, candidate.id, 'surplus-list') > .28) continue;
     world.playerStatus[candidate.id].transferListed = true;
     appendWorldEvent(world, {
       date,
@@ -64,6 +64,7 @@ export function processDailyTick({ career, date, playerById }) {
     const analysis = evaluateClubSquad({ clubCode, players, clubState });
     analyses[clubCode] = analysis;
     clubState.recruitment.needs = analysis.needs.map(need => ({ ...need }));
+    clubState.recruitment.requirements = analysis.requirements.map(requirement => ({ ...requirement }));
     clubState.recruitment.lastEvaluatedDate = date;
   }
 
