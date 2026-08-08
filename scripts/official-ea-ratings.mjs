@@ -26,16 +26,52 @@ function titleFromSlug(value) {
 }
 
 function ratingFromText(value) {
-  return Number(cleanText(value).match(/\b(?:OVR|GER|SML)\s*(\d{2})\b/i)?.[1]) || null;
+  return Number(cleanText(value).match(/\b(?:OVR|GER|SML|ALG)\s*(\d{2})\b/i)?.[1]) || null;
 }
 
 function closestRatingCard(anchor) {
   let node = anchor;
   for (let depth = 0; node && depth < 12; depth += 1, node = node.parentElement) {
     const text = cleanText(node.textContent);
-    if (text.length <= 1200 && ratingFromText(text)) return node;
+    if (text.length <= 1600 && ratingFromText(text)) return node;
   }
   return anchor.parentElement;
+}
+
+function teamFromContext(context) {
+  const source = String(context || '').replace(/\\u002F/gi, '/').replace(/\\\//g, '/');
+  const match = source.match(/\/ratings\/teams-ratings\/([^/?#"']+)\/(\d+)/i);
+  if (!match) return { teamId: null, teamSlug: '', teamName: '' };
+  return {
+    teamId: Number(match[2]) || null,
+    teamSlug: match[1],
+    teamName: titleFromSlug(match[1])
+  };
+}
+
+function queryIdFromContext(context, key) {
+  const source = String(context || '').replace(/&amp;/gi, '&');
+  return Number(source.match(new RegExp(`[?&]${key}=(\\d+)`, 'i'))?.[1]) || null;
+}
+
+function attributeValue(text, aliases) {
+  for (const alias of aliases) {
+    const value = Number(text.match(new RegExp(`\\b${alias}\\s*(\\d{1,2})\\b`, 'i'))?.[1]);
+    if (Number.isFinite(value)) return value;
+  }
+  return null;
+}
+
+function attributesFromText(value) {
+  const text = cleanText(value);
+  return {
+    pace: attributeValue(text, ['PAC', 'RIT', 'SNL']),
+    shooting: attributeValue(text, ['SHO', 'FIN', 'SCH']),
+    passing: attributeValue(text, ['PAS']),
+    dribbling: attributeValue(text, ['DRI', 'CON']),
+    defending: attributeValue(text, ['DEF', 'VRD']),
+    physical: attributeValue(text, ['PHY', 'FÍS', 'FIS', 'FYS'])
+  };
 }
 
 function addRating(byId, eaPlayerId, slug, name, context) {
@@ -45,13 +81,20 @@ function addRating(byId, eaPlayerId, slug, name, context) {
   if (!overall) return;
   const cleanName = cleanText(name) || titleFromSlug(slug);
   const position = positionTokens(text).find(token => groupFromPositions(token)) || '';
+  const team = teamFromContext(context);
+  const attributes = attributesFromText(text);
   byId.set(eaPlayerId, {
     eaPlayerId,
     name: cleanName,
     normalizedName: normalizeName(cleanName),
     position,
     group: groupFromPositions(position),
-    overall
+    overall,
+    ...team,
+    nationalityId: queryIdFromContext(context, 'nationality'),
+    leagueId: queryIdFromContext(context, 'league'),
+    attributes,
+    source: 'EA_SPORTS_FC_26_OFFICIAL'
   });
 }
 
@@ -81,7 +124,7 @@ export function parseOfficialEaRatingsHtml(html) {
   for (let index = 0; index < rawMatches.length; index += 1) {
     const match = rawMatches[index];
     const start = match.index ?? 0;
-    const nextStart = rawMatches[index + 1]?.index ?? Math.min(source.length, start + 2500);
+    const nextStart = rawMatches[index + 1]?.index ?? Math.min(source.length, start + 3200);
     const context = source.slice(start, nextStart);
     if (!byId.has(Number(match[2]))) {
       addRating(byId, Number(match[2]), match[1], cleanText(match[3]), context);
