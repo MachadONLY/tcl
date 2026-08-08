@@ -18,9 +18,10 @@ import {
   squadForWorld,
   transferHistory
 } from './world-selectors.js';
-import { ensurePlayerStatus } from './world-employment-index.js';
+import { ensurePlayerStatus, ownerClubForPlayerState } from './world-employment-index.js';
 import { respondToTransferOffer } from './transfers/transfer-engine.js';
 import { estimateSellingPosition } from './transfers/valuation-engine.js';
+import { loanMarketSnapshot, respondToLoanOffer } from './loans/loan-engine.js';
 
 const dependencies = Object.freeze({
   clubs: WORLD_CLUB_CATALOG,
@@ -52,10 +53,11 @@ export function worldSquadFor(career, clubCode) {
 
 export function setTransferListing(career, playerId, listed = true) {
   ensureLivingWorld(career);
-  if (career.world.employment[playerId] !== career.clubCode) return null;
+  if (ownerClubForPlayerState(career.world, playerId) !== career.clubCode || career.world.employment[playerId] !== career.clubCode) return null;
   const player = WORLD_PLAYER_BY_ID.get(playerId);
   if (!player) return null;
   const status = ensurePlayerStatus(career.world, player);
+  if (status.onLoan) return null;
   status.transferListed = Boolean(listed);
   if (!listed) status.askingPrice = null;
   appendWorldEvent(career.world, {
@@ -69,10 +71,11 @@ export function setTransferListing(career, playerId, listed = true) {
 
 export function setLoanListing(career, playerId, listed = true) {
   ensureLivingWorld(career);
-  if (career.world.employment[playerId] !== career.clubCode) return null;
+  if (ownerClubForPlayerState(career.world, playerId) !== career.clubCode || career.world.employment[playerId] !== career.clubCode) return null;
   const player = WORLD_PLAYER_BY_ID.get(playerId);
   if (!player) return null;
   const status = ensurePlayerStatus(career.world, player);
+  if (status.onLoan) return null;
   status.loanListed = Boolean(listed);
   appendWorldEvent(career.world, {
     date: career.currentDate,
@@ -85,10 +88,11 @@ export function setLoanListing(career, playerId, listed = true) {
 
 export function setPlayerAskingPrice(career, playerId, amount = null) {
   ensureLivingWorld(career);
-  if (career.world.employment[playerId] !== career.clubCode) return null;
+  if (ownerClubForPlayerState(career.world, playerId) !== career.clubCode || career.world.employment[playerId] !== career.clubCode) return null;
   const player = WORLD_PLAYER_BY_ID.get(playerId);
   if (!player) return null;
   const status = ensurePlayerStatus(career.world, player);
+  if (status.onLoan) return null;
   const club = career.world.clubs[career.clubCode];
   const contract = contractFor(career, player, WORLD_PLAYER_BY_ID);
   const natural = estimateSellingPosition({ player, status, contract, date: career.currentDate, sellingClub: club });
@@ -108,6 +112,22 @@ export function respondToWorldTransferOffer(career, negotiationId, decision) {
   const userClub = career.world.clubs?.[career.clubCode];
   if (userClub) career.transferBudget = userClub.transferBudget;
   return result;
+}
+
+export function respondToWorldLoanOffer(career, loanId, decision) {
+  ensureLivingWorld(career);
+  return respondToLoanOffer({
+    career,
+    loanId,
+    decision,
+    date: career.currentDate,
+    playerById: WORLD_PLAYER_BY_ID
+  });
+}
+
+export function worldLoanMarket(career) {
+  ensureLivingWorld(career);
+  return loanMarketSnapshot(career);
 }
 
 export function worldMarketSearch(career, filters = {}) {
