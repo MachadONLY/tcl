@@ -48,6 +48,7 @@ jobs:
           node --check src/career-core/league-hub-data.js
           node --check src/career-mailbox.js
           node --check src/career-league-hub.js
+          node --check src/career-home-processing.js
           node --check src/career-world/deterministic-rng.js
           node --check src/career-world/world-state.js
           node --check src/career-world/daily-tick.js
@@ -59,6 +60,9 @@ jobs:
 
       - name: Build production bundle and run all integrity tests
         run: npm run build
+
+      - name: Test FM-style calendar processing
+        run: node tests/career-home-processing-smoke.mjs
 
       - name: Test Living World engine
         run: node tests/career-world-smoke.mjs
