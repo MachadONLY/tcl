@@ -18,7 +18,7 @@ import {
 import { EUROPEAN_CATALOG_META, EUROPE_COUNTRIES, EUROPEAN_CLUBS } from '../src/career-core/european-club-catalog.js';
 
 const career = createCareer('MUN', '2026-07-01T09:00:00.000Z');
-assert.equal(career.schemaVersion, 4);
+assert.equal(career.schemaVersion, 5);
 assert.equal(career.currentDate, '2026-07-01', 'every season must begin on 1 July');
 assert.ok(EUROPE_COUNTRIES.length >= 50, 'European browser must include the complete continent-sized country catalog');
 assert.ok(EUROPEAN_CLUBS.length >= 1200, 'European browser must include more than one thousand offline clubs');
