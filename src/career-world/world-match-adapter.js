@@ -1,11 +1,10 @@
 import {
-  PLAYER_BY_ID,
   analyzeTactics,
   defaultTactics,
   normalizeTactics,
   seededRandom
 } from '../career-core/career-core.js';
-import { TEAM_ELO } from '../career-core/season-2026-27-live.js';
+import { WORLD_PLAYER_BY_ID, WORLD_TEAM_ELO } from './world-player-database.js';
 import { squadForWorld } from './world-selectors.js';
 import { aiTacticalPlan, selectAiLineup } from './clubs/ai-team-management.js';
 
@@ -24,10 +23,10 @@ function fallbackLineup(players = [], shape = USER_FALLBACK_SHAPE) {
 }
 
 function lineupFor(career, code, fixture) {
-  const employed = squadForWorld(career, code, PLAYER_BY_ID);
+  const employed = squadForWorld(career, code, WORLD_PLAYER_BY_ID);
   if (code !== career.clubCode) return selectAiLineup(career, code, employed, fixture);
   const selected = (career.lineup || [])
-    .map(id => PLAYER_BY_ID.get(id))
+    .map(id => WORLD_PLAYER_BY_ID.get(id))
     .filter(player => player && career.world?.employment?.[player.id] === code);
   const missing = Math.max(0, 11 - selected.length);
   if (!missing) {
@@ -62,7 +61,7 @@ function profile(career, code, home, fixture) {
     ? average(players.map(player => career.playerState?.[player.id]?.condition || 94))
     : 94;
   const rating = average(players.map(player => Number(player.rating) || 65));
-  const elo = Number(career.world?.clubs?.[code]?.elo) || Number(TEAM_ELO[code]) || 1750;
+  const elo = Number(career.world?.clubs?.[code]?.elo) || Number(WORLD_TEAM_ELO[code]) || 1750;
   const power = rating + (elo - 1750) / 62 + (home ? 1.65 : 0) + (condition - 90) / 8;
   const attack = power + (metrics.creation - 65) / 8 + (metrics.intensity - 60) / 18;
   const defence = power + (metrics.protection - 65) / 7 + (metrics.control - 60) / 24;
@@ -109,19 +108,17 @@ function weightedPlayer(random, players, assisting = false) {
 }
 
 function goalEvents(random, goals, side, players) {
-  const usedMinutes = new Set();
+  const used = new Set();
   const events = [];
   for (let index = 0; index < goals; index += 1) {
     let minute = 5 + Math.floor(random() * 85);
-    while (usedMinutes.has(minute)) minute = 5 + Math.floor(random() * 85);
-    usedMinutes.add(minute);
+    while (used.has(minute)) minute = 5 + Math.floor(random() * 85);
+    used.add(minute);
     const scorer = weightedPlayer(random, players);
     const possibleAssists = players.filter(player => player.id !== scorer?.id);
     const assist = random() > .2 ? weightedPlayer(random, possibleAssists, true) : null;
     events.push({
-      type: 'goal',
-      minute,
-      side,
+      type: 'goal', minute, side,
       playerId: scorer?.id || null,
       playerName: scorer?.name || 'Gol',
       assistPlayerId: assist?.id || null,
@@ -146,7 +143,7 @@ export function simulateWorldFixture(career, fixture) {
     ...goalEvents(random, awayGoals, 'away', away.players)
   ].sort((left, right) => left.minute - right.minute);
   const controlDelta = (home.metrics.control - away.metrics.control) * .23 + (home.power - away.power) * .45;
-  const possession = clamp(Math.round(50 + controlDelta + (random() - .5) * 6), 28, 72);
+  const possession = clamp(Math.round(50 + controlDelta + (home.power - away.power) * .45 + (random() - .5) * 6), 28, 72);
   const shots = xg => Math.max(1, Math.round(xg * (4.7 + random() * 2.2)));
 
   return {
@@ -158,42 +155,15 @@ export function simulateWorldFixture(career, fixture) {
     away: fixture.away,
     homeGoals,
     awayGoals,
-    lineups: {
-      home: home.players.map(player => player.id),
-      away: away.players.map(player => player.id)
-    },
+    lineups: { home: home.players.map(player => player.id), away: away.players.map(player => player.id) },
     events,
     stats: {
-      home: {
-        xg: +homeXg.toFixed(2), shots: Math.max(homeGoals, shots(homeXg)), possession,
-        corners: 2 + Math.floor(random() * 7), highRecoveries: 4 + Math.floor(random() * 9),
-        counters: 1 + Math.floor(random() * 5), crosses: 6 + Math.floor(random() * 11)
-      },
-      away: {
-        xg: +awayXg.toFixed(2), shots: Math.max(awayGoals, shots(awayXg)), possession: 100 - possession,
-        corners: 2 + Math.floor(random() * 7), highRecoveries: 4 + Math.floor(random() * 9),
-        counters: 1 + Math.floor(random() * 5), crosses: 6 + Math.floor(random() * 11)
-      }
+      home: { xg: +homeXg.toFixed(2), shots: Math.max(homeGoals, shots(homeXg)), possession, corners: 2 + Math.floor(random() * 7), highRecoveries: 4 + Math.floor(random() * 9), counters: 1 + Math.floor(random() * 5), crosses: 6 + Math.floor(random() * 11) },
+      away: { xg: +awayXg.toFixed(2), shots: Math.max(awayGoals, shots(awayXg)), possession: 100 - possession, corners: 2 + Math.floor(random() * 7), highRecoveries: 4 + Math.floor(random() * 9), counters: 1 + Math.floor(random() * 5), crosses: 6 + Math.floor(random() * 11) }
     },
     tactical: {
-      home: {
-        metrics: home.metrics,
-        load: home.metrics.intensity || 62,
-        plan: home.user ? career.tactics.activePlan || 'A' : 'AI',
-        style: home.style,
-        formation: home.formation,
-        managerName: home.managerName,
-        importance: home.importance
-      },
-      away: {
-        metrics: away.metrics,
-        load: away.metrics.intensity || 62,
-        plan: away.user ? career.tactics.activePlan || 'A' : 'AI',
-        style: away.style,
-        formation: away.formation,
-        managerName: away.managerName,
-        importance: away.importance
-      }
+      home: { metrics: home.metrics, load: home.metrics.intensity || 62, plan: home.user ? career.tactics.activePlan || 'A' : 'AI', style: home.style, formation: home.formation, managerName: home.managerName, importance: home.importance },
+      away: { metrics: away.metrics, load: away.metrics.intensity || 62, plan: away.user ? career.tactics.activePlan || 'A' : 'AI', style: away.style, formation: away.formation, managerName: away.managerName, importance: away.importance }
     }
   };
 }
