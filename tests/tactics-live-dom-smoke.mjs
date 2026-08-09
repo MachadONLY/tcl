@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [source, css, hardSource, hardCss, cleanupSource, cleanupCss, index] = await Promise.all([
+const [source, css, hardSource, hardCss, cleanupSource, cleanupCss, layoutCss, index] = await Promise.all([
   readFile(new URL('../src/career-tactics-live-dom.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-live-dom.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-hard-stability.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-hard-stability.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-unselected-cleanup.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-unselected-cleanup.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-layout-refinement.css', import.meta.url), 'utf8'),
   readFile(new URL('../index.html', import.meta.url), 'utf8')
 ]);
 
@@ -50,6 +51,11 @@ assert.ok(cleanupCss.includes('.tl-roster-scroll-tools'), 'carousel controls mus
 assert.ok(cleanupCss.includes('display:none!important'), 'obsolete carousel controls must stay hidden before runtime cleanup');
 assert.ok(cleanupCss.includes('content:none!important'), 'legacy carousel spacer pseudo-elements must be removed');
 assert.ok(cleanupCss.includes('height:clamp(150px,18vh,176px)!important'), 'the lower squad area must reserve enough room for two visible rows on desktop');
+assert.ok(cleanupCss.includes('width:100%!important'), 'the unselected squad parent must explicitly fill the tactics workspace');
+assert.ok(cleanupCss.includes('max-width:1680px!important'), 'the unselected squad parent must share the desktop workspace ceiling');
+assert.ok(cleanupCss.includes('justify-self:stretch!important'), 'the unselected squad grid item must never shrink to min-content width');
+assert.ok(cleanupCss.includes('grid-template-rows:auto minmax(0,1fr)!important'), 'the unselected panel must give the player grid all remaining panel height');
+assert.ok(layoutCss.includes('.tl-squad-manager{min-height:0;margin:0 auto'), 'regression fixture must retain the upstream auto-margin rule that previously caused the collapse');
 
 assert.ok(css.includes('[data-live-dom="true"]'), 'zero-flash state must disable entry animations after mount');
 assert.ok(css.includes('overflow-anchor:none!important'), 'browser scroll anchoring must be disabled in the tactics room');
@@ -65,6 +71,7 @@ assert.ok(index.includes('career-tactics-hard-stability.css'), 'hard stability C
 assert.ok(index.includes('career-tactics-hard-stability.js'), 'hard stability runtime must be loaded');
 assert.ok(index.includes('career-tactics-unselected-cleanup.css'), 'simplified unselected header CSS must be loaded');
 assert.ok(index.includes('career-tactics-unselected-cleanup.js'), 'simplified unselected header runtime must be loaded');
+assert.ok(index.indexOf('career-tactics-unselected-cleanup.css') > index.indexOf('career-tactics-layout-refinement.css'), 'unselected geometry fix must load after the refinement rule that sets auto margins');
 
 console.log(JSON.stringify({
   ok: true,
@@ -81,6 +88,7 @@ console.log(JSON.stringify({
   pitchGeometry: 'captured-and-restored-same-frame',
   playerImagesReused: true,
   reserveLayout: 'responsive-multi-row-grid',
+  reservePanelGeometry: 'full-width-stretched-workspace',
   reserveHorizontalScroll: false,
   largeSquadOverflow: 'vertical-inside-panel',
   unselectedHeader: 'Não relacionados',
