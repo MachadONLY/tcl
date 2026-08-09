@@ -1,5 +1,5 @@
 import { appendWorldEvent } from '../world-events.js';
-import { effectivePlayerContract, ownerClubForPlayerState } from '../world-employment-index.js';
+import { effectivePlayerContract } from '../world-employment-index.js';
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 const round = (value, digits = 3) => Number(Number(value || 0).toFixed(digits));
@@ -85,7 +85,9 @@ export function clubFinanceSnapshot({ world, clubCode, playerById }) {
   const medianWage = wages.length ? wages[Math.floor(wages.length / 2)] : 0;
   const configuredBudget = Math.max(0, Number(club.wageBudget) || 0);
   const existing = club.finance || {};
-  const baselinePayroll = Math.max(Number(existing.baselineWeeklyPayroll) || 0, weeklyPayroll);
+  const baselinePayroll = Number(existing.baselineWeeklyPayroll) > 0
+    ? Number(existing.baselineWeeklyPayroll)
+    : weeklyPayroll;
   const wageCapacity = Math.max(configuredBudget, Number(existing.wageCapacity) || 0, baselinePayroll * 1.08, 25_000);
   const wageUtilization = weeklyPayroll / Math.max(1, wageCapacity);
   const transferBudget = Math.max(0, Number(club.transferBudget) || 0);
