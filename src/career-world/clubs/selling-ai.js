@@ -25,6 +25,7 @@ function depthContext(players, player) {
 }
 
 function financePressure(club, analysis) {
+  if (Number.isFinite(Number(club.finance?.pressureScore))) return clamp(Number(club.finance.pressureScore), 0, 1);
   const start = Math.max(1, Number(club.startingTransferBudget) || Number(club.transferBudget) || 1);
   const current = Math.max(0, Number(club.transferBudget) || 0);
   const committed = Math.max(0, Number(club.transferSpent) || 0);
@@ -92,7 +93,7 @@ function classifyDisposition({ world, date, player, club, analysis, status, cont
   if (excessDepth) reasons.push('POSITION_SURPLUS');
   if (pressure >= .62) reasons.push('FINANCE_SALE_REQUIRED');
   if (happiness < .52) reasons.push('PLAYER_UNHAPPY');
-  if (age >= 30 && resaleBias >= .65) reasons.push('AGE_RESale_WINDOW');
+  if (age >= 30 && resaleBias >= .65) reasons.push('AGE_RESALE_WINDOW');
   if (youthAsset) reasons.push('YOUTH_ASSET');
   if (!reasons.length) reasons.push('SQUAD_PLANNING');
 
@@ -129,7 +130,7 @@ function applyDisposition({ world, date, player, club, status, contract, classif
     status.loanListed = false;
     const selling = estimateSellingPosition({ player, status, contract, date, sellingClub: club });
     status.askingPrice = type === 'actively-for-sale'
-      ? Math.round(selling.minimumAcceptable / 250_000) * 250_000
+      ? Math.round(selling.minimumAcceptableFee / 250_000) * 250_000
       : Math.round(selling.askingPrice / 250_000) * 250_000;
   } else if (type === 'loan-pathway') {
     status.transferListed = false;
