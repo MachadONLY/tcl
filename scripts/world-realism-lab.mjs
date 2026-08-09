@@ -1,7 +1,7 @@
 import { createCareer } from '../src/career-core/career-runtime.js';
 import { processWorldDay } from '../src/career-world/world-engine.js';
 import { WORLD_PLAYER_BY_ID, worldDatabaseCoverage } from '../src/career-world/world-player-database.js';
-import { auditCareerWorld, aggregateRealismRuns } from '../src/career-world/realism/realism-audit-v2.js';
+import { auditCareerWorld, aggregateRealismRuns } from '../src/career-world/realism/realism-audit-v3.js';
 
 const DAY_MS = 86_400_000;
 
@@ -34,7 +34,7 @@ export function runRealismLab({ saves = 25, clubCode = 'MUN', start = '2026-07-0
   const summary = aggregateRealismRuns(runs);
   return {
     meta: {
-      version: 2,
+      version: 3,
       clubCode,
       start,
       days,
@@ -57,7 +57,7 @@ function humanMoney(value) {
 
 function printReport(report) {
   const { meta, summary } = report;
-  console.log('\nTOUCHLINE WORLD REALISM LAB v2');
+  console.log('\nTOUCHLINE WORLD REALISM LAB v3');
   console.log('================================');
   console.log(`Coverage : ${meta.database.mode} · ${meta.database.clubs} clubs · ${meta.database.players} players`);
   console.log(`Scenario : ${meta.saves} saves · ${meta.start} · ${meta.days} days · user club ${meta.clubCode}`);
@@ -73,6 +73,11 @@ function printReport(report) {
   console.log(`Average loan wage share   : ${Math.round((summary.averages.loanWageContribution || 0) * 100)}%`);
   console.log(`Average transfer age      : ${summary.averages.transferAge}`);
   console.log(`Average fee               : ${humanMoney(summary.averages.transferFee)}`);
+  console.log(`Average wage utilization  : ${Math.round((summary.averages.wageUtilization || 0) * 100)}%`);
+  console.log(`Restricted clubs/save     : ${summary.averages.restrictedFinanceClubs || 0}`);
+  console.log(`Transfer clearances fail  : ${summary.averages.transferClearanceFailures || 0}`);
+  console.log(`Registration advisories   : ${summary.averages.registrationAdvisoryClubs || 0}`);
+  console.log(`Average senior squad      : ${summary.averages.seniorSquad || 0}`);
   console.log(`Hard violations           : ${summary.totals.hardViolations}`);
   console.log(`Soft warnings             : ${summary.totals.warnings}`);
   if (summary.hardViolations.length) {
