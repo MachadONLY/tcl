@@ -38,7 +38,24 @@
   display:none!important;
 }
 
+/*
+ * The lineup shell is a CSS grid. A previous refinement left this item with
+ * margin-inline:auto but no explicit width. Auto margins disable grid-item
+ * stretching, so the whole unselected panel collapsed to its min-content
+ * width and appeared as a narrow floating column below the pitch.
+ *
+ * Keep the lower squad area anchored to the exact tactics workspace width.
+ */
 .tl-tactics-studio[data-tactics-view="lineup"] .tl-squad-manager{
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr)!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:1680px!important;
+  justify-self:stretch!important;
+  align-self:start!important;
+  margin:0 auto!important;
   height:clamp(150px,18vh,176px)!important;
 }
 
@@ -126,6 +143,8 @@
 
 @media(max-width:900px){
   .tl-tactics-studio[data-tactics-view="lineup"] .tl-squad-manager{
+    width:100%!important;
+    max-width:100%!important;
     height:190px!important;
   }
   .tl-tactics-studio .tl-roster-grid.reserves{
