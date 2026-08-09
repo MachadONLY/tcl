@@ -9,6 +9,8 @@ import { processLoanMarketDay } from './loans/loan-engine.js';
 import { processPlayerLifeDay } from './players/player-life-engine.js';
 import { playerUnavailable, processAvailabilityDay } from './players/availability-engine.js';
 import { processManagerMarketDay } from './managers/manager-market.js';
+import { processFinanceDay } from './finance/finance-engine.js';
+import { processDealClearanceDay } from './rules/deal-clearance-engine.js';
 import { effectivePlayerStatus } from './world-employment-index.js';
 
 const TRANSFER_TERMINAL = new Set(['completed', 'rejected', 'withdrawn', 'expired']);
@@ -64,6 +66,8 @@ export function processDailyTick({ career, date, playerById }) {
   const playerLife = processPlayerLifeDay({ career, date, playerById });
   const contractMarket = processContractMarketDay({ career, date, playerById });
   const contractExpirations = processContractExpirations({ career, date, playerById });
+  const finance = processFinanceDay({ career, date, playerById });
+  const dealClearance = processDealClearanceDay({ career, date, playerById });
   const sellingMarket = processSellingAiDay({ career, date, playerById, squadAnalyses: analyses });
   const loanMarket = processLoanMarketDay({ career, date, playerById, squadAnalyses: analyses });
   const transferDealsWithdrawnForLoans = reconcilePermanentDealsWithLoans(world, date);
@@ -80,6 +84,8 @@ export function processDailyTick({ career, date, playerById }) {
     contractsExpired: contractExpirations.expired,
     bosmanMoves: contractExpirations.bosmanMoves,
     contractMarket,
+    finance,
+    dealClearance,
     sellingMarket,
     loanMarket: { ...loanMarket, transferDealsWithdrawn: transferDealsWithdrawnForLoans },
     rumorMarket: { ...rumorMarket, ...rumorReconciliation },
@@ -109,6 +115,13 @@ export function processDailyTick({ career, date, playerById }) {
       contractRenewalsRejected: contractMarket.rejected,
       bosmanAgreements: contractMarket.bosman.agreed,
       bosmanMoves: contractExpirations.bosmanMoves,
+      financeClubsReviewed: finance.reviewed,
+      financePressureChanges: finance.pressureChanges,
+      financeRestrictedClubs: finance.restricted,
+      transferClearancesReviewed: dealClearance.transferDealsReviewed,
+      transferClearancesBlocked: dealClearance.transferDealsBlocked,
+      loanConversionClearancesReviewed: dealClearance.loanConversionsReviewed,
+      loanConversionClearancesBlocked: dealClearance.loanConversionsBlocked,
       sellingReviews: sellingMarket.reviewed,
       sellingDispositionsChanged: sellingMarket.changed,
       playersTransferListed: sellingMarket.transferListed,
