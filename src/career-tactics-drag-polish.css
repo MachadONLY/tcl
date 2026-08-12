@@ -112,6 +112,13 @@
     0 24px 60px rgba(0,0,0,.28)!important;
 }
 
+/* When a starter is being repositioned, the pitch is the only hit target.
+   Player portraits/labels cannot steal the pointer and turn a free move into
+   an accidental swap/no-op. Bench/reserve -> starter swaps remain untouched. */
+html.tl-lineup-free-drag .tl-tactics-studio .tl-pitch .tl-player-node:not(.tl-drag-source){
+  pointer-events:none!important;
+}
+
 .tl-is-dragging .tl-player-node .tl-player-photo,
 .tl-is-dragging .tl-player-node .tl-player-label,
 .tl-is-dragging .tl-squad-card .tl-squad-photo,
