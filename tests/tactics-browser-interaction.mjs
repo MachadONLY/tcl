@@ -7,6 +7,7 @@ const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 });
 
 await context.addInitScript(() => {
+  localStorage.setItem('touchline.career.reset.v5', 'done');
   localStorage.setItem('touchline.career.mode.v1', JSON.stringify({
     onboardingComplete: true,
     selectedClubCode: 'MUN',
@@ -100,7 +101,6 @@ let state = await snapshot();
 if (state.players.length !== 11) fail(`initial lineup count ${state.players.length}, expected 11`);
 if (state.bench.length !== 9) fail(`initial bench count ${state.bench.length}, expected 9`);
 
-// Sweep all supported formations through the real select. This catches fallback/race bugs.
 for (const formation of TACTICS_FORMATIONS) {
   await selectFormation(formation);
   state = await snapshot();
@@ -108,7 +108,6 @@ for (const formation of TACTICS_FORMATIONS) {
   if (state.players.length !== 11) fail(`${formation}: lineup count became ${state.players.length}`);
 }
 
-// Exact reported regression: formation -> immediate drag, before the debounced save fires.
 await selectFormation('4-3-3');
 const playerId = await page.locator('.tl-pitch [data-drag-player]').nth(5).getAttribute('data-drag-player');
 assert.ok(playerId, 'a midfield player must exist for free positioning');
@@ -123,7 +122,6 @@ else {
 }
 if (state.dragGhosts !== 0) fail('drag ghost remained after pointerup');
 
-// Cross-zone drop must keep XI/bench sizes and formation stable.
 const swap = await swapBenchIntoLineup();
 state = await snapshot();
 if (state.formation !== '4-3-3') fail(`bench swap reverted formation to ${state.formation}`);
@@ -132,7 +130,6 @@ if (state.bench.length !== 9) fail(`bench swap bench count ${state.bench.length}
 if (!state.players.some(player => player.id === swap.benchId)) fail('bench player did not enter the XI after drop');
 if (!state.bench.includes(swap.fieldId)) fail('replaced field player did not enter the bench');
 
-// Move the incoming player freely too; formation must remain authoritative.
 const secondTarget = await dragToPoint(swap.benchId, 0.27, 0.58);
 state = await snapshot();
 if (state.formation !== '4-3-3') fail(`second free drag reverted formation to ${state.formation}`);
@@ -141,7 +138,6 @@ if (!secondMoved || Math.abs(secondMoved.x - secondTarget.expectedX) > 1.2 || Ma
   fail('incoming player did not retain precise free positioning');
 }
 
-// Give IndexedDB/legacy bridge time to finish, then prove reload persistence.
 await page.waitForTimeout(900);
 await page.reload({ waitUntil: 'domcontentloaded', timeout: 120000 });
 await waitForStudio();
@@ -153,7 +149,6 @@ if (!reloadedMoved || Math.abs(reloadedMoved.x - secondTarget.expectedX) > 1.2 |
   fail(`manual coordinates did not survive reload: ${JSON.stringify(reloadedMoved)}`);
 }
 
-// Model view uses another visible selector; it must route into the SAME studio controller.
 await setView('tactics');
 await page.waitForSelector('[data-model-context] select', { timeout: 5000 });
 await page.locator('[data-model-context] select').selectOption('5-2-1-2');
@@ -162,7 +157,6 @@ await setView('lineup');
 state = await snapshot();
 if (state.formation !== '5-2-1-2') fail(`model-view formation bridge produced ${state.formation}`);
 
-// Drag immediately after model-view formation change: same race, different entry point.
 const modelPlayerId = state.players[7]?.id;
 if (!modelPlayerId) fail('model-view regression test could not resolve a field player');
 else {
@@ -182,7 +176,6 @@ state = await snapshot();
 if (state.formation !== '5-2-1-2') fail(`final reload restored wrong formation ${state.formation}`);
 if (state.players.length !== 11 || state.bench.length !== 9) fail(`final reload squad counts ${state.players.length}/${state.bench.length}`);
 
-// Round-trip all three views must never mutate the selected formation.
 await setView('tactics');
 await setView('roles');
 await setView('lineup');
