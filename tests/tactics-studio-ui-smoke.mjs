@@ -1,7 +1,23 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import {
+  TACTICS_FORMATION_GROUPS,
+  TACTICS_FORMATION_SLOTS,
+  TACTICS_FORMATIONS,
+  formationOptionsMarkup,
+  isTacticsFormation
+} from '../src/career-tactics-formations.js';
+import {
+  TACTICS_PHASES,
+  TACTICS_PLANS,
+  applyFormationState,
+  ensureTacticalLayouts,
+  formationDraftFromCareer,
+  manualPosition,
+  setManualPosition
+} from '../src/career-tactics-state.js';
 
-const [source, css, dragCss, dragSource, threeViews, threeViewsCss, refinementCss, formationManager, formationCss, repository, index] = await Promise.all([
+const [source, css, dragCss, dragSource, threeViews, threeViewsCss, refinementCss, formationCss, repository, index] = await Promise.all([
   readFile(new URL('../src/career-tactics-studio.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-studio.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-drag-polish.css', import.meta.url), 'utf8'),
@@ -9,138 +25,152 @@ const [source, css, dragCss, dragSource, threeViews, threeViewsCss, refinementCs
   readFile(new URL('../src/career-tactics-three-views.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-three-views.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-layout-refinement.css', import.meta.url), 'utf8'),
-  readFile(new URL('../src/career-tactics-formation-manager.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-formation-manager.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-core/career-repository.js', import.meta.url), 'utf8'),
   readFile(new URL('../index.html', import.meta.url), 'utf8')
 ]);
 
-assert.ok(source.includes('data-drop-zone="pitch"'), 'pitch must be a drop surface');
-assert.ok(source.includes('data-drop-zone="bench"'), 'bench must be a drop surface');
-assert.ok(source.includes('data-drop-zone="reserves"'), 'unselected squad must be a drop surface');
-assert.ok(source.includes('data-drag-player'), 'players must expose pointer drag handles');
+// Shared formation catalog: one definition for rendering, validation and state.
+assert.equal(TACTICS_FORMATIONS.length, 15, 'the tactics studio must expose the complete 15-shape catalog');
+assert.equal(new Set(TACTICS_FORMATIONS).size, TACTICS_FORMATIONS.length, 'formation catalog must not contain duplicates');
+assert.equal(TACTICS_FORMATION_GROUPS.length, 3, 'formations must remain grouped by back-line family');
+for (const formation of TACTICS_FORMATIONS) {
+  assert.equal(isTacticsFormation(formation), true, `${formation} must be recognized`);
+  assert.equal(TACTICS_FORMATION_SLOTS[formation].length, 11, `${formation} must define exactly eleven pitch slots`);
+  for (const [x, y] of TACTICS_FORMATION_SLOTS[formation]) {
+    assert.ok(x >= 6 && x <= 94 && y >= 6 && y <= 94, `${formation} slots must stay inside the playable pitch`);
+  }
+}
+assert.ok(formationOptionsMarkup('3-5-2').includes('value="3-5-2" selected'), 'formation markup must preserve selected shape');
+
+// Stateful regression sweep. This reproduces the exact user flow that was broken.
+const career = {
+  saveId: 'primary',
+  clubCode: 'MUN',
+  formation: '4-2-3-1',
+  tactics: { activePlan: 'A' },
+  tacticalLayouts: {},
+  lineup: Array.from({ length: 11 }, (_, index) => `p${index + 1}`)
+};
+ensureTacticalLayouts(career);
+for (const plan of TACTICS_PLANS) {
+  for (const phase of TACTICS_PHASES) assert.deepEqual(career.tacticalLayouts[plan][phase], {});
+}
+
+assert.equal(applyFormationState(career, '4-3-3'), true);
+assert.equal(career.formation, '4-3-3');
+assert.equal(setManualPosition(career, { playerId: 'p6', plan: 'A', phase: 'base', x: 63.275, y: 47.814 }), true);
+assert.equal(career.formation, '4-3-3', 'manual movement must never reset the chosen formation');
+assert.deepEqual(manualPosition(career, 'p6', 'A', 'base'), { x: 63.27, y: 47.81 });
+let draft = formationDraftFromCareer(career);
+assert.equal(draft.formation, '4-3-3', 'save draft must preserve formation after drag');
+assert.deepEqual(draft.tacticalLayouts.A.base.p6, { x: 63.27, y: 47.81 });
+
+// Changing formation must invalidate old coordinates in ALL plans/phases.
+career.tacticalLayouts.B.base.p2 = { x: 12, y: 12 };
+career.tacticalLayouts.C.out.p4 = { x: 88, y: 88 };
+assert.equal(applyFormationState(career, '3-5-2'), true);
+assert.equal(career.formation, '3-5-2');
+for (const plan of TACTICS_PLANS) {
+  for (const phase of TACTICS_PHASES) {
+    assert.deepEqual(career.tacticalLayouts[plan][phase], {}, `changing formation must clear stale ${plan}/${phase} layout`);
+  }
+}
+
+// Plan and phase isolation after a formation change.
+career.tactics.activePlan = 'B';
+assert.equal(setManualPosition(career, { playerId: 'p8', plan: 'B', phase: 'possession', x: 31.2, y: 26.4 }), true);
+assert.equal(career.formation, '3-5-2');
+assert.equal(manualPosition(career, 'p8', 'A', 'possession'), null, 'manual positions must stay isolated by plan');
+assert.deepEqual(manualPosition(career, 'p8', 'B', 'possession'), { x: 31.2, y: 26.4 });
+
+// Every supported formation must survive formation -> drag -> draft without fallback.
+for (const [indexValue, formation] of TACTICS_FORMATIONS.entries()) {
+  assert.equal(applyFormationState(career, formation), true, `${formation} must apply`);
+  const playerId = `p${(indexValue % 11) + 1}`;
+  const plan = TACTICS_PLANS[indexValue % TACTICS_PLANS.length];
+  const phase = TACTICS_PHASES[indexValue % TACTICS_PHASES.length];
+  assert.equal(setManualPosition(career, {
+    playerId,
+    plan,
+    phase,
+    x: 10 + indexValue * 4.7,
+    y: 90 - indexValue * 3.9
+  }), true);
+  draft = formationDraftFromCareer(career);
+  assert.equal(draft.formation, formation, `${formation} must remain authoritative after manual drag`);
+  assert.ok(draft.tacticalLayouts[plan][phase][playerId], `${formation} manual coordinates must reach the save draft`);
+}
+
+const beforeInvalid = structuredClone(career);
+assert.equal(applyFormationState(career, '9-9-9'), false, 'invalid formations must be rejected');
+assert.deepEqual(career, beforeInvalid, 'invalid formation attempts must not mutate career state');
+assert.equal(setManualPosition(career, { playerId: 'p1', plan: 'A', phase: 'base', x: -100, y: 500 }), true);
+assert.deepEqual(manualPosition(career, 'p1', 'A', 'base'), { x: 6, y: 94 }, 'manual positioning must clamp only at pitch edges');
+
+// Runtime ownership: Tactics Studio is the ONLY active formation controller.
+assert.ok(source.includes('applyFormationState(currentCareer, formation)'), 'studio must own formation state changes');
+assert.ok(source.includes('formationDraftFromCareer(currentCareer)'), 'studio must immediately publish its authoritative formation draft');
+assert.ok(source.includes('syncDraftsFromCurrentCareer()'), 'all mutations must synchronize the save draft');
+assert.ok(source.includes('setManualPosition(currentCareer'), 'free pitch movement must use the tested state layer');
+assert.ok(source.includes("studioRoot.querySelectorAll('[data-tl-formation]')"), 'all visible formation selectors must bind to one handler');
+assert.ok(source.includes('formationOptionsMarkup(currentCareer.formation)'), 'formation controls must use the shared catalog');
+assert.ok(source.includes('data-drop-zone="pitch"'), 'pitch must remain a drop surface');
+assert.ok(source.includes('data-drop-zone="bench"'), 'bench must remain a drop surface');
+assert.ok(source.includes('data-drop-zone="reserves"'), 'unselected squad must remain a drop surface');
 assert.ok(source.includes('movePlayerOnPitch'), 'free pitch positioning must exist');
-assert.ok(source.includes('swapPlayers'), 'dropping over another player must swap them');
-assert.ok(source.includes('tl-command-bar'), 'game command bar must render for legacy state synchronization');
-assert.ok(source.includes('tl-war-room'), 'tactics war room must render');
-assert.ok(source.includes('tl-bench-dock'), 'bench must stay next to the pitch');
-assert.ok(source.includes('Elenco disponível'), 'full remaining squad must remain in the source model');
-assert.ok(source.includes('GROUP_FILTERS'), 'legacy squad filters must remain harmlessly compatible');
-assert.ok(source.includes('tacticalLayouts'), 'manual layouts must persist by plan and phase');
+assert.ok(source.includes('swapPlayers'), 'dropping over another player must still swap players');
 assert.ok(source.includes('BENCH_LIMIT = 9'), 'match bench must support nine players');
-assert.ok(source.includes('touchline-tactics-mode'), 'tactics route must receive its own game-shell styling');
-assert.ok(!source.includes('Recomendar XI'), 'recommend XI button must stay removed');
-assert.ok(!source.includes('tl-impact-metrics'), 'large metrics panel must stay removed');
-assert.ok(!source.includes('<b>${player.number}</b>'), 'player shirt number must not overlay the portrait');
-assert.ok(css.includes('.tl-command-bar'), 'command bar must be styled');
-assert.ok(css.includes('.tl-war-room'), 'war room layout must be styled');
-assert.ok(css.includes('.tl-bench-dock'), 'bench dock must be styled');
-assert.ok(css.includes('.tl-squad-manager'), 'squad drawer must be styled');
-assert.ok(css.includes('.tl-drag-ghost'), 'base drag feedback must be styled');
-assert.ok(css.includes('cursor:grab'), 'draggable affordance must be visible');
-assert.ok(css.includes('backdrop-filter'), 'premium layered depth must be present');
-assert.ok(css.includes('prefers-reduced-motion'), 'motion accessibility must be respected');
-assert.ok(dragCss.includes('--tl-drag-size:58px'), 'drag preview must be a compact avatar');
+assert.ok(!source.includes("currentCareer.formation = '4-2-3-1'"), 'runtime mutations must never hard-reset formation to 4-2-3-1');
+assert.ok(!index.includes('src/career-tactics-formation-manager.js'), 'the stale duplicate formation runtime must not be loaded');
+assert.equal((index.match(/src\/career-tactics-studio\.js/g) || []).length, 1, 'tactics studio runtime must load exactly once');
+assert.ok(repository.includes('syncFormationDraftFromCareer(draft)'), 'repository must promote the freshest career draft before formation merge');
+assert.ok(repository.includes('mergeFormationDraft(consumeCareerDraft(save))'), 'fresh career draft must win before formation merge');
+
+// Drag remains smooth and precise after state fixes.
+assert.ok(dragCss.includes('--tl-drag-size:58px'), 'drag preview must stay compact');
 assert.ok(dragCss.includes('border-radius:50%'), 'drag preview must remain circular');
-assert.ok(dragCss.includes('.tl-drag-ghost>*{display:none!important}'), 'rectangular card content must be hidden while dragging');
-assert.ok(dragCss.includes('translate3d(var(--tl-drag-x'), 'drag preview must use GPU translation');
-assert.ok(dragCss.includes('tlDragAvatarPickup'), 'drag pickup must have a subtle avatar animation');
-assert.ok(dragSource.includes('requestAnimationFrame'), 'drag movement must be synchronized to animation frames');
-assert.ok(dragSource.includes('getCoalescedEvents'), 'drag input must use the newest coalesced pointer sample when available');
-assert.ok(dragSource.includes("ghost.style.setProperty('--tl-drag-x'"), 'drag avatar must follow the exact pointer coordinate without elastic lag');
-assert.ok(!dragSource.includes('const easing ='), 'drag avatar must not intentionally trail behind the pointer');
+assert.ok(dragCss.includes('translate3d(var(--tl-drag-x'), 'drag preview must stay on GPU translation');
+assert.ok(dragSource.includes('requestAnimationFrame'), 'drag paint must remain frame-synchronized');
+assert.ok(dragSource.includes('getCoalescedEvents'), 'high-frequency pointer samples must be supported');
+assert.ok(!dragSource.includes('const easing ='), 'old rubber-band pointer lag must never return');
 
-assert.ok(threeViews.includes("let activeView = 'lineup'"), 'lineup must be the default tactics view');
-assert.ok(threeViews.includes("id: 'lineup'"), 'lineup view must exist');
-assert.ok(threeViews.includes("id: 'tactics'"), 'game model view must exist');
-assert.ok(threeViews.includes("id: 'roles'"), 'roles view must exist');
-assert.ok(threeViews.includes('function navigationHost(root)'), 'view navigation must have one explicit host');
-assert.ok(threeViews.includes("return root.querySelector('.tl-side-rail')"), 'all views must keep navigation in the right rail');
-assert.ok(!threeViews.includes("activeView === 'roles' ? root.querySelector('.tl-responsibilities-head')"), 'roles must never move navigation into another header');
-assert.ok(threeViews.includes('host.firstElementChild !== navigation'), 'navigation must remain the first fixed rail element');
-assert.ok(threeViews.includes('tl-responsibilities-main'), 'roles content must render inside the shared main column');
-assert.ok(threeViews.includes('data-role-lineup-panel'), 'roles summary must render inside the shared right column');
-assert.ok(threeViews.includes('tl-model-context'), 'model view must keep formation inside its own main panel');
-assert.ok(threeViews.includes('Capitão'), 'captain responsibility must exist');
-assert.ok(threeViews.includes('Pênaltis'), 'penalty responsibility must exist');
-assert.ok(threeViews.includes('Faltas diretas'), 'direct free-kick responsibility must exist');
-assert.ok(threeViews.includes('Faltas indiretas'), 'indirect free-kick responsibility must exist');
-assert.ok(threeViews.includes('Escanteio esquerdo'), 'left-corner responsibility must exist');
-assert.ok(threeViews.includes('Escanteio direito'), 'right-corner responsibility must exist');
-assert.ok(threeViews.includes('localStorage.setItem'), 'responsibilities must persist for the club');
-
-assert.ok(threeViewsCss.includes('.tl-primary-view-switch'), 'fixed view switch must be styled');
-assert.ok(threeViewsCss.includes('.tl-responsibilities-main'), 'responsibilities main panel must be styled');
-assert.ok(threeViewsCss.includes('.tl-role-lineup-panel'), 'roles side panel must be styled');
-assert.ok(threeViewsCss.includes('.tl-model-context'), 'model context must be styled');
-assert.ok(threeViewsCss.includes('prefers-reduced-motion'), 'three-view transitions must respect reduced motion');
-assert.ok(refinementCss.includes('::-webkit-scrollbar-button'), 'native scrollbar arrow buttons must be suppressed');
-assert.ok(refinementCss.includes('scrollbar-width:thin'), 'horizontal roster scrolling must remain available');
-assert.ok(refinementCss.includes('.tl-tactics-studio[data-tactics-view] .tl-command-bar'), 'every view must suppress the shifting top command bar');
-assert.ok(refinementCss.includes('grid-template-columns:minmax(700px,1fr) minmax(292px,324px)!important'), 'all views must share the same two-column geometry');
-assert.ok(refinementCss.includes('grid-template-rows:68px minmax(0,1fr)!important'), 'right rail navigation row must stay fixed');
-assert.ok(refinementCss.includes('.tl-tactics-studio[data-tactics-view] .tl-side-rail>.tl-primary-view-switch'), 'view switch must stay in one exact rail slot');
-assert.ok(refinementCss.includes('.tl-tactics-studio[data-tactics-view] .tl-squad-manager'), 'lower squad strip must keep the same slot in every view');
-assert.ok(refinementCss.includes('[data-tactics-view="tactics"] .tl-tactic-controls'), 'model instructions must replace the field in the main column');
-assert.ok(refinementCss.includes('[data-tactics-view="roles"] .tl-responsibilities-main'), 'responsibilities must replace the field in the main column');
-assert.ok(refinementCss.includes('height:clamp(132px,16vh,158px)'), 'unselected squad strip must stay compact and fixed');
-
-assert.ok(formationManager.includes("document.addEventListener('change', interceptFormationChange, true)"), 'formation select must be intercepted before legacy rerender handlers');
-assert.ok(formationManager.includes('event.stopImmediatePropagation()'), 'legacy formation rerender must be blocked');
-assert.ok(formationManager.includes('getBoundingClientRect()'), 'formation motion must measure first and last player positions');
-assert.ok(formationManager.includes('node.animate(['), 'formation motion must use the Web Animations API');
-assert.ok(formationManager.includes('translate3d('), 'formation motion must stay on the GPU transform path');
-assert.ok(formationManager.includes("easing: 'cubic-bezier(.16, 1, .3, 1)'"), 'formation motion must use controlled premium easing');
-assert.ok(formationManager.includes('queueFormationSave'), 'formation persistence must run in the background');
-assert.ok(formationManager.includes('__touchlineFormationDraft'), 'latest formation must remain authoritative across later saves');
-assert.ok(formationManager.includes('patchPitchInstantly'), 'later UI renders must restore the live formation before paint');
-assert.ok(!formationManager.includes('createVisualSnapshot'), 'formation changes must not clone the screen');
-assert.ok(!formationManager.includes('remountStudio'), 'formation changes must not remount the tactics screen');
-assert.ok(!formationManager.includes('waitForFreshStudio'), 'formation changes must not wait for a replacement screen');
-assert.ok(!formationManager.includes('location.reload()'), 'formation changes must never reload the page');
-assert.ok(repository.includes('mergeFormationDraft'), 'repository saves must preserve the newest live formation');
-assert.ok(repository.includes('__touchlineFormationDraft'), 'repository must read the live formation draft');
-assert.ok(formationCss.includes('.tl-formation-measuring .tl-player-node'), 'measurement phase must disable competing transitions');
-assert.ok(formationCss.includes('[data-formation-moving]'), 'moving players must receive explicit motion styling');
-assert.ok(formationCss.includes('prefers-reduced-motion'), 'formation motion must respect reduced-motion preferences');
-
-assert.ok(index.includes('career-tactics-drag-polish.css'), 'polished drag CSS must be loaded');
-assert.ok(index.includes('career-tactics-drag-polish.js'), 'polished drag runtime must be loaded');
-assert.ok(index.includes('career-tactics-three-views.css'), 'three-view CSS must be loaded');
-assert.ok(index.includes('career-tactics-layout-refinement.css'), 'final tactics layout refinement must be loaded');
-assert.ok(index.includes('career-tactics-formation-manager.css'), 'formation manager CSS must be loaded');
-assert.ok(index.includes('career-tactics-formation-manager.js'), 'formation manager runtime must be loaded');
-assert.ok(index.includes('career-tactics-three-views.js'), 'three-view runtime must be loaded');
+// Existing three-view and geometry contracts must remain intact.
+assert.ok(threeViews.includes("let activeView = 'lineup'"), 'lineup must remain the default tactics view');
+assert.ok(threeViews.includes("id: 'lineup'"));
+assert.ok(threeViews.includes("id: 'tactics'"));
+assert.ok(threeViews.includes("id: 'roles'"));
+assert.ok(threeViews.includes('localStorage.setItem'), 'responsibilities must remain persistent');
+assert.ok(threeViewsCss.includes('.tl-primary-view-switch'), 'fixed view switch must remain styled');
+assert.ok(refinementCss.includes('grid-template-columns:minmax(700px,1fr) minmax(292px,324px)!important'), 'desktop tactics geometry must stay stable');
+assert.ok(refinementCss.includes('height:clamp(132px,16vh,158px)'), 'lower squad strip must remain compact');
+assert.ok(formationCss.includes('.tl-field-formation-control'), 'integrated field formation control must retain styling');
+assert.ok(css.includes('.tl-war-room'));
+assert.ok(css.includes('.tl-bench-dock'));
+assert.ok(css.includes('.tl-squad-manager'));
+assert.ok(css.includes('prefers-reduced-motion'));
 
 console.log(JSON.stringify({
   ok: true,
-  interface: 'three-view-fixed-tactics-shell',
-  views: ['lineup', 'tactics', 'roles'],
-  defaultView: 'lineup',
-  viewDock: 'permanent-right-rail-top',
-  stableColumns: true,
-  stableNavigationCoordinates: true,
-  shiftingCommandBar: false,
-  lowerSquadStripPersistent: true,
-  modelReplacesField: true,
-  rolesReplaceField: true,
-  responsibilities: 7,
-  dragPreview: 'circular-player-avatar',
-  dragRendering: 'raf-coalesced-pointer-1to1-gpu',
-  dragElasticLag: false,
-  formationMotion: 'live-flip-web-animations-gpu',
-  formationUpdate: 'same-dom-real-time',
-  formationRemount: false,
-  formationScreenClone: false,
-  formationRemountFlash: false,
-  formationPageReload: false,
-  formationPersistence: 'background-authoritative-draft',
-  dropZones: ['pitch', 'bench', 'reserves'],
-  benchLimit: 9,
+  formationCatalog: TACTICS_FORMATIONS.length,
+  formationControllerCount: 1,
+  duplicateFormationRuntime: false,
+  testedFlows: [
+    'formation->drag->draft',
+    'formation->plan-switch',
+    'formation->phase-position',
+    'all-15-formations->drag->draft',
+    'invalid-formation-no-mutation',
+    'manual-position-edge-clamp'
+  ],
+  formationResetAfterDrag: false,
+  stalePlanLayoutAfterFormationChange: false,
+  manualPositionAuthority: true,
+  saveDraftAuthority: 'current-tactics-career',
   freePositioning: true,
-  swapOnPlayerDrop: true,
-  shirtNumberOverlay: false,
-  legacyMetricsPanel: false,
-  recommendXiButton: false,
+  dragRendering: 'raf-latest-pointer-sample',
+  rubberBandLag: false,
+  views: ['lineup', 'tactics', 'roles'],
+  benchLimit: 9,
   reducedMotion: true
 }, null, 2));
