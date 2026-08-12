@@ -87,6 +87,20 @@ function writeFallback(save) {
   }
 }
 
+function timestampOf(save) {
+  const parsed = Date.parse(save?.updatedAt || save?.createdAt || '');
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function freshestSnapshot(primary, fallback) {
+  if (!primary) return fallback || null;
+  if (!fallback) return primary;
+  // localStorage is written synchronously before the IndexedDB transaction.
+  // If navigation/reload lands between those writes, prefer whichever complete
+  // snapshot has the newest timestamp instead of blindly trusting one backend.
+  return timestampOf(fallback) > timestampOf(primary) ? fallback : primary;
+}
+
 function syncFormationDraftFromCareer(career) {
   if (!career || typeof career !== "object") return;
   if (!career.saveId || !career.clubCode || !career.formation || !career.tacticalLayouts) return;
@@ -102,8 +116,6 @@ function consumeCareerDraft(save) {
   const draft = globalThis.__touchlineCareerDraft;
   if (!draft || typeof draft !== "object") return save;
   if (draft.saveId !== save.saveId || draft.clubCode !== save.clubCode) return save;
-  // A tactics-screen career draft contains the freshest manual player coordinates.
-  // Promote those coordinates before mergeFormationDraft can read an older draft.
   syncFormationDraftFromCareer(draft);
   delete globalThis.__touchlineCareerDraft;
   return {
@@ -141,9 +153,6 @@ function restoreExtendedFormation(save) {
   const next = { ...save };
   delete next.__touchlineExtendedFormation;
   delete next.__touchlineExtendedTacticalLayouts;
-  // Base.normalizeCareer currently understands seven historical shapes. A load
-  // carries the real extended shape through that pass with these transient
-  // markers; the first repository save restores it and strips the markers.
   if (requested && !LEGACY_CORE_FORMATIONS.has(requested)) {
     next.formation = requested;
     if (requestedLayouts && typeof requestedLayouts === "object") {
@@ -167,11 +176,12 @@ function prepareLoadedCareer(save) {
 
 export const CareerRepository = Object.freeze({
   async load(saveId = "primary") {
+    const fallback = readFallback(saveId);
     try {
       const saved = await withStore("readonly", store => store.get(saveId));
-      return prepareLoadedCareer(saved || readFallback(saveId));
+      return prepareLoadedCareer(freshestSnapshot(saved, fallback));
     } catch {
-      return prepareLoadedCareer(readFallback(saveId));
+      return prepareLoadedCareer(fallback);
     }
   },
 
@@ -185,7 +195,6 @@ export const CareerRepository = Object.freeze({
       await withStore("readwrite", store => store.put(snapshot));
     } catch (error) {
       if (fallbackMode !== "full") throw error;
-      // A complete localStorage fallback already contains the same transactional snapshot.
     }
     return snapshot;
   },
