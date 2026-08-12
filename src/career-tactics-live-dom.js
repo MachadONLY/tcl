@@ -18,12 +18,16 @@ function elementKey(node) {
   if (node.matches('[data-drag-player]')) {
     return `player:${node.dataset.zone || 'unknown'}:${node.dataset.dragPlayer}`;
   }
+  if (node.hasAttribute('data-tl-formation')) {
+    const scope = node.closest('.tl-field-hud') ? 'field' : node.closest('.tl-command-bar') ? 'command' : 'other';
+    return `formation:${scope}:${node.getAttribute('data-tl-formation') || ''}`;
+  }
 
   const keyedAttributes = [
     ['data-tl-tab'], ['data-tl-pitch-phase'], ['data-tl-plan'],
     ['data-tl-field', 'data-tl-value'], ['data-tl-select'], ['data-tl-toggle'],
     ['data-tl-role'], ['data-tl-focus', 'data-focus'], ['data-roster-filter'],
-    ['data-tl-formation'], ['data-drop-zone'], ['data-field-formation-control']
+    ['data-drop-zone'], ['data-field-formation-control']
   ];
   for (const attributes of keyedAttributes) {
     if (!node.hasAttribute(attributes[0])) continue;
