@@ -22,6 +22,7 @@ const fail = message => failures.push(message);
 async function waitForStudio() {
   await page.waitForSelector('.tl-tactics-studio .tl-pitch', { timeout: 30000 });
   await page.waitForSelector('.tl-field-formation-control select[data-tl-formation]', { timeout: 30000 });
+  await page.waitForSelector('[data-tactics-view-nav]', { timeout: 30000 });
   await page.waitForFunction(() => document.querySelectorAll('.tl-pitch [data-drag-player]').length === 11, null, { timeout: 30000 });
 }
 
@@ -51,6 +52,11 @@ async function selectFormation(formation) {
     const select = document.querySelector('.tl-field-formation-control select[data-tl-formation]');
     return select?.value === expected;
   }, formation, { timeout: 5000 });
+}
+
+async function setView(view) {
+  await page.locator(`[data-tactics-view-button="${view}"]`).click({ force: true });
+  await page.waitForFunction(expected => document.querySelector('.tl-tactics-studio')?.dataset.tacticsView === expected, view, { timeout: 5000 });
 }
 
 async function dragToPoint(playerId, xRatio, yRatio) {
@@ -147,17 +153,41 @@ if (!reloadedMoved || Math.abs(reloadedMoved.x - secondTarget.expectedX) > 1.2 |
   fail(`manual coordinates did not survive reload: ${JSON.stringify(reloadedMoved)}`);
 }
 
-// View navigation must not mutate formation/state.
-const modelTab = page.locator('[data-tactics-view-nav] [data-tactics-view="tactics"], [data-tactics-view-nav] button').nth(1);
-if (await modelTab.count()) {
-  await modelTab.click({ force: true });
-  await page.waitForTimeout(120);
-  const lineupTab = page.locator('[data-tactics-view-nav] button').first();
-  await lineupTab.click({ force: true });
-  await page.waitForTimeout(120);
+// Model view uses another visible selector; it must route into the SAME studio controller.
+await setView('tactics');
+await page.waitForSelector('[data-model-context] select', { timeout: 5000 });
+await page.locator('[data-model-context] select').selectOption('5-2-1-2');
+await page.waitForFunction(() => document.querySelector('.tl-field-hud [data-tl-formation]')?.value === '5-2-1-2', null, { timeout: 5000 });
+await setView('lineup');
+state = await snapshot();
+if (state.formation !== '5-2-1-2') fail(`model-view formation bridge produced ${state.formation}`);
+
+// Drag immediately after model-view formation change: same race, different entry point.
+const modelPlayerId = state.players[7]?.id;
+if (!modelPlayerId) fail('model-view regression test could not resolve a field player');
+else {
+  const modelTarget = await dragToPoint(modelPlayerId, 0.61, 0.31);
   state = await snapshot();
-  if (state.formation !== '4-3-3') fail(`view round-trip changed formation to ${state.formation}`);
+  if (state.formation !== '5-2-1-2') fail(`model formation -> drag reverted to ${state.formation}`);
+  const modelMoved = state.players.find(player => player.id === modelPlayerId);
+  if (!modelMoved || Math.abs(modelMoved.x - modelTarget.expectedX) > 1.2 || Math.abs(modelMoved.y - modelTarget.expectedY) > 1.2) {
+    fail('model-view formation drag did not retain precise coordinates');
+  }
 }
+
+await page.waitForTimeout(900);
+await page.reload({ waitUntil: 'domcontentloaded', timeout: 120000 });
+await waitForStudio();
+state = await snapshot();
+if (state.formation !== '5-2-1-2') fail(`final reload restored wrong formation ${state.formation}`);
+if (state.players.length !== 11 || state.bench.length !== 9) fail(`final reload squad counts ${state.players.length}/${state.bench.length}`);
+
+// Round-trip all three views must never mutate the selected formation.
+await setView('tactics');
+await setView('roles');
+await setView('lineup');
+state = await snapshot();
+if (state.formation !== '5-2-1-2') fail(`three-view round-trip changed formation to ${state.formation}`);
 
 await browser.close();
 
@@ -171,9 +201,10 @@ console.log(JSON.stringify({
   browser: 'chromium',
   formationsSwept: TACTICS_FORMATIONS.length,
   formationDragRace: 'passed',
+  modelFormationBridge: 'passed',
   freePositionPrecision: 'passed',
   benchLineupSwap: 'passed',
   reloadPersistence: 'passed',
-  viewRoundTrip: 'passed',
-  expectedFormation: '4-3-3'
+  threeViewRoundTrip: 'passed',
+  finalFormation: '5-2-1-2'
 }, null, 2));
