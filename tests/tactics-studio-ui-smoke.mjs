@@ -40,13 +40,15 @@ assert.ok(css.includes('.tl-drag-ghost'), 'base drag feedback must be styled');
 assert.ok(css.includes('cursor:grab'), 'draggable affordance must be visible');
 assert.ok(css.includes('backdrop-filter'), 'premium layered depth must be present');
 assert.ok(css.includes('prefers-reduced-motion'), 'motion accessibility must be respected');
-assert.ok(dragCss.includes('--tl-drag-size:62px'), 'drag preview must be a compact avatar');
+assert.ok(dragCss.includes('--tl-drag-size:58px'), 'drag preview must be a compact avatar');
 assert.ok(dragCss.includes('border-radius:50%'), 'drag preview must remain circular');
 assert.ok(dragCss.includes('.tl-drag-ghost>*{display:none!important}'), 'rectangular card content must be hidden while dragging');
 assert.ok(dragCss.includes('translate3d(var(--tl-drag-x'), 'drag preview must use GPU translation');
 assert.ok(dragCss.includes('tlDragAvatarPickup'), 'drag pickup must have a subtle avatar animation');
 assert.ok(dragSource.includes('requestAnimationFrame'), 'drag movement must be synchronized to animation frames');
-assert.ok(dragSource.includes('const easing = 0.58'), 'drag movement must use controlled smoothing');
+assert.ok(dragSource.includes('getCoalescedEvents'), 'drag input must use the newest coalesced pointer sample when available');
+assert.ok(dragSource.includes("ghost.style.setProperty('--tl-drag-x'"), 'drag avatar must follow the exact pointer coordinate without elastic lag');
+assert.ok(!dragSource.includes('const easing ='), 'drag avatar must not intentionally trail behind the pointer');
 
 assert.ok(threeViews.includes("let activeView = 'lineup'"), 'lineup must be the default tactics view');
 assert.ok(threeViews.includes("id: 'lineup'"), 'lineup view must exist');
@@ -124,7 +126,8 @@ console.log(JSON.stringify({
   rolesReplaceField: true,
   responsibilities: 7,
   dragPreview: 'circular-player-avatar',
-  dragRendering: 'request-animation-frame-gpu',
+  dragRendering: 'raf-coalesced-pointer-1to1-gpu',
+  dragElasticLag: false,
   formationMotion: 'live-flip-web-animations-gpu',
   formationUpdate: 'same-dom-real-time',
   formationRemount: false,
