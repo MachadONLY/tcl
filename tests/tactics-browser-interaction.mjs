@@ -18,6 +18,11 @@ await context.addInitScript(() => {
 
 const page = await context.newPage();
 const failures = [];
+const browserErrors = [];
+page.on('pageerror', error => browserErrors.push(`pageerror:${error.message}`));
+page.on('console', message => {
+  if (message.type() === 'error' || message.type() === 'warning') browserErrors.push(`console:${message.type()}:${message.text()}`);
+});
 const fail = message => failures.push(message);
 
 async function waitForStudio() {
@@ -32,6 +37,10 @@ async function snapshot() {
     const select = document.querySelector('.tl-field-formation-control select[data-tl-formation]');
     const players = [...document.querySelectorAll('.tl-pitch [data-drag-player]')];
     const bench = [...document.querySelectorAll('.tl-bench-list [data-drag-player]')];
+    let fallback = null;
+    try { fallback = JSON.parse(localStorage.getItem('touchline.career.v5.primary') || 'null'); } catch {}
+    const draft = globalThis.__touchlineCareerDraft;
+    const formationDraft = globalThis.__touchlineFormationDraft;
     return {
       formation: select?.value || null,
       players: players.map(node => ({
@@ -41,9 +50,36 @@ async function snapshot() {
       })),
       bench: bench.map(node => node.dataset.dragPlayer),
       view: document.querySelector('.tl-tactics-studio')?.dataset.tacticsView || null,
-      dragGhosts: document.querySelectorAll('.tl-drag-ghost').length
+      dragGhosts: document.querySelectorAll('.tl-drag-ghost').length,
+      draftFormation: draft?.formation || null,
+      formationDraftFormation: formationDraft?.formation || null,
+      fallbackFormation: fallback?.formation || null,
+      fallbackLineup: fallback?.lineup || null
     };
   });
+}
+
+async function dragDiagnostics(playerId, targetX, targetY) {
+  return page.evaluate(({ playerId: id, x, y }) => {
+    const element = document.elementFromPoint(x, y);
+    const player = document.querySelector(`.tl-pitch [data-drag-player="${id}"]`);
+    const draft = globalThis.__touchlineCareerDraft;
+    const plan = draft?.tactics?.activePlan || 'A';
+    const phase = document.querySelector('.tl-pitch')?.classList.contains('phase-possession') ? 'possession'
+      : document.querySelector('.tl-pitch')?.classList.contains('phase-out') ? 'out' : 'base';
+    return {
+      htmlFreeDrag: document.documentElement.classList.contains('tl-lineup-free-drag'),
+      htmlDragging: document.documentElement.classList.contains('tl-is-dragging'),
+      ghost: Boolean(document.querySelector('.tl-drag-ghost')),
+      playerCaptured: player?.hasPointerCapture?.(1) ?? null,
+      elementTag: element?.tagName || null,
+      elementClass: element?.className || null,
+      dropZone: element?.closest?.('[data-drop-zone]')?.dataset.dropZone || null,
+      dropPlayer: element?.closest?.('[data-drop-player]')?.dataset.dropPlayer || null,
+      draftFormation: draft?.formation || null,
+      draftPosition: draft?.tacticalLayouts?.[plan]?.[phase]?.[id] || null
+    };
+  }, { playerId, x: targetX, y: targetY });
 }
 
 async function selectFormation(formation) {
@@ -73,9 +109,16 @@ async function dragToPoint(playerId, xRatio, yRatio) {
   await page.mouse.move(startX, startY);
   await page.mouse.down();
   await page.mouse.move(targetX, targetY, { steps: 8 });
+  const during = await dragDiagnostics(playerId, targetX, targetY);
   await page.mouse.up();
-  await page.waitForTimeout(80);
-  return { expectedX: Math.max(6, Math.min(94, xRatio * 100)), expectedY: Math.max(6, Math.min(94, yRatio * 100)) };
+  await page.waitForTimeout(120);
+  const after = await snapshot();
+  return {
+    expectedX: Math.max(6, Math.min(94, xRatio * 100)),
+    expectedY: Math.max(6, Math.min(94, yRatio * 100)),
+    during,
+    after
+  };
 }
 
 async function swapBenchIntoLineup() {
@@ -90,7 +133,7 @@ async function swapBenchIntoLineup() {
   await page.mouse.down();
   await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 10 });
   await page.mouse.up();
-  await page.waitForTimeout(100);
+  await page.waitForTimeout(140);
   return { fieldId, benchId };
 }
 
@@ -112,13 +155,13 @@ await selectFormation('4-3-3');
 const playerId = await page.locator('.tl-pitch [data-drag-player]').nth(5).getAttribute('data-drag-player');
 assert.ok(playerId, 'a midfield player must exist for free positioning');
 const target = await dragToPoint(playerId, 0.71, 0.43);
-state = await snapshot();
-if (state.formation !== '4-3-3') fail(`formation->drag race reverted to ${state.formation}`);
+state = target.after;
+if (state.formation !== '4-3-3') fail(`formation->drag race reverted to ${state.formation}; diag=${JSON.stringify(target.during)}`);
 const moved = state.players.find(player => player.id === playerId);
-if (!moved) fail('dragged player disappeared from lineup');
+if (!moved) fail(`dragged player disappeared from lineup; diag=${JSON.stringify(target.during)}`);
 else {
-  if (Math.abs(moved.x - target.expectedX) > 1.2) fail(`drag x imprecise: ${moved.x} vs ${target.expectedX}`);
-  if (Math.abs(moved.y - target.expectedY) > 1.2) fail(`drag y imprecise: ${moved.y} vs ${target.expectedY}`);
+  if (Math.abs(moved.x - target.expectedX) > 1.2) fail(`drag x imprecise: ${moved.x} vs ${target.expectedX}; diag=${JSON.stringify(target.during)}; after=${JSON.stringify({draft:state.draftFormation,fallback:state.fallbackFormation})}`);
+  if (Math.abs(moved.y - target.expectedY) > 1.2) fail(`drag y imprecise: ${moved.y} vs ${target.expectedY}; diag=${JSON.stringify(target.during)}`);
 }
 if (state.dragGhosts !== 0) fail('drag ghost remained after pointerup');
 
@@ -131,22 +174,23 @@ if (!state.players.some(player => player.id === swap.benchId)) fail('bench playe
 if (!state.bench.includes(swap.fieldId)) fail('replaced field player did not enter the bench');
 
 const secondTarget = await dragToPoint(swap.benchId, 0.27, 0.58);
-state = await snapshot();
+state = secondTarget.after;
 if (state.formation !== '4-3-3') fail(`second free drag reverted formation to ${state.formation}`);
 const secondMoved = state.players.find(player => player.id === swap.benchId);
 if (!secondMoved || Math.abs(secondMoved.x - secondTarget.expectedX) > 1.2 || Math.abs(secondMoved.y - secondTarget.expectedY) > 1.2) {
-  fail('incoming player did not retain precise free positioning');
+  fail(`incoming player did not retain precise free positioning; diag=${JSON.stringify(secondTarget.during)}`);
 }
 
-await page.waitForTimeout(900);
+await page.waitForTimeout(1000);
+const beforeReload = await snapshot();
 await page.reload({ waitUntil: 'domcontentloaded', timeout: 120000 });
 await waitForStudio();
 state = await snapshot();
-if (state.formation !== '4-3-3') fail(`reload restored wrong formation ${state.formation}`);
-if (!state.players.some(player => player.id === swap.benchId)) fail('lineup swap did not survive reload');
+if (state.formation !== '4-3-3') fail(`reload restored wrong formation ${state.formation}; before=${JSON.stringify({draft:beforeReload.draftFormation,formationDraft:beforeReload.formationDraftFormation,fallback:beforeReload.fallbackFormation})}`);
+if (!state.players.some(player => player.id === swap.benchId)) fail(`lineup swap did not survive reload; beforeFallbackLineup=${JSON.stringify(beforeReload.fallbackLineup)}`);
 const reloadedMoved = state.players.find(player => player.id === swap.benchId);
 if (!reloadedMoved || Math.abs(reloadedMoved.x - secondTarget.expectedX) > 1.2 || Math.abs(reloadedMoved.y - secondTarget.expectedY) > 1.2) {
-  fail(`manual coordinates did not survive reload: ${JSON.stringify(reloadedMoved)}`);
+  fail(`manual coordinates did not survive reload: ${JSON.stringify(reloadedMoved)}; before=${JSON.stringify({draft:beforeReload.draftFormation,fallback:beforeReload.fallbackFormation})}`);
 }
 
 await setView('tactics');
@@ -161,19 +205,20 @@ const modelPlayerId = state.players[7]?.id;
 if (!modelPlayerId) fail('model-view regression test could not resolve a field player');
 else {
   const modelTarget = await dragToPoint(modelPlayerId, 0.61, 0.31);
-  state = await snapshot();
-  if (state.formation !== '5-2-1-2') fail(`model formation -> drag reverted to ${state.formation}`);
+  state = modelTarget.after;
+  if (state.formation !== '5-2-1-2') fail(`model formation -> drag reverted to ${state.formation}; diag=${JSON.stringify(modelTarget.during)}`);
   const modelMoved = state.players.find(player => player.id === modelPlayerId);
   if (!modelMoved || Math.abs(modelMoved.x - modelTarget.expectedX) > 1.2 || Math.abs(modelMoved.y - modelTarget.expectedY) > 1.2) {
-    fail('model-view formation drag did not retain precise coordinates');
+    fail(`model-view formation drag did not retain precise coordinates; diag=${JSON.stringify(modelTarget.during)}`);
   }
 }
 
-await page.waitForTimeout(900);
+await page.waitForTimeout(1000);
+const finalBeforeReload = await snapshot();
 await page.reload({ waitUntil: 'domcontentloaded', timeout: 120000 });
 await waitForStudio();
 state = await snapshot();
-if (state.formation !== '5-2-1-2') fail(`final reload restored wrong formation ${state.formation}`);
+if (state.formation !== '5-2-1-2') fail(`final reload restored wrong formation ${state.formation}; before=${JSON.stringify({draft:finalBeforeReload.draftFormation,formationDraft:finalBeforeReload.formationDraftFormation,fallback:finalBeforeReload.fallbackFormation})}`);
 if (state.players.length !== 11 || state.bench.length !== 9) fail(`final reload squad counts ${state.players.length}/${state.bench.length}`);
 
 await setView('tactics');
@@ -184,6 +229,7 @@ if (state.formation !== '5-2-1-2') fail(`three-view round-trip changed formation
 
 await browser.close();
 
+if (browserErrors.length) console.error('Browser diagnostics:\n' + browserErrors.join('\n'));
 if (failures.length) {
   console.error('Tactics browser interaction failures:\n' + failures.map(item => `- ${item}`).join('\n'));
   process.exit(1);
