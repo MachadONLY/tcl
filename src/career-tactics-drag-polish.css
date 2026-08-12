@@ -112,10 +112,11 @@
     0 24px 60px rgba(0,0,0,.28)!important;
 }
 
-/* When a starter is being repositioned, the pitch is the only hit target.
-   Player portraits/labels cannot steal the pointer and turn a free move into
-   an accidental swap/no-op. Bench/reserve -> starter swaps remain untouched. */
-html.tl-lineup-free-drag .tl-tactics-studio .tl-pitch .tl-player-node:not(.tl-drag-source){
+/* A starter drag means precise free positioning. Every visual child of every
+   field player becomes transparent to hit testing, so elementFromPoint always
+   reaches the pitch itself. Bench/reserve -> starter swaps are unaffected. */
+html.tl-lineup-free-drag .tl-tactics-studio .tl-pitch .tl-player-node,
+html.tl-lineup-free-drag .tl-tactics-studio .tl-pitch .tl-player-node *{
   pointer-events:none!important;
 }
 
