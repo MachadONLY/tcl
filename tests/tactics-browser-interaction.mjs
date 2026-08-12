@@ -64,45 +64,78 @@ async function reserveLayoutSnapshot() {
     const grid = document.querySelector('.tl-roster-grid.reserves');
     const manager = document.querySelector('.tl-squad-manager');
     if (!grid || !manager) return null;
-    const gridBox = grid.getBoundingClientRect();
-    const managerBox = manager.getBoundingClientRect();
     const cards = [...grid.querySelectorAll('.tl-squad-card')];
-    const boxes = cards.map(card => ({ id: card.dataset.dragPlayer, box: card.getBoundingClientRect() }));
-    const tolerance = 1.5;
-    const clipped = boxes.filter(({ box }) =>
-      box.left < managerBox.left - tolerance ||
-      box.right > managerBox.right + tolerance ||
-      box.top < gridBox.top - tolerance ||
-      box.bottom > managerBox.bottom + tolerance
-    ).map(({ id }) => id);
-    const rowTops = [...new Set(boxes.map(({ box }) => Math.round(box.top)))];
+    const boxes = cards.map(card => card.getBoundingClientRect());
+    const rowTops = [...new Set(boxes.map(box => Math.round(box.top)))];
     const style = getComputedStyle(grid);
     return {
       cardCount: cards.length,
       rows: rowTops.length,
       horizontalOverflow: Math.max(0, grid.scrollWidth - grid.clientWidth),
+      verticalOverflow: Math.max(0, grid.scrollHeight - grid.clientHeight),
       gridWidth: grid.clientWidth,
       scrollWidth: grid.scrollWidth,
-      gridHeight: gridBox.height,
-      managerHeight: managerBox.height,
       overflowX: style.overflowX,
-      display: style.display,
-      clipped,
+      overflowY: style.overflowY,
+      scrollSnapType: style.scrollSnapType,
       scrollTools: document.querySelectorAll('.tl-roster-scroll-tools').length
     };
   });
 }
 
-function verifyReserveLayout(label, layout) {
+async function reserveEdgeReachability() {
+  return page.evaluate(async () => {
+    const grid = document.querySelector('.tl-roster-grid.reserves');
+    const cards = [...(grid?.querySelectorAll('.tl-squad-card') || [])];
+    if (!grid || !cards.length) return null;
+    const originalBehavior = grid.style.scrollBehavior;
+    grid.style.scrollBehavior = 'auto';
+    const settle = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const tolerance = 2;
+
+    grid.scrollLeft = 0;
+    await settle();
+    const startGrid = grid.getBoundingClientRect();
+    const first = cards[0].getBoundingClientRect();
+    const firstComplete = first.left >= startGrid.left - tolerance && first.right <= startGrid.right + tolerance;
+
+    const maxScroll = Math.max(0, grid.scrollWidth - grid.clientWidth);
+    grid.scrollLeft = maxScroll;
+    await settle();
+    const endGrid = grid.getBoundingClientRect();
+    const last = cards.at(-1).getBoundingClientRect();
+    const lastComplete = last.left >= endGrid.left - tolerance && last.right <= endGrid.right + tolerance;
+    const reachedEnd = Math.abs(grid.scrollLeft - maxScroll) <= 2;
+
+    grid.scrollLeft = 0;
+    await settle();
+    grid.style.scrollBehavior = originalBehavior;
+    return { firstComplete, lastComplete, reachedEnd, maxScroll };
+  });
+}
+
+async function verifyReserveLayout(label) {
+  const layout = await reserveLayoutSnapshot();
   if (!layout) {
     fail(`${label}: reserve grid missing`);
     return;
   }
   if (layout.cardCount < 1) fail(`${label}: no unselected players rendered`);
-  if (layout.horizontalOverflow > 2) fail(`${label}: reserve grid still hides ${layout.horizontalOverflow}px horizontally`);
-  if (layout.clipped.length) fail(`${label}: clipped reserve cards ${layout.clipped.join(', ')}`);
-  if (layout.cardCount > 8 && layout.rows < 2) fail(`${label}: ${layout.cardCount} reserves stayed in one row`);
+  if (layout.rows !== 1) fail(`${label}: reserves wrapped into ${layout.rows} rows instead of one horizontal lane`);
+  if (layout.cardCount > 5 && layout.horizontalOverflow <= 2) fail(`${label}: reserve lane is not horizontally scrollable`);
+  if (layout.verticalOverflow > 2) fail(`${label}: reserve lane has unwanted vertical overflow ${layout.verticalOverflow}px`);
+  if (!/(auto|scroll)/.test(layout.overflowX)) fail(`${label}: overflow-x is ${layout.overflowX}, expected horizontal scrolling`);
+  if (layout.overflowY !== 'hidden') fail(`${label}: overflow-y is ${layout.overflowY}, expected hidden`);
+  if (!String(layout.scrollSnapType).includes('x')) fail(`${label}: horizontal scroll snap is not active`);
   if (layout.scrollTools !== 0) fail(`${label}: obsolete reserve carousel controls still exist`);
+
+  const edges = await reserveEdgeReachability();
+  if (!edges) fail(`${label}: reserve edge reachability missing`);
+  else {
+    if (!edges.firstComplete) fail(`${label}: first reserve card is clipped at the left edge`);
+    if (!edges.lastComplete) fail(`${label}: last reserve card is clipped at the right edge`);
+    if (!edges.reachedEnd) fail(`${label}: reserve lane cannot reach its maximum horizontal scroll`);
+  }
 }
 
 async function selectFormation(formation) {
@@ -190,7 +223,7 @@ await page.waitForTimeout(120);
 let state = await snapshot();
 if (state.players.length !== 11) fail(`initial lineup count ${state.players.length}, expected 11`);
 if (state.bench.length !== 9) fail(`initial bench count ${state.bench.length}, expected 9`);
-verifyReserveLayout('initial', await reserveLayoutSnapshot());
+await verifyReserveLayout('initial');
 
 for (const formation of TACTICS_FORMATIONS) {
   await selectFormation(formation);
@@ -218,7 +251,7 @@ if (state.formation !== '4-3-3') fail(`bench swap reverted formation to ${state.
 if (state.players.length !== 11 || state.bench.length !== 9) fail(`squad counts after swap ${state.players.length}/${state.bench.length}`);
 if (!state.players.some(player => player.id === swap.benchId)) fail('bench player did not enter XI');
 if (!state.bench.includes(swap.fieldId)) fail('replaced starter did not enter bench');
-verifyReserveLayout('after bench/XI swap', await reserveLayoutSnapshot());
+await verifyReserveLayout('after bench/XI swap');
 
 const secondTarget = await dragPlayerToPitch(swap.benchId, 0.27, 0.58);
 state = await snapshot();
@@ -235,7 +268,7 @@ if (state.formation !== '4-3-3') fail(`reload restored ${state.formation}; durab
 if (!state.players.some(player => player.id === swap.benchId)) fail(`lineup swap lost on reload; persisted=${JSON.stringify(beforeReload.fallbackLineup)}`);
 const reloaded = state.players.find(player => player.id === swap.benchId);
 if (!reloaded || Math.abs(reloaded.x - secondTarget.expectedX) > 1.2 || Math.abs(reloaded.y - secondTarget.expectedY) > 1.2) fail(`manual position lost on reload: ${JSON.stringify(reloaded)}`);
-verifyReserveLayout('after reload', await reserveLayoutSnapshot());
+await verifyReserveLayout('after reload');
 
 await setView('tactics');
 await page.waitForSelector('[data-model-context] select', { timeout: 5000 });
@@ -262,14 +295,14 @@ await waitForStudio();
 state = await snapshot();
 if (state.formation !== '5-2-1-2') fail(`final reload restored ${state.formation}; durable fallback=${finalBeforeReload.fallbackFormation}`);
 if (state.players.length !== 11 || state.bench.length !== 9) fail(`final squad counts ${state.players.length}/${state.bench.length}`);
-verifyReserveLayout('final reload', await reserveLayoutSnapshot());
+await verifyReserveLayout('final reload');
 
 await setView('tactics');
 await setView('roles');
 await setView('lineup');
 state = await snapshot();
 if (state.formation !== '5-2-1-2') fail(`three-view round-trip changed formation to ${state.formation}`);
-verifyReserveLayout('three-view round-trip', await reserveLayoutSnapshot());
+await verifyReserveLayout('three-view round-trip');
 
 await browser.close();
 if (browserErrors.length) console.error('Browser diagnostics:\n' + browserErrors.join('\n'));
@@ -288,6 +321,6 @@ console.log(JSON.stringify({
   reloadPersistence: 'passed',
   modelFormationBridge: 'passed',
   threeViewRoundTrip: 'passed',
-  reserveGrid: 'all-visible-no-horizontal-overflow',
+  reserveGrid: 'single-horizontal-scroll-lane-complete-edges',
   finalFormation: '5-2-1-2'
 }, null, 2));
