@@ -30,6 +30,10 @@ async function waitForStudio() {
   await page.waitForSelector('.tl-field-formation-control select[data-tl-formation]', { timeout: 30000 });
   await page.waitForSelector('[data-tactics-view-nav]', { timeout: 30000 });
   await page.waitForFunction(() => document.querySelectorAll('.tl-pitch [data-drag-player]').length === 11, null, { timeout: 30000 });
+  await page.waitForFunction(() => {
+    const grid = document.querySelector('.tl-roster-grid.reserves');
+    return Boolean(grid && grid.querySelectorAll('[data-drag-player]').length > 0);
+  }, null, { timeout: 30000 });
 }
 
 async function snapshot() {
@@ -55,6 +59,52 @@ async function snapshot() {
   });
 }
 
+async function reserveLayoutSnapshot() {
+  return page.evaluate(() => {
+    const grid = document.querySelector('.tl-roster-grid.reserves');
+    const manager = document.querySelector('.tl-squad-manager');
+    if (!grid || !manager) return null;
+    const gridBox = grid.getBoundingClientRect();
+    const managerBox = manager.getBoundingClientRect();
+    const cards = [...grid.querySelectorAll('.tl-squad-card')];
+    const boxes = cards.map(card => ({ id: card.dataset.dragPlayer, box: card.getBoundingClientRect() }));
+    const tolerance = 1.5;
+    const clipped = boxes.filter(({ box }) =>
+      box.left < managerBox.left - tolerance ||
+      box.right > managerBox.right + tolerance ||
+      box.top < gridBox.top - tolerance ||
+      box.bottom > managerBox.bottom + tolerance
+    ).map(({ id }) => id);
+    const rowTops = [...new Set(boxes.map(({ box }) => Math.round(box.top)))];
+    const style = getComputedStyle(grid);
+    return {
+      cardCount: cards.length,
+      rows: rowTops.length,
+      horizontalOverflow: Math.max(0, grid.scrollWidth - grid.clientWidth),
+      gridWidth: grid.clientWidth,
+      scrollWidth: grid.scrollWidth,
+      gridHeight: gridBox.height,
+      managerHeight: managerBox.height,
+      overflowX: style.overflowX,
+      display: style.display,
+      clipped,
+      scrollTools: document.querySelectorAll('.tl-roster-scroll-tools').length
+    };
+  });
+}
+
+function verifyReserveLayout(label, layout) {
+  if (!layout) {
+    fail(`${label}: reserve grid missing`);
+    return;
+  }
+  if (layout.cardCount < 1) fail(`${label}: no unselected players rendered`);
+  if (layout.horizontalOverflow > 2) fail(`${label}: reserve grid still hides ${layout.horizontalOverflow}px horizontally`);
+  if (layout.clipped.length) fail(`${label}: clipped reserve cards ${layout.clipped.join(', ')}`);
+  if (layout.cardCount > 8 && layout.rows < 2) fail(`${label}: ${layout.cardCount} reserves stayed in one row`);
+  if (layout.scrollTools !== 0) fail(`${label}: obsolete reserve carousel controls still exist`);
+}
+
 async function selectFormation(formation) {
   const selector = '.tl-field-formation-control select[data-tl-formation]';
   await page.locator(selector).selectOption(formation);
@@ -73,8 +123,6 @@ async function pointerDrag(sourceSelector, targetX, targetY, steps = 8) {
     const bounds = source.getBoundingClientRect();
     const startX = bounds.left + bounds.width / 2;
     const startY = bounds.top + bounds.height / 2;
-    // Synthetic PointerEvents are used because Playwright Mouse deliberately
-    // dispatches mouse events, while Touchline's native controller is PointerEvent-based.
     Object.defineProperty(source, 'setPointerCapture', { configurable: true, value: () => {} });
     Object.defineProperty(source, 'releasePointerCapture', { configurable: true, value: () => {} });
     const init = (clientX, clientY, buttons) => ({
@@ -137,10 +185,12 @@ async function swapBenchIntoLineup() {
 
 await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
 await waitForStudio();
+await page.waitForTimeout(120);
 
 let state = await snapshot();
 if (state.players.length !== 11) fail(`initial lineup count ${state.players.length}, expected 11`);
 if (state.bench.length !== 9) fail(`initial bench count ${state.bench.length}, expected 9`);
+verifyReserveLayout('initial', await reserveLayoutSnapshot());
 
 for (const formation of TACTICS_FORMATIONS) {
   await selectFormation(formation);
@@ -149,7 +199,6 @@ for (const formation of TACTICS_FORMATIONS) {
   if (state.players.length !== 11) fail(`${formation}: lineup count became ${state.players.length}`);
 }
 
-// Exact regression: choose another formation and immediately drag a starter.
 await selectFormation('4-3-3');
 const playerId = await page.locator('.tl-pitch [data-drag-player]').nth(5).getAttribute('data-drag-player');
 assert.ok(playerId);
@@ -163,13 +212,13 @@ if (!moved || Math.abs(moved.x - target.expectedX) > 1.2 || Math.abs(moved.y - t
 }
 if (state.dragGhosts !== 0) fail('drag ghost remained after pointerup');
 
-// Bench/XI swap, then freely position the incoming player.
 const swap = await swapBenchIntoLineup();
 state = await snapshot();
 if (state.formation !== '4-3-3') fail(`bench swap reverted formation to ${state.formation}`);
 if (state.players.length !== 11 || state.bench.length !== 9) fail(`squad counts after swap ${state.players.length}/${state.bench.length}`);
 if (!state.players.some(player => player.id === swap.benchId)) fail('bench player did not enter XI');
 if (!state.bench.includes(swap.fieldId)) fail('replaced starter did not enter bench');
+verifyReserveLayout('after bench/XI swap', await reserveLayoutSnapshot());
 
 const secondTarget = await dragPlayerToPitch(swap.benchId, 0.27, 0.58);
 state = await snapshot();
@@ -177,7 +226,6 @@ const secondMoved = state.players.find(player => player.id === swap.benchId);
 if (state.formation !== '4-3-3') fail(`second free drag reverted formation to ${state.formation}`);
 if (!secondMoved || Math.abs(secondMoved.x - secondTarget.expectedX) > 1.2 || Math.abs(secondMoved.y - secondTarget.expectedY) > 1.2) fail('incoming player did not retain free position');
 
-// Durable reload must keep formation, lineup and manual coordinates.
 await page.waitForTimeout(1100);
 const beforeReload = await snapshot();
 await page.reload({ waitUntil: 'domcontentloaded', timeout: 120000 });
@@ -187,8 +235,8 @@ if (state.formation !== '4-3-3') fail(`reload restored ${state.formation}; durab
 if (!state.players.some(player => player.id === swap.benchId)) fail(`lineup swap lost on reload; persisted=${JSON.stringify(beforeReload.fallbackLineup)}`);
 const reloaded = state.players.find(player => player.id === swap.benchId);
 if (!reloaded || Math.abs(reloaded.x - secondTarget.expectedX) > 1.2 || Math.abs(reloaded.y - secondTarget.expectedY) > 1.2) fail(`manual position lost on reload: ${JSON.stringify(reloaded)}`);
+verifyReserveLayout('after reload', await reserveLayoutSnapshot());
 
-// Model-view selector must control the same formation state.
 await setView('tactics');
 await page.waitForSelector('[data-model-context] select', { timeout: 5000 });
 await page.locator('[data-model-context] select').selectOption('5-2-1-2');
@@ -214,12 +262,14 @@ await waitForStudio();
 state = await snapshot();
 if (state.formation !== '5-2-1-2') fail(`final reload restored ${state.formation}; durable fallback=${finalBeforeReload.fallbackFormation}`);
 if (state.players.length !== 11 || state.bench.length !== 9) fail(`final squad counts ${state.players.length}/${state.bench.length}`);
+verifyReserveLayout('final reload', await reserveLayoutSnapshot());
 
 await setView('tactics');
 await setView('roles');
 await setView('lineup');
 state = await snapshot();
 if (state.formation !== '5-2-1-2') fail(`three-view round-trip changed formation to ${state.formation}`);
+verifyReserveLayout('three-view round-trip', await reserveLayoutSnapshot());
 
 await browser.close();
 if (browserErrors.length) console.error('Browser diagnostics:\n' + browserErrors.join('\n'));
@@ -238,5 +288,6 @@ console.log(JSON.stringify({
   reloadPersistence: 'passed',
   modelFormationBridge: 'passed',
   threeViewRoundTrip: 'passed',
+  reserveGrid: 'all-visible-no-horizontal-overflow',
   finalFormation: '5-2-1-2'
 }, null, 2));
