@@ -37,9 +37,8 @@ assert.ok(cleanupSource.includes("const TITLE = 'Não relacionados'"), 'unselect
 assert.ok(cleanupSource.includes('header.replaceChildren(title)'), 'legacy title, count and positional filters must be removed from the DOM');
 assert.ok(cleanupSource.includes("root.querySelectorAll('[data-roster-filter]')"), 'positional filter buttons must be removed after every render');
 assert.ok(cleanupSource.includes("root.querySelectorAll('.tl-roster-scroll-tools')"), 'obsolete horizontal carousel controls must be removed');
-assert.ok(cleanupSource.includes('function horizontalReserveWheel(event)'), 'reserve lane must translate mouse-wheel motion into horizontal movement');
-assert.ok(cleanupSource.includes('lane.scrollLeft += event.deltaY'), 'vertical wheel motion must advance the reserve lane left/right');
-assert.ok(cleanupSource.includes("app.addEventListener('wheel', horizontalReserveWheel, { passive: false })"), 'reserve wheel handler must be able to suppress page scrolling when the lane moves');
+assert.ok(!cleanupSource.includes('horizontalReserveWheel'), 'wrapped reserve grid must not translate wheel input into horizontal scrolling');
+assert.ok(!cleanupSource.includes("addEventListener('wheel'"), 'wrapped reserve grid must not install a horizontal wheel handler');
 assert.ok(!cleanupSource.includes('Goleiros'), 'cleanup runtime must not recreate goalkeeper filters');
 assert.ok(!cleanupSource.includes('Defensores'), 'cleanup runtime must not recreate defender filters');
 assert.ok(!cleanupSource.includes('Meio-campo'), 'cleanup runtime must not recreate midfield filters');
@@ -47,25 +46,24 @@ assert.ok(!cleanupSource.includes('Atacantes'), 'cleanup runtime must not recrea
 assert.ok(cleanupCss.includes('header > nav'), 'legacy positional navigation must be hidden before runtime cleanup');
 assert.ok(cleanupCss.includes('header small'), 'legacy unselected-player count must be hidden before runtime cleanup');
 assert.ok(cleanupCss.includes("content:'Não relacionados'"), 'correct title must be visible without a flash of legacy content');
-assert.ok(cleanupCss.includes('grid-auto-flow:column!important'), 'unselected players must stay in one horizontal lane');
-assert.ok(cleanupCss.includes('grid-auto-columns:clamp(220px,17vw,270px)!important'), 'horizontal reserve cards must stay readable without filling the entire row');
-assert.ok(cleanupCss.includes('grid-template-rows:minmax(62px,1fr)!important'), 'the horizontal reserve lane must preserve readable card height');
-assert.ok(cleanupCss.includes('grid-template-columns:48px minmax(0,1fr) 42px!important'), 'squad cards must reserve readable portrait, copy and overall columns');
-assert.ok(cleanupCss.includes('overflow-x:auto!important'), 'unselected players must be reachable by scrolling to the right');
-assert.ok(cleanupCss.includes('overflow-y:hidden!important'), 'unselected players must never consume pitch space by stacking vertically');
-assert.ok(cleanupCss.includes('scroll-snap-type:x proximity!important'), 'horizontal reserve scrolling must remain controlled');
+assert.ok(cleanupCss.includes('grid-template-columns:repeat(auto-fit,minmax(185px,1fr))!important'), 'desktop reserves must wrap into as many readable columns as fit');
+assert.ok(cleanupCss.includes('grid-auto-flow:row!important'), 'unselected players must fill rows instead of one horizontal lane');
+assert.ok(cleanupCss.includes('height:auto!important'), 'unselected panel must grow to fit every reserve row');
+assert.ok(cleanupCss.includes('max-height:none!important'), 'unselected panel must not clip large squads');
+assert.ok(cleanupCss.includes('overflow:visible!important'), 'reserve rows must remain fully visible instead of being clipped');
+assert.ok(cleanupCss.includes('scroll-snap-type:none!important'), 'reserve grid must not retain carousel snap behavior');
 assert.ok(cleanupCss.includes('cursor:grab!important'), 'bench and unselected players must advertise their drag interaction');
-assert.ok(cleanupCss.includes('.tl-roster-scroll-tools'), 'legacy carousel controls must remain hidden even though native horizontal scrolling is enabled');
+assert.ok(cleanupCss.includes('.tl-roster-scroll-tools'), 'legacy carousel controls must remain hidden before runtime cleanup');
 assert.ok(cleanupCss.includes('display:none!important'), 'obsolete carousel controls must stay hidden before runtime cleanup');
 assert.ok(cleanupCss.includes('content:none!important'), 'legacy carousel spacer pseudo-elements must be removed');
-assert.ok(cleanupCss.includes('height:clamp(126px,15vh,148px)!important'), 'the lower squad lane must stay shallow so the pitch owns most of the screen');
 assert.ok(cleanupCss.includes('width:100%!important'), 'the unselected squad parent must explicitly fill the tactics workspace');
 assert.ok(cleanupCss.includes('max-width:1680px!important'), 'the unselected squad parent must share the desktop workspace ceiling');
 assert.ok(cleanupCss.includes('justify-self:stretch!important'), 'the unselected squad grid item must never shrink to min-content width');
-assert.ok(cleanupCss.includes('grid-template-rows:auto minmax(0,1fr)!important'), 'the unselected panel must give the horizontal lane all remaining panel height');
+assert.ok(cleanupCss.includes('grid-template-rows:auto auto!important'), 'the unselected panel must allocate a real row for every wrapped card row');
 assert.ok(cleanupCss.includes('.tl-bench-list .tl-squad-card'), 'bench cards must retain their readable treatment');
 assert.ok(cleanupCss.includes('.tl-bench-list .tl-squad-photo'), 'bench portraits must remain explicitly enlarged');
 assert.ok(cleanupCss.includes('.tl-bench-list .tl-squad-copy strong'), 'bench player names must remain explicitly enlarged');
+assert.ok(!cleanupCss.includes('grid-auto-flow:column!important'), 'single horizontal reserve lane must never be restored');
 assert.ok(layoutCss.includes('.tl-squad-manager{min-height:0;margin:0 auto'), 'regression fixture must retain the upstream auto-margin rule that previously caused the collapse');
 
 assert.ok(css.includes('[data-live-dom="true"]'), 'zero-flash state must disable entry animations after mount');
@@ -98,16 +96,17 @@ console.log(JSON.stringify({
   browserScrollAnchoring: false,
   pitchGeometry: 'captured-and-restored-same-frame',
   playerImagesReused: true,
-  reserveLayout: 'single-horizontal-scroll-lane',
+  reserveLayout: 'wrapped-full-grid',
   benchLayout: 'single-readable-row-per-player',
-  reservePanelGeometry: 'shallow-full-width-workspace',
-  reserveHorizontalScroll: true,
-  reserveWheelScroll: true,
+  reservePanelGeometry: 'auto-height-full-width-workspace',
+  reserveHorizontalScroll: false,
+  reserveWheelScroll: false,
   reserveVerticalScroll: false,
+  reserveAllPlayersReachableAtOnce: true,
   reserveDragAffordance: true,
   unselectedHeader: 'Não relacionados',
   unselectedCountVisible: false,
   positionalFiltersVisible: false,
-  squadCardMinimumHeight: 62,
-  squadPortraitSize: 48
+  squadCardMinimumHeight: 58,
+  squadPortraitSize: 44
 }, null, 2));
