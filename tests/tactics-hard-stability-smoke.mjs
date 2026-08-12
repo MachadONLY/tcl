@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [source, css, formationManager, repository, index] = await Promise.all([
+const [source, css, studio, state, repository, index] = await Promise.all([
   readFile(new URL('../src/career-tactics-hard-stability.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-hard-stability.css', import.meta.url), 'utf8'),
-  readFile(new URL('../src/career-tactics-formation-manager.js', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-studio.js', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-state.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-core/career-repository.js', import.meta.url), 'utf8'),
   readFile(new URL('../index.html', import.meta.url), 'utf8')
 ]);
@@ -21,10 +22,12 @@ assert.ok(source.includes('lockGeometry(root)'), 'lineup geometry must be measur
 assert.ok(source.includes("root.dataset.hardGeometry = 'true'"), 'geometry lock must be explicit');
 assert.ok(source.includes("window.addEventListener('resize'"), 'geometry may only be recalculated for a real viewport resize');
 
-assert.ok(formationManager.includes('function patchPitchInstantly'), 'formation manager may still patch coordinates for explicit formation work');
-assert.ok(!formationManager.includes('if (!applyingFormation) patchPitchInstantly(root, career);'), 'generic enhancement must never overwrite a manual pitch drop');
-assert.ok(!formationManager.includes('if (root && cachedCareer && !applyingFormation) patchPitchInstantly(root, cachedCareer);'), 'DOM mutations must never snap a manually moved player back to cached formation coordinates');
-assert.ok(formationManager.includes('Generic DOM enhancement must never re-apply a cached formation here.'), 'manual pitch ownership must be documented in the formation manager');
+assert.ok(studio.includes('setManualPosition(currentCareer'), 'manual pitch drop must be owned by the live studio state');
+assert.ok(studio.includes('applyFormationState(currentCareer, formation)'), 'formation changes must use the same authoritative state layer');
+assert.ok(studio.includes('syncDraftsFromCurrentCareer()'), 'manual changes must publish a fresh save draft immediately');
+assert.ok(state.includes('career.tacticalLayouts[plan][phase][playerId]'), 'manual positions must persist by plan and phase');
+assert.ok(state.includes('career.formation = formation'), 'formation and layouts must live in the same state mutation layer');
+assert.ok(!index.includes('career-tactics-formation-manager.js'), 'stale duplicate formation controller must stay removed from runtime');
 assert.ok(repository.includes('function syncFormationDraftFromCareer'), 'career persistence must synchronize manual tactical coordinates into the formation draft');
 assert.ok(repository.includes('syncFormationDraftFromCareer(draft);'), 'the freshest tactics career draft must replace any older formation draft before saving');
 assert.ok(repository.includes('tacticalLayouts: structuredClone(career.tacticalLayouts)'), 'manual x/y layouts must be cloned into the authoritative formation draft');
@@ -44,7 +47,8 @@ console.log(JSON.stringify({
   ok: true,
   playerSelectionRender: false,
   freePitchMoveRender: false,
-  freePitchPositionAuthority: 'manual-layout',
+  freePitchPositionAuthority: 'single-studio-state',
+  duplicateFormationController: false,
   mutationSnapBack: false,
   savedManualCoordinates: true,
   dragEnabled: true,
