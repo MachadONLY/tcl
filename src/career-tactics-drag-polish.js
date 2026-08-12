@@ -1,37 +1,35 @@
 let targetX = -9999;
 let targetY = -9999;
-let currentX = -9999;
-let currentY = -9999;
 let frame = 0;
+let lastGhost = null;
 
 function dragGhost() {
   return document.querySelector('.tl-drag-ghost');
+}
+
+function latestPointerSample(event) {
+  const samples = event.getCoalescedEvents?.();
+  return samples?.length ? samples[samples.length - 1] : event;
 }
 
 function drawGhost() {
   frame = 0;
   const ghost = dragGhost();
   if (!ghost) {
-    currentX = targetX;
-    currentY = targetY;
+    lastGhost = null;
     return;
   }
 
-  if (currentX < -1000 || currentY < -1000) {
-    currentX = targetX;
-    currentY = targetY;
-  } else {
-    const easing = 0.58;
-    currentX += (targetX - currentX) * easing;
-    currentY += (targetY - currentY) * easing;
+  if (ghost !== lastGhost) {
+    lastGhost = ghost;
+    ghost.dataset.preciseDrag = 'true';
   }
 
-  ghost.style.setProperty('--tl-drag-x', `${currentX.toFixed(2)}px`);
-  ghost.style.setProperty('--tl-drag-y', `${currentY.toFixed(2)}px`);
-
-  if (Math.abs(targetX - currentX) > 0.15 || Math.abs(targetY - currentY) > 0.15) {
-    frame = requestAnimationFrame(drawGhost);
-  }
+  // Pointer input is sampled at native frequency, but painting happens only on
+  // the next animation frame. This keeps the avatar buttery smooth without the
+  // elastic lag that an interpolated cursor follower introduces.
+  ghost.style.setProperty('--tl-drag-x', `${targetX.toFixed(2)}px`);
+  ghost.style.setProperty('--tl-drag-y', `${targetY.toFixed(2)}px`);
 }
 
 function scheduleGhost() {
@@ -39,13 +37,22 @@ function scheduleGhost() {
 }
 
 function capturePointer(event) {
-  targetX = event.clientX;
-  targetY = event.clientY;
+  const sample = latestPointerSample(event);
+  targetX = sample.clientX;
+  targetY = sample.clientY;
   scheduleGhost();
+}
+
+function resetPointer() {
+  targetX = -9999;
+  targetY = -9999;
+  lastGhost = null;
 }
 
 document.addEventListener('pointerdown', capturePointer, { capture: true, passive: true });
 document.addEventListener('pointermove', capturePointer, { capture: true, passive: true });
+document.addEventListener('pointerup', () => requestAnimationFrame(resetPointer), { capture: true, passive: true });
+document.addEventListener('pointercancel', resetPointer, { capture: true, passive: true });
 
 const observer = new MutationObserver(() => {
   if (dragGhost()) scheduleGhost();
