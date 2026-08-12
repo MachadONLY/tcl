@@ -6,8 +6,20 @@ export const TACTICS_PLANS = Object.freeze(['A', 'B', 'C']);
 const finitePoint = point => point && Number.isFinite(point.x) && Number.isFinite(point.y);
 const clone = value => structuredClone(value);
 
+function restoreExtendedFormationMarker(career) {
+  const formation = career?.__touchlineExtendedFormation;
+  if (!formation || !isTacticsFormation(formation)) return career;
+  career.formation = formation;
+  const layouts = career.__touchlineExtendedTacticalLayouts;
+  if (layouts && typeof layouts === 'object') career.tacticalLayouts = clone(layouts);
+  delete career.__touchlineExtendedFormation;
+  delete career.__touchlineExtendedTacticalLayouts;
+  return career;
+}
+
 export function ensureTacticalLayouts(career) {
   if (!career || typeof career !== 'object') return career;
+  restoreExtendedFormationMarker(career);
   career.tacticalLayouts = career.tacticalLayouts && typeof career.tacticalLayouts === 'object'
     ? career.tacticalLayouts
     : {};
@@ -62,8 +74,9 @@ export function removeManualPosition(career, playerId) {
 }
 
 export function formationDraftFromCareer(career) {
-  if (!career?.saveId || !career?.clubCode || !isTacticsFormation(career.formation)) return null;
+  if (!career?.saveId || !career?.clubCode) return null;
   ensureTacticalLayouts(career);
+  if (!isTacticsFormation(career.formation)) return null;
   return {
     saveId: career.saveId,
     clubCode: career.clubCode,
