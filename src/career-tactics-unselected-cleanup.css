@@ -58,7 +58,7 @@
 
 /*
  * Exactly one horizontal lane. Cards never wrap vertically. The lane itself is
- * the scroll container, so the user moves right until the final reserve appears.
+ * the scroll container, so the user moves right freely until the final reserve.
  */
 .tl-tactics-studio .tl-roster-grid.reserves{
   display:grid!important;
@@ -78,7 +78,7 @@
   padding:2px 12px 10px!important;
   scroll-padding-inline:12px!important;
   scroll-snap-type:x mandatory!important;
-  scroll-behavior:smooth!important;
+  scroll-behavior:auto!important;
   scrollbar-gutter:stable!important;
   overscroll-behavior-x:contain!important;
   overscroll-behavior-y:none!important;
@@ -106,15 +106,15 @@
   gap:11px!important;
   padding:7px 10px!important;
   border-radius:13px!important;
-  scroll-snap-align:start!important;
+  /* Keep the x-axis scroll context but do not force the lane to jump between cards. */
+  scroll-snap-align:none!important;
   scroll-snap-stop:always!important;
   cursor:grab!important;
   user-select:none!important;
 }
 
-/* The final card snaps by its right edge, matching the lane's real scroll end. */
 .tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card:last-child{
-  scroll-snap-align:end!important;
+  scroll-snap-align:none!important;
 }
 
 .tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card:active{
