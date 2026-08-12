@@ -112,6 +112,11 @@
   user-select:none!important;
 }
 
+/* The final card snaps by its right edge, matching the lane's real scroll end. */
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card:last-child{
+  scroll-snap-align:end!important;
+}
+
 .tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card:active{
   cursor:grabbing!important;
 }
