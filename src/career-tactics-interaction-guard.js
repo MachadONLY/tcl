@@ -38,10 +38,7 @@ function queueDurableSave(delay = 36) {
       if (revision !== saveRevision) return;
       const live = globalThis.__touchlineCareerDraft;
       if (!live?.saveId || !live?.clubCode) return;
-      const snapshot = clone(live);
-      const saved = await CareerRepository.save(snapshot);
-      // CareerRepository consumes the global draft while merging. Re-publish the
-      // persisted snapshot so the legacy shell can never save an older career.
+      const saved = await CareerRepository.save(clone(live));
       publishSavedCareer(saved);
     });
   }, delay);
@@ -50,6 +47,25 @@ function queueDurableSave(delay = 36) {
 function clearFreeDragMode() {
   document.documentElement.classList.remove('tl-lineup-free-drag');
 }
+
+// The mounted Studio used to ping a hidden legacy range input so the old page
+// could mirror tactical values. That old page owns a stale module-scoped career
+// and its input handler calls CareerRepository.save(), overwriting the Studio's
+// newer formation, XI and manual x/y a few milliseconds later. Keep the hidden
+// bridge for compatibility/layout only; it is never allowed to persist tactics.
+document.addEventListener('input', event => {
+  const legacyControl = event.target.closest?.('.tl-tactics-bridge [data-tactic], .tl-tactics-bridge [data-formation]');
+  if (!legacyControl || location.hash !== '#tactics') return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+}, true);
+
+document.addEventListener('change', event => {
+  const legacyControl = event.target.closest?.('.tl-tactics-bridge [data-tactic], .tl-tactics-bridge [data-formation]');
+  if (!legacyControl || location.hash !== '#tactics') return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+}, true);
 
 document.addEventListener('pointerdown', event => {
   if (event.button !== 0) return;
@@ -67,9 +83,6 @@ document.addEventListener('pointermove', event => {
   if (!pointer || event.pointerId !== pointer.id) return;
   if (!pointer.moved && Math.hypot(event.clientX - pointer.startX, event.clientY - pointer.startY) >= 5) {
     pointer.moved = true;
-    // For an on-pitch player the primary gesture is precise free positioning.
-    // Disable hit-testing of the other field players for this pointer sequence,
-    // so their labels/avatars can never steal the pitch drop target.
     document.documentElement.classList.add('tl-lineup-free-drag');
   }
 }, true);
@@ -88,14 +101,13 @@ window.addEventListener('pointercancel', event => {
   clearFreeDragMode();
 }, false);
 
-// Formation, tactical instruction, responsibility and role changes all publish
-// a fresh career draft in the owning controller before the event reaches window.
+// Formation, tactical instruction, responsibility and role changes publish a
+// fresh career draft in their owning controller before the event reaches window.
 window.addEventListener('change', event => {
-  if (!tacticsRoot(event.target)) return;
+  if (!tacticsRoot(event.target) || event.target.closest?.('.tl-tactics-bridge')) return;
   queueDurableSave();
 }, false);
 
-// Buttons such as plan/focus switches mutate state on click instead of change.
 window.addEventListener('click', event => {
   const target = event.target.closest?.('.tl-tactics-studio [data-tl-plan], .tl-tactics-studio [data-tl-focus], .tl-tactics-studio [data-tl-field], .tl-tactics-studio [data-tl-toggle]');
   if (target) queueDurableSave(48);
@@ -105,7 +117,5 @@ window.addEventListener('pagehide', () => {
   clearTimeout(saveTimer);
   const live = globalThis.__touchlineCareerDraft;
   if (!live?.saveId || !live?.clubCode) return;
-  // IndexedDB work may finish during pagehide in modern browsers. Fire without
-  // blocking navigation; localStorage fallback is written synchronously inside save.
   CareerRepository.save(clone(live)).catch(() => undefined);
 });
