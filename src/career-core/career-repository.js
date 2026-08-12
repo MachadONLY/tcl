@@ -6,6 +6,7 @@ const DB_VERSION = 1;
 const STORE_NAME = "saves";
 const FALLBACK_PREFIX = "touchline.career.v5.";
 const LOCAL_FALLBACK_SOFT_LIMIT = 3_600_000;
+const LEGACY_CORE_FORMATIONS = new Set(['4-2-3-1', '4-3-3', '3-4-2-1', '4-4-2', '4-1-4-1', '3-5-2', '5-3-2']);
 
 function openDatabase() {
   return new Promise((resolve, reject) => {
@@ -124,6 +125,34 @@ function mergeFormationDraft(save) {
   return { ...save, formation: draft.formation, tacticalLayouts: structuredClone(draft.tacticalLayouts) };
 }
 
+function markExtendedFormation(save) {
+  if (!save?.formation || LEGACY_CORE_FORMATIONS.has(save.formation)) return save;
+  return {
+    ...save,
+    __touchlineExtendedFormation: save.formation,
+    __touchlineExtendedTacticalLayouts: structuredClone(save.tacticalLayouts || {})
+  };
+}
+
+function restoreExtendedFormation(save) {
+  if (!save || typeof save !== "object") return save;
+  const requested = save.__touchlineExtendedFormation;
+  const requestedLayouts = save.__touchlineExtendedTacticalLayouts;
+  const next = { ...save };
+  delete next.__touchlineExtendedFormation;
+  delete next.__touchlineExtendedTacticalLayouts;
+  // Base.normalizeCareer currently understands seven historical shapes. A load
+  // carries the real extended shape through that pass with these transient
+  // markers; the first repository save restores it and strips the markers.
+  if (requested && !LEGACY_CORE_FORMATIONS.has(requested)) {
+    next.formation = requested;
+    if (requestedLayouts && typeof requestedLayouts === "object") {
+      next.tacticalLayouts = structuredClone(requestedLayouts);
+    }
+  }
+  return next;
+}
+
 function reconcileStoredCareer(save) {
   if (!save) return save;
   const snapshot = structuredClone(save);
@@ -132,18 +161,24 @@ function reconcileStoredCareer(save) {
   return snapshot;
 }
 
+function prepareLoadedCareer(save) {
+  return markExtendedFormation(reconcileStoredCareer(mergeFormationDraft(save)));
+}
+
 export const CareerRepository = Object.freeze({
   async load(saveId = "primary") {
     try {
       const saved = await withStore("readonly", store => store.get(saveId));
-      return reconcileStoredCareer(mergeFormationDraft(saved || readFallback(saveId)));
+      return prepareLoadedCareer(saved || readFallback(saveId));
     } catch {
-      return reconcileStoredCareer(mergeFormationDraft(readFallback(saveId)));
+      return prepareLoadedCareer(readFallback(saveId));
     }
   },
 
   async save(save) {
-    const merged = reconcileStoredCareer(mergeFormationDraft(consumeCareerDraft(save)));
+    const merged = restoreExtendedFormation(
+      reconcileStoredCareer(mergeFormationDraft(consumeCareerDraft(save)))
+    );
     const snapshot = structuredClone({ ...merged, updatedAt: new Date().toISOString() });
     const fallbackMode = writeFallback(snapshot);
     try {
