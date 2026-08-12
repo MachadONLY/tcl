@@ -37,6 +37,9 @@ assert.ok(cleanupSource.includes("const TITLE = 'Não relacionados'"), 'unselect
 assert.ok(cleanupSource.includes('header.replaceChildren(title)'), 'legacy title, count and positional filters must be removed from the DOM');
 assert.ok(cleanupSource.includes("root.querySelectorAll('[data-roster-filter]')"), 'positional filter buttons must be removed after every render');
 assert.ok(cleanupSource.includes("root.querySelectorAll('.tl-roster-scroll-tools')"), 'obsolete horizontal carousel controls must be removed');
+assert.ok(cleanupSource.includes('function horizontalReserveWheel(event)'), 'reserve lane must translate mouse-wheel motion into horizontal movement');
+assert.ok(cleanupSource.includes('lane.scrollLeft += event.deltaY'), 'vertical wheel motion must advance the reserve lane left/right');
+assert.ok(cleanupSource.includes("app.addEventListener('wheel', horizontalReserveWheel, { passive: false })"), 'reserve wheel handler must be able to suppress page scrolling when the lane moves');
 assert.ok(!cleanupSource.includes('Goleiros'), 'cleanup runtime must not recreate goalkeeper filters');
 assert.ok(!cleanupSource.includes('Defensores'), 'cleanup runtime must not recreate defender filters');
 assert.ok(!cleanupSource.includes('Meio-campo'), 'cleanup runtime must not recreate midfield filters');
@@ -99,6 +102,7 @@ console.log(JSON.stringify({
   benchLayout: 'single-readable-row-per-player',
   reservePanelGeometry: 'shallow-full-width-workspace',
   reserveHorizontalScroll: true,
+  reserveWheelScroll: true,
   reserveVerticalScroll: false,
   reserveDragAffordance: true,
   unselectedHeader: 'Não relacionados',
