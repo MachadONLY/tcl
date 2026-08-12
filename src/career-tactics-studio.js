@@ -6,7 +6,7 @@ import {
   normalizeCareer,
   normalizeTactics,
   squadFor
-} from './career-core/career-core.js';
+} from './career-core/career-runtime.js';
 import { CareerRepository, legacyClubSelection } from './career-core/career-repository.js';
 import { TACTICS_FORMATION_SLOTS, formationOptionsMarkup } from './career-tactics-formations.js';
 import {
@@ -390,18 +390,12 @@ function persistCareer() {
   saveTimer = setTimeout(async () => {
     const draft = clone(currentCareer);
     draft.updatedAt = new Date().toISOString();
-    globalThis.__touchlineCareerDraft = draft;
+    globalThis.__touchlineCareerDraft = clone(draft);
     globalThis.__touchlineTacticsDraft = clone(draft.tactics);
     const formationDraft = formationDraftFromCareer(draft);
     if (formationDraft) globalThis.__touchlineFormationDraft = formationDraft;
-    const input = bridgeRoot?.querySelector('[data-tactic="pressing"]');
-    if (input) {
-      input.value = String(draft.tactics.pressing);
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-    } else {
-      currentCareer = await CareerRepository.save(draft);
-      delete globalThis.__touchlineCareerDraft;
-    }
+    currentCareer = await CareerRepository.save(draft);
+    syncDraftsFromCurrentCareer();
     saveState = 'saved';
     updateSaveBadge();
   }, 120);
