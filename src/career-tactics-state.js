@@ -22,6 +22,10 @@ export function applyFormationState(career, formation) {
   if (!career || !isTacticsFormation(formation)) return false;
   ensureTacticalLayouts(career);
   career.formation = formation;
+  // An explicit user choice always wins over compatibility markers that may
+  // have accompanied a save through the legacy seven-formation core.
+  delete career.__touchlineExtendedFormation;
+  delete career.__touchlineExtendedTacticalLayouts;
   // Formation is global for the XI. Reset every plan/phase so no previous
   // shape can leak back when the user changes plan after choosing a formation.
   for (const plan of TACTICS_PLANS) {
