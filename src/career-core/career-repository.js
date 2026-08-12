@@ -7,6 +7,7 @@ const STORE_NAME = "saves";
 const FALLBACK_PREFIX = "touchline.career.v5.";
 const LOCAL_FALLBACK_SOFT_LIMIT = 3_600_000;
 const LEGACY_CORE_FORMATIONS = new Set(['4-2-3-1', '4-3-3', '3-4-2-1', '4-4-2', '4-1-4-1', '3-5-2', '5-3-2']);
+let storageRevisionCounter = 0;
 
 function openDatabase() {
   return new Promise((resolve, reject) => {
@@ -63,6 +64,7 @@ function compactFallback(save) {
     status: save.status,
     createdAt: save.createdAt,
     updatedAt: save.updatedAt,
+    storageRevision: save.storageRevision,
     fallbackSummaryOnly: true,
     storageMode: "indexeddb-primary"
   };
@@ -92,13 +94,33 @@ function timestampOf(save) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function revisionOf(save) {
+  const revision = Number(save?.storageRevision);
+  return Number.isFinite(revision) && revision > 0 ? revision : 0;
+}
+
 function freshestSnapshot(primary, fallback) {
   if (!primary) return fallback || null;
   if (!fallback) return primary;
-  // localStorage is written synchronously before the IndexedDB transaction.
-  // If navigation/reload lands between those writes, prefer whichever complete
-  // snapshot has the newest timestamp instead of blindly trusting one backend.
-  return timestampOf(fallback) > timestampOf(primary) ? fallback : primary;
+  const primaryRevision = revisionOf(primary);
+  const fallbackRevision = revisionOf(fallback);
+  if (primaryRevision !== fallbackRevision) {
+    return fallbackRevision > primaryRevision ? fallback : primary;
+  }
+  // localStorage is written synchronously before IndexedDB. On an exact
+  // revision/timestamp tie, the synchronous fallback is the safest snapshot
+  // during a navigation that lands between concurrent transactions.
+  return timestampOf(fallback) >= timestampOf(primary) ? fallback : primary;
+}
+
+function rememberRevision(save) {
+  storageRevisionCounter = Math.max(storageRevisionCounter, revisionOf(save));
+  return save;
+}
+
+function nextRevision(save, fallback) {
+  storageRevisionCounter = Math.max(storageRevisionCounter, revisionOf(save), revisionOf(fallback)) + 1;
+  return storageRevisionCounter;
 }
 
 function syncFormationDraftFromCareer(career) {
@@ -171,7 +193,7 @@ function reconcileStoredCareer(save) {
 }
 
 function prepareLoadedCareer(save) {
-  return markExtendedFormation(reconcileStoredCareer(mergeFormationDraft(save)));
+  return rememberRevision(markExtendedFormation(reconcileStoredCareer(mergeFormationDraft(save))));
 }
 
 export const CareerRepository = Object.freeze({
@@ -186,10 +208,15 @@ export const CareerRepository = Object.freeze({
   },
 
   async save(save) {
+    const fallbackBeforeSave = readFallback(save?.saveId || "primary");
     const merged = restoreExtendedFormation(
       reconcileStoredCareer(mergeFormationDraft(consumeCareerDraft(save)))
     );
-    const snapshot = structuredClone({ ...merged, updatedAt: new Date().toISOString() });
+    const snapshot = structuredClone({
+      ...merged,
+      updatedAt: new Date().toISOString(),
+      storageRevision: nextRevision(merged, fallbackBeforeSave)
+    });
     const fallbackMode = writeFallback(snapshot);
     try {
       await withStore("readwrite", store => store.put(snapshot));
