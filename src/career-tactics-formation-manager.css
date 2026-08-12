@@ -16,10 +16,13 @@
   margin-left:2px;
 }
 
-.tl-field-formation-control>span{
+.tl-field-formation-control>span,
+.tl-field-formation-control>b{
+  margin:0;
   color:#77838f;
   font-size:8px;
   font-weight:850;
+  line-height:1;
   letter-spacing:.07em;
   text-transform:uppercase;
 }
@@ -50,27 +53,9 @@
   box-shadow:0 0 0 3px color-mix(in srgb,var(--tl-accent) 14%,transparent);
 }
 
-/* Formation changes keep the pitch mounted. Only the existing player nodes move. */
-.tl-tactics-studio.tl-formation-measuring .tl-player-node{
-  transition:none!important;
-}
-
-.tl-tactics-studio.tl-formation-busy [data-tl-formation],
-.tl-tactics-studio.tl-formation-busy [data-field-formation-control] select{
-  pointer-events:none;
-  opacity:.72;
-}
-
-.tl-tactics-studio .tl-player-node[data-formation-moving]{
-  z-index:8;
-  will-change:transform,filter;
-}
-
-.tl-tactics-studio .tl-player-node[data-formation-moving] .tl-player-photo{
-  box-shadow:
-    0 11px 27px rgba(0,0,0,.48),
-    0 0 0 4px rgba(6,16,11,.42),
-    0 0 22px color-mix(in srgb,var(--tl-accent) 22%,transparent);
+/* Formation changes are owned by the mounted tactics studio. */
+.tl-tactics-studio .tl-player-node{
+  transition:left .22s cubic-bezier(.2,.8,.2,1),top .22s cubic-bezier(.2,.8,.2,1),transform .16s ease,filter .16s ease;
 }
 
 /* Every unselected player stays reachable. The final spacer prevents the last card from being clipped. */
@@ -205,11 +190,8 @@
 }
 
 @media (prefers-reduced-motion:reduce){
-  .tl-field-formation-control select{
+  .tl-field-formation-control select,
+  .tl-tactics-studio .tl-player-node{
     transition:none!important;
-  }
-
-  .tl-tactics-studio .tl-player-node[data-formation-moving]{
-    will-change:auto;
   }
 }
