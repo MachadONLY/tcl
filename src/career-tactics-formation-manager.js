@@ -344,7 +344,8 @@ async function enhance() {
   enhanceNativeSelect(root, selected);
   if (root.dataset.tacticsView === 'lineup') fieldFormationControl(root, selected);
   enableFullRosterScroll(root);
-  if (!applyingFormation) patchPitchInstantly(root, career);
+  // The tactics studio is the single authority for manual x/y coordinates.
+  // Generic DOM enhancement must never re-apply a cached formation here.
 }
 
 function scheduleEnhancement() {
@@ -354,8 +355,8 @@ function scheduleEnhancement() {
 }
 
 function handleStudioMutation() {
-  const root = document.querySelector('.tl-tactics-studio');
-  if (root && cachedCareer && !applyingFormation) patchPitchInstantly(root, cachedCareer);
+  // Mutations include the render immediately after a free-position drop.
+  // Re-patching from cachedCareer here used to snap the player back.
   scheduleEnhancement();
 }
 
