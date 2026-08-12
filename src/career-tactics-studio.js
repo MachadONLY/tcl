@@ -2,19 +2,27 @@ import './career-tactics-studio.css';
 import {
   PLAYER_BY_ID,
   PLAYER_ROLE_OPTIONS,
-  FORMATION_SHAPES,
   TACTIC_OPTIONS,
   normalizeCareer,
   normalizeTactics,
   squadFor
 } from './career-core/career-core.js';
 import { CareerRepository, legacyClubSelection } from './career-core/career-repository.js';
+import { TACTICS_FORMATION_SLOTS, formationOptionsMarkup } from './career-tactics-formations.js';
+import {
+  TACTICS_PHASES,
+  TACTICS_PLANS,
+  applyFormationState,
+  ensureTacticalLayouts,
+  formationDraftFromCareer,
+  setManualPosition
+} from './career-tactics-state.js';
 
 const SCALE_VALUES = Object.freeze([28, 43, 58, 73, 88]);
 const SCALE_LABELS = Object.freeze(['Muito baixo', 'Baixo', 'Equilibrado', 'Alto', 'Muito alto']);
 const FOCUSES = Object.freeze(['Defender', 'Apoiar', 'Atacar']);
-const PHASES = Object.freeze(['base', 'possession', 'out']);
-const PLANS = Object.freeze(['A', 'B', 'C']);
+const PHASES = TACTICS_PHASES;
+const PLANS = TACTICS_PLANS;
 const BENCH_LIMIT = 9;
 const GROUP_FILTERS = Object.freeze([
   ['ALL', 'Todos'],
@@ -25,16 +33,6 @@ const GROUP_FILTERS = Object.freeze([
 ]);
 const PLAN_LABELS = Object.freeze({ A: 'Plano principal', B: 'Buscar o jogo', C: 'Controlar resultado' });
 const PHASE_LABELS = Object.freeze({ base: 'Estrutura base', possession: 'Com a bola', out: 'Sem a bola' });
-
-const FORMATION_SLOTS = Object.freeze({
-  '4-2-3-1': [[50,91],[16,73],[38,77],[62,77],[84,73],[38,57],[62,57],[17,34],[50,39],[83,34],[50,15]],
-  '4-3-3': [[50,91],[16,73],[38,77],[62,77],[84,73],[30,53],[50,59],[70,53],[17,27],[50,18],[83,27]],
-  '3-4-2-1': [[50,91],[24,75],[50,79],[76,75],[14,51],[38,57],[62,57],[86,51],[35,34],[65,34],[50,14]],
-  '4-4-2': [[50,91],[16,73],[38,77],[62,77],[84,73],[16,46],[39,55],[61,55],[84,46],[36,19],[64,19]],
-  '4-1-4-1': [[50,91],[16,73],[38,77],[62,77],[84,73],[50,59],[16,40],[38,44],[62,44],[84,40],[50,15]],
-  '3-5-2': [[50,91],[24,75],[50,79],[76,75],[13,49],[35,56],[50,49],[65,56],[87,49],[36,18],[64,18]],
-  '5-3-2': [[50,91],[10,65],[30,76],[50,80],[70,76],[90,65],[28,47],[50,55],[72,47],[36,18],[64,18]]
-});
 
 const ROLE_COPY = Object.freeze({
   'Goleiro': 'Protege a área e prioriza decisões seguras.',
@@ -113,13 +111,7 @@ function ensureCareerCollections() {
 
   currentCareer.lineup = lineup;
   currentCareer.bench = bench.slice(0, BENCH_LIMIT);
-  currentCareer.tacticalLayouts = currentCareer.tacticalLayouts && typeof currentCareer.tacticalLayouts === 'object'
-    ? currentCareer.tacticalLayouts
-    : {};
-  for (const plan of PLANS) {
-    currentCareer.tacticalLayouts[plan] ||= {};
-    for (const phase of PHASES) currentCareer.tacticalLayouts[plan][phase] ||= {};
-  }
+  ensureTacticalLayouts(currentCareer);
 }
 
 function lineupPlayers() {
@@ -186,8 +178,8 @@ function planSettings(plan = currentCareer.tactics.activePlan) {
 }
 
 function defaultPosition(index, player, phase = pitchPhase, plan = currentCareer.tactics.activePlan) {
-  const slots = FORMATION_SLOTS[currentCareer.formation] || FORMATION_SLOTS['4-2-3-1'];
-  let [x, y] = slots[index] || FORMATION_SLOTS['4-2-3-1'][index] || [50, 50];
+  const slots = TACTICS_FORMATION_SLOTS[currentCareer.formation] || TACTICS_FORMATION_SLOTS['4-2-3-1'];
+  let [x, y] = slots[index] || TACTICS_FORMATION_SLOTS['4-2-3-1'][index] || [50, 50];
   const role = assignment(player).role;
   const tactics = planSettings(plan);
   if (phase === 'possession') {
@@ -208,8 +200,7 @@ function defaultPosition(index, player, phase = pitchPhase, plan = currentCareer
 }
 
 function layoutBucket(plan = currentCareer.tactics.activePlan, phase = pitchPhase) {
-  currentCareer.tacticalLayouts[plan] ||= {};
-  currentCareer.tacticalLayouts[plan][phase] ||= {};
+  ensureTacticalLayouts(currentCareer);
   return currentCareer.tacticalLayouts[plan][phase];
 }
 
@@ -317,7 +308,7 @@ function inspector(players) {
 
 function pitch(players) {
   return `<main class="tl-pitch-stage">
-    <div class="tl-field-hud"><div><span>${PHASE_LABELS[pitchPhase]}</span><strong>${currentCareer.formation}</strong></div><small>Arraste para reposicionar · solte sobre outro jogador para trocar</small></div>
+    <div class="tl-field-hud"><div><span>${PHASE_LABELS[pitchPhase]}</span><label class="tl-field-formation-control"><b>FORMAÇÃO</b><select data-tl-formation aria-label="Formação do XI">${formationOptionsMarkup(currentCareer.formation)}</select></label></div><small>Arraste para reposicionar · solte sobre outro jogador para trocar</small></div>
     <div class="tl-pitch phase-${pitchPhase}" data-drop-zone="pitch">
       <div class="tl-pitch-atmosphere"></div>
       <div class="tl-pitch-zones"><span></span><span></span><span></span></div>
@@ -361,7 +352,7 @@ function commandBar() {
   return `<header class="tl-command-bar">
     <div class="tl-command-title"><span>Centro tático</span><div><h1>Plano ${currentCareer.tactics.activePlan}</h1><p>${PLAN_LABELS[currentCareer.tactics.activePlan]} · ${currentCareer.tactics.mentality}</p></div></div>
     <nav class="tl-shape-switch">${[['base','Base'],['possession','Com bola'],['out','Sem bola']].map(([key,label]) => `<button class="${pitchPhase === key ? 'active' : ''}" data-tl-pitch-phase="${key}" type="button"><i></i>${label}</button>`).join('')}</nav>
-    <div class="tl-command-actions"><label><span>Formação</span><select data-tl-formation>${Object.keys(FORMATION_SHAPES).map(formation => `<option ${formation === currentCareer.formation ? 'selected' : ''}>${formation}</option>`).join('')}</select></label><div class="tl-save-state ${saveState}" data-tl-save><i></i><span>${saveState === 'saving' ? 'Salvando…' : 'Salvo'}</span></div></div>
+    <div class="tl-command-actions"><label><span>Formação</span><select data-tl-formation aria-label="Formação tática">${formationOptionsMarkup(currentCareer.formation)}</select></label><div class="tl-save-state ${saveState}" data-tl-save><i></i><span>${saveState === 'saving' ? 'Salvando…' : 'Salvo'}</span></div></div>
   </header>`;
 }
 
@@ -382,15 +373,27 @@ function updateSaveBadge() {
   badge.querySelector('span')?.replaceChildren(saveState === 'saving' ? 'Salvando…' : 'Salvo');
 }
 
+function syncDraftsFromCurrentCareer() {
+  if (!currentCareer) return;
+  const draft = clone(currentCareer);
+  globalThis.__touchlineCareerDraft = draft;
+  globalThis.__touchlineTacticsDraft = clone(draft.tactics);
+  const formationDraft = formationDraftFromCareer(currentCareer);
+  if (formationDraft) globalThis.__touchlineFormationDraft = formationDraft;
+}
+
 function persistCareer() {
   saveState = 'saving';
   updateSaveBadge();
+  syncDraftsFromCurrentCareer();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     const draft = clone(currentCareer);
     draft.updatedAt = new Date().toISOString();
     globalThis.__touchlineCareerDraft = draft;
     globalThis.__touchlineTacticsDraft = clone(draft.tactics);
+    const formationDraft = formationDraftFromCareer(draft);
+    if (formationDraft) globalThis.__touchlineFormationDraft = formationDraft;
     const input = bridgeRoot?.querySelector('[data-tactic="pressing"]');
     if (input) {
       input.value = String(draft.tactics.pressing);
@@ -435,9 +438,8 @@ function setRole(playerId, patch) {
 }
 
 function changeFormation(formation) {
-  if (!FORMATION_SHAPES[formation]) return;
-  currentCareer.formation = formation;
-  currentCareer.tacticalLayouts[currentCareer.tactics.activePlan] = { base: {}, possession: {}, out: {} };
+  if (!applyFormationState(currentCareer, formation)) return;
+  syncDraftsFromCurrentCareer();
   renderStudio();
   persistCareer();
 }
@@ -596,10 +598,17 @@ function movePlayerOnPitch(playerId, clientX, clientY) {
   const pitchElement = studioRoot?.querySelector('.tl-pitch');
   if (!pitchElement) return false;
   const bounds = pitchElement.getBoundingClientRect();
-  const x = Math.max(6, Math.min(94, ((clientX - bounds.left) / bounds.width) * 100));
-  const y = Math.max(6, Math.min(94, ((clientY - bounds.top) / bounds.height) * 100));
-  layoutBucket()[playerId] = { x: +x.toFixed(2), y: +y.toFixed(2) };
+  const x = ((clientX - bounds.left) / bounds.width) * 100;
+  const y = ((clientY - bounds.top) / bounds.height) * 100;
+  if (!setManualPosition(currentCareer, {
+    playerId,
+    plan: currentCareer.tactics.activePlan,
+    phase: pitchPhase,
+    x,
+    y
+  })) return false;
   selectedPlayerId = playerId;
+  syncDraftsFromCurrentCareer();
   return true;
 }
 
@@ -646,6 +655,7 @@ function performDrop(playerId, clientX, clientY) {
     else if (zone === 'reserves') changed = moveToReserves(playerId);
   }
   if (changed) {
+    syncDraftsFromCurrentCareer();
     renderStudio();
     persistCareer();
   }
@@ -680,7 +690,7 @@ function bindStudioEvents() {
   studioRoot.querySelectorAll('[data-tl-role]').forEach(select => select.onchange = () => setRole(select.dataset.tlRole, { role: select.value }));
   studioRoot.querySelectorAll('[data-tl-focus]').forEach(button => button.onclick = () => setRole(button.dataset.tlFocus, { focus: button.dataset.focus }));
   studioRoot.querySelectorAll('[data-roster-filter]').forEach(button => button.onclick = () => { rosterFilter = button.dataset.rosterFilter; renderStudio(); });
-  studioRoot.querySelector('[data-tl-formation]')?.addEventListener('change', event => changeFormation(event.target.value));
+  studioRoot.querySelectorAll('[data-tl-formation]').forEach(select => select.onchange = () => changeFormation(select.value));
   studioRoot.querySelectorAll('[data-drag-player]').forEach(element => {
     element.onpointerdown = beginDrag;
     element.onclick = event => {
@@ -705,6 +715,7 @@ async function mount() {
     const selectedClub = legacyClubSelection() || 'MUN';
     currentCareer = normalizeCareer(await CareerRepository.load(), selectedClub);
     ensureCareerCollections();
+    syncDraftsFromCurrentCareer();
     bridgeRoot = document.createElement('div');
     bridgeRoot.className = 'tl-tactics-bridge';
     bridgeRoot.setAttribute('aria-hidden', 'true');
