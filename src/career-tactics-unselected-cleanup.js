@@ -28,6 +28,23 @@ function cleanUnselectedHeader() {
   root.querySelectorAll('.tl-roster-scroll-tools').forEach(tools => tools.remove());
 }
 
+function horizontalReserveWheel(event) {
+  if (location.hash !== '#tactics') return;
+  const lane = event.target instanceof Element
+    ? event.target.closest('.tl-roster-grid.reserves')
+    : null;
+  if (!lane || lane.scrollWidth <= lane.clientWidth + 1) return;
+
+  const dominantDelta = Math.abs(event.deltaX) >= Math.abs(event.deltaY)
+    ? event.deltaX
+    : event.deltaY;
+  if (!dominantDelta) return;
+
+  const before = lane.scrollLeft;
+  lane.scrollLeft += dominantDelta;
+  if (Math.abs(lane.scrollLeft - before) > .5) event.preventDefault();
+}
+
 function scheduleCleanup() {
   if (cleanupQueued) return;
   cleanupQueued = true;
@@ -35,5 +52,6 @@ function scheduleCleanup() {
 }
 
 new MutationObserver(scheduleCleanup).observe(app, { childList: true, subtree: true });
+app.addEventListener('wheel', horizontalReserveWheel, { passive: false });
 window.addEventListener('hashchange', scheduleCleanup);
 scheduleCleanup();
