@@ -88,8 +88,9 @@ async function reserveEdgeReachability() {
     const grid = document.querySelector('.tl-roster-grid.reserves');
     const cards = [...(grid?.querySelectorAll('.tl-squad-card') || [])];
     if (!grid || !cards.length) return null;
-    const originalBehavior = grid.style.scrollBehavior;
-    grid.style.scrollBehavior = 'auto';
+    const originalBehavior = grid.style.getPropertyValue('scroll-behavior');
+    const originalPriority = grid.style.getPropertyPriority('scroll-behavior');
+    grid.style.setProperty('scroll-behavior', 'auto', 'important');
     const settle = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const tolerance = 2;
 
@@ -109,7 +110,8 @@ async function reserveEdgeReachability() {
 
     grid.scrollLeft = 0;
     await settle();
-    grid.style.scrollBehavior = originalBehavior;
+    if (originalBehavior) grid.style.setProperty('scroll-behavior', originalBehavior, originalPriority);
+    else grid.style.removeProperty('scroll-behavior');
     return { firstComplete, lastComplete, reachedEnd, maxScroll };
   });
 }
