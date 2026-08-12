@@ -86,10 +86,24 @@ function writeFallback(save) {
   }
 }
 
+function syncFormationDraftFromCareer(career) {
+  if (!career || typeof career !== "object") return;
+  if (!career.saveId || !career.clubCode || !career.formation || !career.tacticalLayouts) return;
+  globalThis.__touchlineFormationDraft = {
+    saveId: career.saveId,
+    clubCode: career.clubCode,
+    formation: career.formation,
+    tacticalLayouts: structuredClone(career.tacticalLayouts)
+  };
+}
+
 function consumeCareerDraft(save) {
   const draft = globalThis.__touchlineCareerDraft;
   if (!draft || typeof draft !== "object") return save;
   if (draft.saveId !== save.saveId || draft.clubCode !== save.clubCode) return save;
+  // A tactics-screen career draft contains the freshest manual player coordinates.
+  // Promote those coordinates before mergeFormationDraft can read an older draft.
+  syncFormationDraftFromCareer(draft);
   delete globalThis.__touchlineCareerDraft;
   return {
     ...save,
