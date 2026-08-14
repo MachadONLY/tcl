@@ -112,11 +112,14 @@
     0 24px 60px rgba(0,0,0,.28)!important;
 }
 
-/* A starter drag means precise free positioning. Every visual child of every
-   field player becomes transparent to hit testing, so elementFromPoint always
-   reaches the pitch itself. Bench/reserve -> starter swaps are unaffected. */
-html.tl-lineup-free-drag .tl-tactics-studio .tl-pitch .tl-player-node,
-html.tl-lineup-free-drag .tl-tactics-studio .tl-pitch .tl-player-node *{
+/* Keep XI nodes hit-testable during a drag. Empty grass remains a precise free
+   positioning surface, while dropping directly on another player becomes a
+   semantic player-for-player position swap. Child visuals stay transparent so
+   elementFromPoint resolves the button itself consistently. */
+html.tl-is-dragging .tl-tactics-studio .tl-pitch .tl-player-node{
+  pointer-events:auto!important;
+}
+html.tl-is-dragging .tl-tactics-studio .tl-pitch .tl-player-node *{
   pointer-events:none!important;
 }
 
