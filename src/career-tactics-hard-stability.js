@@ -2,6 +2,10 @@ const app = document.querySelector('#app');
 const installedRoots = new WeakSet();
 let pointerInteraction = null;
 let resizeFrame = 0;
+let dragAutoScrollFrame = 0;
+
+const AUTO_SCROLL_EDGE = 72;
+const AUTO_SCROLL_MAX = 18;
 
 function playerIds(container, selector) {
   return [...container.querySelectorAll(selector)].map(node => node.dataset.dragPlayer);
@@ -213,6 +217,67 @@ function scheduleGeometryLock(root) {
   requestAnimationFrame(() => requestAnimationFrame(() => lockGeometry(root)));
 }
 
+function edgeAutoScrollDelta(position, start, end) {
+  if (position < start || position > end) return 0;
+  const distanceFromStart = position - start;
+  const distanceFromEnd = end - position;
+  if (distanceFromStart < AUTO_SCROLL_EDGE) {
+    const strength = 1 - (distanceFromStart / AUTO_SCROLL_EDGE);
+    return -Math.max(2, Math.round(AUTO_SCROLL_MAX * strength * strength));
+  }
+  if (distanceFromEnd < AUTO_SCROLL_EDGE) {
+    const strength = 1 - (distanceFromEnd / AUTO_SCROLL_EDGE);
+    return Math.max(2, Math.round(AUTO_SCROLL_MAX * strength * strength));
+  }
+  return 0;
+}
+
+function scrollContainerAtPointer(container, axis, clientX, clientY) {
+  if (!container) return false;
+  const bounds = container.getBoundingClientRect();
+  const insideCrossAxis = axis === 'vertical'
+    ? clientX >= bounds.left - 24 && clientX <= bounds.right + 24
+    : clientY >= bounds.top - 24 && clientY <= bounds.bottom + 24;
+  if (!insideCrossAxis) return false;
+
+  if (axis === 'vertical') {
+    const delta = edgeAutoScrollDelta(clientY, bounds.top, bounds.bottom);
+    if (!delta) return false;
+    const previous = container.scrollTop;
+    container.scrollTop += delta;
+    return container.scrollTop !== previous;
+  }
+
+  const delta = edgeAutoScrollDelta(clientX, bounds.left, bounds.right);
+  if (!delta) return false;
+  const previous = container.scrollLeft;
+  container.scrollLeft += delta;
+  return container.scrollLeft !== previous;
+}
+
+function dragAutoScrollTick() {
+  dragAutoScrollFrame = 0;
+  const interaction = pointerInteraction;
+  if (!interaction?.moved || !interaction.root?.isConnected) return;
+
+  const { root, lastX, lastY } = interaction;
+  scrollContainerAtPointer(root.querySelector('.tl-bench-list'), 'vertical', lastX, lastY);
+  scrollContainerAtPointer(root.querySelector('.tl-roster-grid.reserves'), 'horizontal', lastX, lastY);
+
+  dragAutoScrollFrame = requestAnimationFrame(dragAutoScrollTick);
+}
+
+function startDragAutoScroll() {
+  if (dragAutoScrollFrame) return;
+  dragAutoScrollFrame = requestAnimationFrame(dragAutoScrollTick);
+}
+
+function stopDragAutoScroll() {
+  if (!dragAutoScrollFrame) return;
+  cancelAnimationFrame(dragAutoScrollFrame);
+  dragAutoScrollFrame = 0;
+}
+
 function install(root) {
   if (installedRoots.has(root) || root.dataset.liveDom !== 'true') return;
   const descriptor = Object.getOwnPropertyDescriptor(root, 'innerHTML');
@@ -259,19 +324,25 @@ document.addEventListener('pointerdown', event => {
     playerId: player.dataset.dragPlayer,
     startX: event.clientX,
     startY: event.clientY,
+    lastX: event.clientX,
+    lastY: event.clientY,
     moved: false
   };
 }, true);
 
 document.addEventListener('pointermove', event => {
   if (!pointerInteraction || event.pointerId !== pointerInteraction.pointerId) return;
+  pointerInteraction.lastX = event.clientX;
+  pointerInteraction.lastY = event.clientY;
   if (Math.hypot(event.clientX - pointerInteraction.startX, event.clientY - pointerInteraction.startY) >= 5) {
     pointerInteraction.moved = true;
+    startDragAutoScroll();
   }
 }, true);
 
 function finishPointer(event) {
   if (!pointerInteraction || event.pointerId !== pointerInteraction.pointerId) return;
+  stopDragAutoScroll();
   setTimeout(() => {
     if (pointerInteraction?.pointerId === event.pointerId) pointerInteraction = null;
   }, 0);
@@ -303,5 +374,8 @@ window.addEventListener('resize', () => {
     scheduleGeometryLock(root);
   });
 });
-window.addEventListener('hashchange', scan);
+window.addEventListener('hashchange', () => {
+  stopDragAutoScroll();
+  scan();
+});
 scan();
