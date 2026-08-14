@@ -21,10 +21,18 @@ assert.ok(source.includes('syncSquadContainers(root, parser)'), 'lineup swaps mu
 assert.ok(source.includes('lockGeometry(root)'), 'lineup geometry must be measured and locked');
 assert.ok(source.includes("root.dataset.hardGeometry = 'true'"), 'geometry lock must be explicit');
 assert.ok(source.includes("window.addEventListener('resize'"), 'geometry may only be recalculated for a real viewport resize');
+assert.ok(source.includes('function dragAutoScrollTick()'), 'dragging must keep an animation-frame auto-scroll loop alive');
+assert.ok(source.includes("root.querySelector('.tl-bench-list'), 'vertical'"), 'bench drag must auto-scroll vertically near its edges');
+assert.ok(source.includes("root.querySelector('.tl-roster-grid.reserves'), 'horizontal'"), 'reserve drag must auto-scroll horizontally near its edges');
+assert.ok(source.includes('AUTO_SCROLL_EDGE = 72'), 'drag auto-scroll must expose a usable edge activation zone');
+assert.ok(source.includes('AUTO_SCROLL_MAX = 18'), 'drag auto-scroll speed must remain bounded and controllable');
+assert.ok(source.includes('startDragAutoScroll();'), 'pointer movement must start continuous drag auto-scroll');
+assert.ok(source.includes('stopDragAutoScroll();'), 'pointer completion must stop drag auto-scroll');
 
 assert.ok(studio.includes('setManualPosition(currentCareer'), 'manual pitch drop must be owned by the live studio state');
 assert.ok(studio.includes('applyFormationState(currentCareer, formation)'), 'formation changes must use the same authoritative state layer');
 assert.ok(studio.includes('syncDraftsFromCurrentCareer()'), 'manual changes must publish a fresh save draft immediately');
+assert.ok(studio.includes("if (firstStatus === 'bench' && secondStatus === 'bench')"), 'bench players must remain reorderable by dropping over another bench player');
 assert.ok(state.includes('career.tacticalLayouts[plan][phase][playerId]'), 'manual positions must persist by plan and phase');
 assert.ok(state.includes('career.formation = formation'), 'formation and layouts must live in the same state mutation layer');
 assert.ok(!index.includes('career-tactics-formation-manager.js'), 'stale duplicate formation controller must stay removed from runtime');
@@ -54,6 +62,10 @@ console.log(JSON.stringify({
   dragEnabled: true,
   pointerDownCancelled: false,
   pointerCapturePreserved: true,
+  benchDragAutoScroll: true,
+  reserveDragAutoScroll: true,
+  dragAutoScrollLoop: 'requestAnimationFrame',
+  benchReorderByDrop: true,
   lineupGeometry: 'pixel-locked',
   nativeFocusScroll: false,
   fieldHeightShift: false,
