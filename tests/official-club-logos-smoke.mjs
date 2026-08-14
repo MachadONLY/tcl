@@ -60,6 +60,8 @@ assert.match(bridgeSource, /IntersectionObserver/);
 assert.match(bridgeSource, /MutationObserver/);
 assert.match(bridgeSource, /\.tcc-external-crest/);
 assert.match(bridgeSource, /\.cp-external-crest/);
+assert.match(bridgeSource, /\.cp-fulltime > div > span/, 'post-match crest resolver must target the outer team wrapper, not the placeholder span itself');
+assert.doesNotMatch(bridgeSource, /\.cp-fulltime span'\)/, 'post-match resolver must not stop on the nested placeholder span');
 assert.match(bridgeSource, /data:image\/svg\+xml/);
 assert.match(playableSource, /class="cp-match/, 'live match screen must render through the shared playable crest markup');
 assert.match(playableSource, /class="cp-fulltime/, 'post-match screen must render through the shared playable crest markup');
@@ -90,5 +92,6 @@ console.log(JSON.stringify({
   requestMode: OFFICIAL_CLUB_LOGO_META.networkMode,
   cacheDays: OFFICIAL_CLUB_LOGO_META.cacheDays,
   liveAndPostmatchStaticFirst: true,
+  postMatchOuterTeamWrapperResolution: true,
   persistentCache: true
 }, null, 2));
