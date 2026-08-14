@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [source, css, studio, state, repository, index] = await Promise.all([
+const [source, css, dragCss, interactionGuard, studio, state, repository, index] = await Promise.all([
   readFile(new URL('../src/career-tactics-hard-stability.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-hard-stability.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-drag-polish.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/career-tactics-interaction-guard.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-studio.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-tactics-state.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/career-core/career-repository.js', import.meta.url), 'utf8'),
@@ -33,6 +35,14 @@ assert.ok(studio.includes('setManualPosition(currentCareer'), 'manual pitch drop
 assert.ok(studio.includes('applyFormationState(currentCareer, formation)'), 'formation changes must use the same authoritative state layer');
 assert.ok(studio.includes('syncDraftsFromCurrentCareer()'), 'manual changes must publish a fresh save draft immediately');
 assert.ok(studio.includes("if (firstStatus === 'bench' && secondStatus === 'bench')"), 'bench players must remain reorderable by dropping over another bench player');
+assert.ok(studio.includes("if (firstStatus === 'lineup' && secondStatus === 'lineup') return swapLineupPositions(firstId, secondId);"), 'any two XI players must swap positions when dropped onto each other');
+assert.ok(studio.includes("const targetPlayer = element?.closest('[data-drop-player]');"), 'drop resolution must prefer an explicit player target before the pitch surface');
+assert.ok(studio.includes('changed = swapPlayers(playerId, targetPlayer.dataset.dropPlayer);'), 'player-on-player drops must route through the universal swap engine');
+assert.ok(!interactionGuard.includes('tl-lineup-free-drag'), 'interaction guard must never make XI players invisible to hit testing');
+assert.ok(dragCss.includes('html.tl-is-dragging .tl-tactics-studio .tl-pitch .tl-player-node'), 'drag CSS must keep XI nodes as live drop targets');
+assert.ok(dragCss.includes('pointer-events:auto!important'), 'XI player buttons must remain hit-testable during active drag');
+assert.ok(!dragCss.includes('html.tl-lineup-free-drag'), 'obsolete free-drag hit-test suppression must stay removed');
+
 assert.ok(state.includes('career.tacticalLayouts[plan][phase][playerId]'), 'manual positions must persist by plan and phase');
 assert.ok(state.includes('career.formation = formation'), 'formation and layouts must live in the same state mutation layer');
 assert.ok(!index.includes('career-tactics-formation-manager.js'), 'stale duplicate formation controller must stay removed from runtime');
@@ -56,6 +66,9 @@ console.log(JSON.stringify({
   playerSelectionRender: false,
   freePitchMoveRender: false,
   freePitchPositionAuthority: 'single-studio-state',
+  playerOnPlayerSwap: true,
+  universalLineupSwap: true,
+  lineupDropTargetsStayHitTestable: true,
   duplicateFormationController: false,
   mutationSnapBack: false,
   savedManualCoordinates: true,
