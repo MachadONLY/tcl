@@ -53,7 +53,10 @@ function clubNameFromNode(node) {
     if (match?.[1]) return match[1].trim();
   }
 
-  const playableTeam = node.closest('.cp-fixture > div, .cp-match header > div, .cp-fulltime span');
+  // In the full-time screen the placeholder itself is also a <span>.
+  // Match only the outer team wrapper so closest() reaches the sibling <b>
+  // containing the club name instead of stopping on the placeholder node.
+  const playableTeam = node.closest('.cp-fixture > div, .cp-match header > div, .cp-fulltime > div > span');
   if (playableTeam) return textOf(playableTeam, 'b');
 
   const playableRow = node.closest('.cp-last > div, .cp-upcoming > div, .cp-calendar article');
