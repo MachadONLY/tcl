@@ -7,8 +7,11 @@ on:
       - "public/assets/clubs/2026-27/**"
       - "src/career-onboarding*"
       - "src/career-club-selector*"
+      - "src/career-tactics*"
+      - "src/career-core/career-repository.js"
       - "scripts/ensure-onboarding-pack.mjs"
       - "tests/onboarding-*"
+      - "tests/tactics-*"
       - "index.html"
       - "package.json"
       - ".github/workflows/onboarding-final-validation.yml"
@@ -56,6 +59,9 @@ jobs:
           done
           cat /tmp/touchline-vite.log
           exit 1
+
+      - name: Validate tactics formation, drag and reload in Chromium
+        run: node tests/tactics-browser-interaction.mjs
 
       - name: Validate exact club-to-media switching
         run: node tests/onboarding-club-switch-integrity.mjs

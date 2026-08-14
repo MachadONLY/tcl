@@ -6,3 +6,9 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# Generated on each machine from the FC26 world-data pipeline.
+public/generated/world-player-database.json
+
+# The current Premier League roster, ratings, manifests and player portraits
+# are intentionally versioned so a GitHub ZIP reproduces the same game build.

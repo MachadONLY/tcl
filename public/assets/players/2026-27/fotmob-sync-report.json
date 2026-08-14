@@ -1,0 +1,750 @@
+{
+  "generatedAt": "2026-08-05T20:43:46.330Z",
+  "teamCount": 20,
+  "playerCount": 628,
+  "officialRatingCount": 0,
+  "failures": [],
+  "validation": {
+    "coachExcluded": true,
+    "andreySantos": {
+      "name": "Andrey Santos",
+      "group": "MID",
+      "position": "DM, CM",
+      "number": 17,
+      "age": 22,
+      "fotmobId": 1372921,
+      "rating": null,
+      "ratingSource": "TOUCHLINE_ESTIMATE_NO_EA_MATCH",
+      "eaPlayerId": null
+    },
+    "youriTielemans": {
+      "name": "Youri Tielemans",
+      "group": "MID",
+      "position": "DM, CM, AM",
+      "number": 18,
+      "age": 29,
+      "fotmobId": 465960,
+      "rating": null,
+      "ratingSource": "TOUCHLINE_ESTIMATE_NO_EA_MATCH",
+      "eaPlayerId": null
+    }
+  },
+  "ratings": {
+    "generatedAt": "2026-08-05T20:44:22.484Z",
+    "source": "SOFIFA_LATEST_WITH_CONSERVATIVE_FALLBACK",
+    "sofifaRoster": "260007",
+    "sourceCounts": {
+      "SOFIFA_DATASET_CC_BY_4_0": 378,
+      "SOFIFA_API_LATEST": 1
+    },
+    "matched": 379,
+    "estimated": 249,
+    "cleanedNames": 17,
+    "audit": {
+      "passed": true,
+      "issues": [],
+      "teamCount": 20,
+      "playerCount": 628,
+      "realCount": 379,
+      "estimatedCount": 249,
+      "globalCoverage": 0.6035,
+      "teamReports": {
+        "ARS": {
+          "total": 32,
+          "real": 18,
+          "estimated": 14,
+          "coverage": 0.5625,
+          "maximumEstimated": 79,
+          "topRated": [
+            {
+              "name": "Gabriel",
+              "rating": 88,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Bukayo Saka",
+              "rating": 88,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "David Raya",
+              "rating": 87,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Declan Rice",
+              "rating": 87,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Martin Ødegaard",
+              "rating": 87,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "AVL": {
+          "total": 29,
+          "real": 16,
+          "estimated": 13,
+          "coverage": 0.5517,
+          "maximumEstimated": 79,
+          "topRated": [
+            {
+              "name": "Boubacar Kamara",
+              "rating": 83,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Ezri Konsa",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "John McGinn",
+              "rating": 81,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Pau Torres",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Lucas Digne",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "BOU": {
+          "total": 34,
+          "real": 17,
+          "estimated": 17,
+          "coverage": 0.5,
+          "maximumEstimated": 79,
+          "topRated": [
+            {
+              "name": "Djordje Petrovic",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Evanilson",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Fraser Forster",
+              "rating": 79,
+              "source": "TOUCHLINE_CONSERVATIVE_POSITION_ESTIMATE"
+            },
+            {
+              "name": "Will Dennis",
+              "rating": 79,
+              "source": "TOUCHLINE_CONSERVATIVE_POSITION_ESTIMATE"
+            },
+            {
+              "name": "Bafodé Diakité",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "BRE": {
+          "total": 33,
+          "real": 21,
+          "estimated": 12,
+          "coverage": 0.6364,
+          "maximumEstimated": 75,
+          "topRated": [
+            {
+              "name": "Mikkel Damsgaard",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Caoimhín Kelleher",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Nathan Collins",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Kevin Schade",
+              "rating": 78,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Sepp van den Berg",
+              "rating": 77,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "BHA": {
+          "total": 31,
+          "real": 22,
+          "estimated": 9,
+          "coverage": 0.7097,
+          "maximumEstimated": 77,
+          "topRated": [
+            {
+              "name": "Kaoru Mitoma",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Maxim De Cuyper",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Pascal Groß",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Olivier Boscagli",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Ferdi Kadioglu",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "CHE": {
+          "total": 46,
+          "real": 27,
+          "estimated": 19,
+          "coverage": 0.587,
+          "maximumEstimated": 78,
+          "topRated": [
+            {
+              "name": "Enzo Fernández",
+              "rating": 84,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Reece James",
+              "rating": 81,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Pedro Neto",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Nicolas Jackson",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Malo Gusto",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "COV": {
+          "total": 29,
+          "real": 19,
+          "estimated": 10,
+          "coverage": 0.6552,
+          "maximumEstimated": 70,
+          "topRated": [
+            {
+              "name": "Milan van Ewijk",
+              "rating": 74,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Luke Woolfenden",
+              "rating": 73,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Haji Wright",
+              "rating": 73,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Carl Rushworth",
+              "rating": 72,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Kaine Kesler-Hayden",
+              "rating": 72,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "CRY": {
+          "total": 34,
+          "real": 18,
+          "estimated": 16,
+          "coverage": 0.5294,
+          "maximumEstimated": 77,
+          "topRated": [
+            {
+              "name": "Jean-Philippe Mateta",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Dean Henderson",
+              "rating": 81,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Daniel Muñoz",
+              "rating": 81,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Yéremi Pino",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Walter Benítez",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "EVE": {
+          "total": 26,
+          "real": 17,
+          "estimated": 9,
+          "coverage": 0.6538,
+          "maximumEstimated": 77,
+          "topRated": [
+            {
+              "name": "Jordan Pickford",
+              "rating": 84,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "James Tarkowski",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Jarrad Branthwaite",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Vitaliy Mykolenko",
+              "rating": 78,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Michael Keane",
+              "rating": 77,
+              "source": "TOUCHLINE_CONSERVATIVE_POSITION_ESTIMATE"
+            }
+          ]
+        },
+        "FUL": {
+          "total": 23,
+          "real": 14,
+          "estimated": 9,
+          "coverage": 0.6087,
+          "maximumEstimated": 76,
+          "topRated": [
+            {
+              "name": "Antonee Robinson",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Bernd Leno",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Sasa Lukic",
+              "rating": 78,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Emile Smith Rowe",
+              "rating": 77,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Kenny Tete",
+              "rating": 76,
+              "source": "TOUCHLINE_CONSERVATIVE_POSITION_ESTIMATE"
+            }
+          ]
+        },
+        "HUL": {
+          "total": 30,
+          "real": 15,
+          "estimated": 15,
+          "coverage": 0.5,
+          "maximumEstimated": 73,
+          "topRated": [
+            {
+              "name": "Hidemasa Morita",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Jack Butland",
+              "rating": 75,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Oli McBurnie",
+              "rating": 74,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Matt Crooks",
+              "rating": 73,
+              "source": "TOUCHLINE_CONSERVATIVE_POSITION_ESTIMATE"
+            },
+            {
+              "name": "Reuben Silk",
+              "rating": 73,
+              "source": "TOUCHLINE_CONSERVATIVE_POSITION_ESTIMATE"
+            }
+          ]
+        },
+        "IPS": {
+          "total": 32,
+          "real": 17,
+          "estimated": 15,
+          "coverage": 0.5313,
+          "maximumEstimated": 74,
+          "topRated": [
+            {
+              "name": "Florentino",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Daizen Maeda",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Leif Davis",
+              "rating": 76,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Azor Matusiwa",
+              "rating": 76,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Jaden Philogene-Bidace",
+              "rating": 75,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "LEE": {
+          "total": 27,
+          "real": 17,
+          "estimated": 10,
+          "coverage": 0.6296,
+          "maximumEstimated": 79,
+          "topRated": [
+            {
+              "name": "Lucas Perri",
+              "rating": 81,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Alex Cairns",
+              "rating": 79,
+              "source": "TOUCHLINE_CONSERVATIVE_POSITION_ESTIMATE"
+            },
+            {
+              "name": "Anton Stach",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Jaka Bijol",
+              "rating": 77,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Gabriel Gudmundsson",
+              "rating": 77,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "LIV": {
+          "total": 29,
+          "real": 20,
+          "estimated": 9,
+          "coverage": 0.6897,
+          "maximumEstimated": 79,
+          "topRated": [
+            {
+              "name": "Virgil van Dijk",
+              "rating": 90,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Alisson Becker",
+              "rating": 89,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Alexander Isak",
+              "rating": 88,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Alexis Mac Allister",
+              "rating": 87,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Ryan Gravenberch",
+              "rating": 85,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "MCI": {
+          "total": 33,
+          "real": 19,
+          "estimated": 14,
+          "coverage": 0.5758,
+          "maximumEstimated": 79,
+          "topRated": [
+            {
+              "name": "Rodri",
+              "rating": 90,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Gianluigi Donnarumma",
+              "rating": 89,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Rúben Dias",
+              "rating": 86,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Josko Gvardiol",
+              "rating": 84,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Omar Marmoush",
+              "rating": 84,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "MUN": {
+          "total": 33,
+          "real": 23,
+          "estimated": 10,
+          "coverage": 0.697,
+          "maximumEstimated": 79,
+          "topRated": [
+            {
+              "name": "Bruno Fernandes",
+              "rating": 87,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Youri Tielemans",
+              "rating": 85,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Matheus Cunha",
+              "rating": 83,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Matthijs De Ligt",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Lisandro Martínez",
+              "rating": 81,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "NEW": {
+          "total": 30,
+          "real": 20,
+          "estimated": 10,
+          "coverage": 0.6667,
+          "maximumEstimated": 79,
+          "topRated": [
+            {
+              "name": "Bruno Guimarães",
+              "rating": 86,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Sven Botman",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Fabian Schär",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Joelinton",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Yoane Wissa",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "NFO": {
+          "total": 30,
+          "real": 21,
+          "estimated": 9,
+          "coverage": 0.7,
+          "maximumEstimated": 78,
+          "topRated": [
+            {
+              "name": "Murillo",
+              "rating": 83,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Nikola Milenkovic",
+              "rating": 83,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Morgan Gibbs-White",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Xaver Schlager",
+              "rating": 80,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Nicolás Dominguez",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        },
+        "SUN": {
+          "total": 30,
+          "real": 16,
+          "estimated": 14,
+          "coverage": 0.5333,
+          "maximumEstimated": 76,
+          "topRated": [
+            {
+              "name": "Granit Xhaka",
+              "rating": 85,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Nordi Mukiele",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Reinildo",
+              "rating": 79,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Omar Alderete",
+              "rating": 78,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Luke O'Nien",
+              "rating": 76,
+              "source": "TOUCHLINE_CONSERVATIVE_POSITION_ESTIMATE"
+            }
+          ]
+        },
+        "TOT": {
+          "total": 37,
+          "real": 22,
+          "estimated": 15,
+          "coverage": 0.5946,
+          "maximumEstimated": 79,
+          "topRated": [
+            {
+              "name": "Sandro Tonali",
+              "rating": 86,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Dejan Kulusevski",
+              "rating": 83,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Guglielmo Vicario",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Pedro Porro",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            },
+            {
+              "name": "Cristian Romero",
+              "rating": 82,
+              "source": "SOFIFA_DATASET_CC_BY_4_0"
+            }
+          ]
+        }
+      },
+      "references": {
+        "heaven": {
+          "rating": 69,
+          "source": "SOFIFA_API_LATEST"
+        },
+        "deLigt": {
+          "rating": 82,
+          "source": "SOFIFA_DATASET_CC_BY_4_0"
+        },
+        "rubenDias": {
+          "rating": 86,
+          "source": "SOFIFA_DATASET_CC_BY_4_0"
+        },
+        "tonali": null
+      }
+    }
+  }
+}

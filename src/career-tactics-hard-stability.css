@@ -1,0 +1,64 @@
+/* Player selection and drag must never change the field geometry. */
+.tl-tactics-studio[data-interaction-stable="true"]{
+  overflow-anchor:none!important;
+}
+
+.tl-tactics-studio[data-interaction-stable="true"][data-hard-geometry="true"][data-tactics-view="lineup"] .tl-war-room{
+  height:var(--tl-locked-war-height)!important;
+  min-height:var(--tl-locked-war-height)!important;
+  max-height:var(--tl-locked-war-height)!important;
+  contain:size layout;
+}
+
+.tl-tactics-studio[data-interaction-stable="true"][data-hard-geometry="true"][data-tactics-view="lineup"] .tl-pitch-stage{
+  height:var(--tl-locked-pitch-height)!important;
+  min-height:var(--tl-locked-pitch-height)!important;
+  max-height:var(--tl-locked-pitch-height)!important;
+  contain:size layout paint;
+}
+
+.tl-tactics-studio[data-interaction-stable="true"][data-hard-geometry="true"][data-tactics-view="lineup"] .tl-pitch{
+  height:var(--tl-locked-field-height)!important;
+  min-height:var(--tl-locked-field-height)!important;
+  max-height:var(--tl-locked-field-height)!important;
+  flex:0 0 var(--tl-locked-field-height)!important;
+  contain:size layout paint;
+}
+
+.tl-tactics-studio[data-interaction-stable="true"][data-hard-geometry="true"][data-tactics-view="lineup"] .tl-side-rail{
+  height:var(--tl-locked-rail-height)!important;
+  min-height:var(--tl-locked-rail-height)!important;
+  max-height:var(--tl-locked-rail-height)!important;
+  contain:size layout;
+}
+
+.tl-tactics-studio[data-interaction-stable="true"] .tl-player-node,
+.tl-tactics-studio[data-interaction-stable="true"] .tl-player-node.selected,
+.tl-tactics-studio[data-interaction-stable="true"] .tl-squad-card,
+.tl-tactics-studio[data-interaction-stable="true"] .tl-squad-card.selected{
+  margin:0!important;
+}
+
+.tl-tactics-studio[data-interaction-stable="true"] .tl-player-node.selected{
+  transform:translate3d(-50%,-50%,0)!important;
+}
+
+.tl-tactics-studio[data-interaction-stable="true"] .tl-squad-card.selected{
+  transform:none!important;
+}
+
+.tl-tactics-studio[data-interaction-stable="true"] [data-drag-player]:focus{
+  scroll-margin:0!important;
+}
+
+.tl-tactics-studio[data-interaction-stable="true"] [data-drag-player]:focus-visible{
+  outline:2px solid color-mix(in srgb,var(--tl-accent) 72%,#fff);
+  outline-offset:2px;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .tl-tactics-studio[data-interaction-stable="true"] .tl-player-node,
+  .tl-tactics-studio[data-interaction-stable="true"] .tl-squad-card{
+    transition:none!important;
+  }
+}

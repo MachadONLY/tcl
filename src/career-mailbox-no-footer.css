@@ -1,0 +1,14 @@
+#touchline-career-mailbox .tcm-footer {
+  display: none !important;
+}
+
+#touchline-career-mailbox .tcm-layout {
+  height: calc(100vh - 64px);
+  padding-bottom: 14px;
+}
+
+@media (max-height: 760px) {
+  #touchline-career-mailbox .tcm-layout {
+    padding-bottom: 8px;
+  }
+}

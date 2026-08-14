@@ -1,0 +1,64 @@
+.tl-official-club-logo {
+  display: block;
+  object-fit: contain !important;
+  object-position: center;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  padding: 2px;
+}
+
+.tcc-external-crest.tl-official-club-logo,
+.cp-external-crest.tl-official-club-logo {
+  border-radius: 0;
+  filter: drop-shadow(0 4px 8px rgba(0, 10, 18, .24));
+}
+
+/* Never paint the generic letter-ball while an official crest is resolving. */
+.tcc-external-crest[data-official-logo-state="queued"],
+.tcc-external-crest[data-official-logo-state="loading"],
+.cp-external-crest[data-official-logo-state="queued"],
+.cp-external-crest[data-official-logo-state="loading"],
+img[data-official-logo-state="loading"] {
+  opacity: 0 !important;
+}
+
+img[data-official-logo-state="loaded"] {
+  opacity: 1;
+  transition: opacity 160ms ease, transform 180ms ease;
+}
+
+/* Match and post-match crests share one centered visual contract. */
+.cp-match .tl-official-club-logo,
+.cp-fulltime .tl-official-club-logo {
+  box-sizing: border-box;
+  object-fit: contain !important;
+  object-position: center;
+  transform: none;
+}
+
+.cp-match header .tl-official-club-logo {
+  width: 40px;
+  height: 40px;
+  padding: 2px;
+}
+
+.cp-fulltime span .tl-official-club-logo {
+  width: 85px;
+  height: 85px;
+  padding: 5px;
+  margin: 0 auto 12px;
+}
+
+.tcc-club-option:hover .tl-official-club-logo,
+.tcc-fixture:hover .tl-official-club-logo {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-official-club-logo {
+    transition: none !important;
+  }
+}

@@ -1,0 +1,68 @@
+.tgh-profile-copy .tgh-profile-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #70d7ff;
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.tgh-profile-copy .tgh-profile-save::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #53e2a1;
+  box-shadow: 0 0 8px rgba(83, 226, 161, .8);
+}
+
+.tgh-career.has-save {
+  background:
+    linear-gradient(110deg, transparent 0 63%, rgba(255, 255, 255, .18) 63.2% 63.7%, transparent 63.9%),
+    repeating-linear-gradient(134deg, transparent 0 34px, rgba(0, 0, 0, .05) 35px 36px),
+    linear-gradient(115deg, #ffd116 0%, #ffdb22 58%, #eeb708 100%);
+}
+
+.tgh-career.has-save .tgh-career-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tgh-career.has-save .tgh-career-kicker::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #087a55;
+  box-shadow: 0 0 0 3px rgba(8, 122, 85, .13);
+}
+
+.tgh-career.has-save h1 {
+  font-size: clamp(31px, 2.9vw, 49px);
+}
+
+.tgh-career-save-info {
+  position: absolute;
+  z-index: 4;
+  right: 14px;
+  top: 12px;
+  max-width: 42%;
+  padding: 6px 8px;
+  color: rgba(4, 18, 40, .78);
+  border: 1px solid rgba(4, 18, 40, .18);
+  background: rgba(255, 239, 145, .5);
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-align: right;
+}
+
+.tgh-career-meta span {
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

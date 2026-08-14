@@ -1,7 +1,8 @@
-const CACHE_VERSION = "touchline-offline-v16";
+const CACHE_VERSION = "touchline-offline-v17";
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const MEDIA_CACHE = `${CACHE_VERSION}-media`;
 const CORE = ["/", "/index.html", "/assets/clubs/2026-27/manifest.json"];
+const DEVELOPMENT_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 function sameOriginPath(value) {
   try {
@@ -10,6 +11,19 @@ function sameOriginPath(value) {
   } catch {
     return null;
   }
+}
+
+function isApplicationCode(request, url) {
+  return request.mode === "navigate" ||
+    url.pathname === "/" ||
+    url.pathname === "/index.html" ||
+    url.pathname.startsWith("/src/") ||
+    /\.(?:html|m?js|css)$/i.test(url.pathname);
+}
+
+function isMediaAsset(url) {
+  return url.pathname.startsWith("/assets/") &&
+    /\.(?:png|jpe?g|webp|gif|svg|avif|woff2?)$/i.test(url.pathname);
 }
 
 async function cacheIndividually(cache, paths) {
@@ -48,6 +62,10 @@ async function discoverMediaAssets() {
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
+    if (DEVELOPMENT_HOSTS.has(self.location.hostname)) {
+      await self.skipWaiting();
+      return;
+    }
     const [appCache, mediaCache] = await Promise.all([
       caches.open(APP_CACHE),
       caches.open(MEDIA_CACHE)
@@ -70,24 +88,27 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(key => key.startsWith("touchline-") && ![APP_CACHE, MEDIA_CACHE].includes(key)).map(key => caches.delete(key)));
+    const validCaches = DEVELOPMENT_HOSTS.has(self.location.hostname) ? [] : [APP_CACHE, MEDIA_CACHE];
+    await Promise.all(
+      keys
+        .filter(key => key.startsWith("touchline-") && !validCaches.includes(key))
+        .map(key => caches.delete(key))
+    );
     await self.clients.claim();
   })());
 });
 
-async function cachedResponse(request) {
-  const cached = await caches.match(request, { ignoreSearch: false });
-  if (cached) return cached;
-
+async function networkFirst(request) {
   try {
-    const response = await fetch(request);
+    const response = await fetch(request, { cache: "no-store" });
     if (response.ok && request.url.startsWith(self.location.origin)) {
-      const target = request.url.includes("/assets/clubs/2026-27/") ? MEDIA_CACHE : APP_CACHE;
-      const cache = await caches.open(target);
+      const cache = await caches.open(APP_CACHE);
       cache.put(request, response.clone()).catch(() => {});
     }
     return response;
   } catch (error) {
+    const cached = await caches.match(request, { ignoreSearch: false });
+    if (cached) return cached;
     if (request.mode === "navigate") {
       const fallback = await caches.match("/index.html");
       if (fallback) return fallback;
@@ -96,10 +117,37 @@ async function cachedResponse(request) {
   }
 }
 
+async function cacheFirst(request) {
+  const cached = await caches.match(request, { ignoreSearch: false });
+  if (cached) return cached;
+  const response = await fetch(request);
+  if (response.ok && request.url.startsWith(self.location.origin)) {
+    const cache = await caches.open(MEDIA_CACHE);
+    cache.put(request, response.clone()).catch(() => {});
+  }
+  return response;
+}
+
 self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  event.respondWith(cachedResponse(request));
+
+  if (DEVELOPMENT_HOSTS.has(self.location.hostname)) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
+    return;
+  }
+
+  if (isApplicationCode(request, url)) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  if (isMediaAsset(url)) {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
+
+  event.respondWith(networkFirst(request));
 });

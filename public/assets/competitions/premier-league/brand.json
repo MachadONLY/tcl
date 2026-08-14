@@ -1,0 +1,11 @@
+{
+  "competition": "Premier League",
+  "season": "2026/27",
+  "officialSource": "https://logo.premierleague.com/",
+  "markSource": "https://github.com/simple-icons/simple-icons/blob/develop/icons/premierleague.svg",
+  "positive": "/assets/competitions/premier-league/logo-purple.svg",
+  "negative": "/assets/competitions/premier-league/logo-white.svg",
+  "primaryColor": "#37003C",
+  "usage": "Personal offline Touchline prototype",
+  "copyrightNotice": "© Copyright The Football Association Premier League Limited, 2016."
+}

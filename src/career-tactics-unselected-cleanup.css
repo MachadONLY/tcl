@@ -1,0 +1,319 @@
+/* The lower squad area has one purpose: show every player outside the match squad. */
+.tl-tactics-studio .tl-squad-manager > header{
+  min-height:30px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:6px!important;
+}
+
+/* Hide the legacy label, count and positional filters before the cleanup runtime runs. */
+.tl-tactics-studio .tl-squad-manager > header > div,
+.tl-tactics-studio .tl-squad-manager > header > nav,
+.tl-tactics-studio .tl-squad-manager > header small,
+.tl-tactics-studio .tl-squad-manager [data-roster-filter]{
+  display:none!important;
+}
+
+.tl-tactics-studio .tl-squad-manager > header:not(:has([data-unselected-title]))::before{
+  content:'Não relacionados';
+  color:#f4f7f9;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.02em;
+}
+
+.tl-tactics-studio [data-unselected-title]{
+  display:block;
+  color:#f4f7f9;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.02em;
+  line-height:1;
+}
+
+/* Native horizontal scrolling replaces the obsolete arrow/carousel controls. */
+.tl-tactics-studio .tl-squad-manager > header .tl-roster-scroll-tools{
+  display:none!important;
+}
+
+/* Keep the reserve lane shallow so the pitch still owns the screen. */
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-squad-manager{
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr)!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:1680px!important;
+  justify-self:stretch!important;
+  align-self:start!important;
+  margin:0 auto!important;
+  height:clamp(132px,15vh,150px)!important;
+  min-height:132px!important;
+  max-height:150px!important;
+  padding:9px 12px 8px!important;
+  overflow:hidden!important;
+}
+
+/*
+ * Exactly one horizontal lane. Cards never wrap vertically. The lane itself is
+ * the scroll container, so the user moves right freely until the final reserve.
+ */
+.tl-tactics-studio .tl-roster-grid.reserves{
+  display:grid!important;
+  grid-auto-flow:column!important;
+  grid-auto-columns:clamp(230px,18vw,280px)!important;
+  grid-template-columns:none!important;
+  grid-template-rows:minmax(64px,1fr)!important;
+  align-items:stretch!important;
+  align-content:stretch!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  gap:10px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  box-sizing:border-box!important;
+  padding:2px 12px 10px!important;
+  scroll-padding-inline:12px!important;
+  scroll-snap-type:x mandatory!important;
+  scroll-behavior:auto!important;
+  scrollbar-gutter:stable!important;
+  overscroll-behavior-x:contain!important;
+  overscroll-behavior-y:none!important;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:#6b7783 rgba(255,255,255,.035);
+}
+
+/* Never re-introduce fake spacer items that can visually clip the first card. */
+.tl-tactics-studio .tl-roster-grid.reserves::before,
+.tl-tactics-studio .tl-roster-grid.reserves::after{
+  content:none!important;
+  display:none!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card{
+  width:100%!important;
+  min-width:0!important;
+  min-height:64px!important;
+  height:100%!important;
+  flex:initial!important;
+  display:grid!important;
+  grid-template-columns:48px minmax(0,1fr) 42px!important;
+  align-items:center!important;
+  gap:11px!important;
+  padding:7px 10px!important;
+  border-radius:13px!important;
+  /* Keep the x-axis scroll context but do not force the lane to jump between cards. */
+  scroll-snap-align:none!important;
+  scroll-snap-stop:always!important;
+  cursor:grab!important;
+  user-select:none!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card:last-child{
+  scroll-snap-align:none!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card:active{
+  cursor:grabbing!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card .tl-squad-photo{
+  width:48px!important;
+  height:48px!important;
+  border-radius:11px!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card .tl-squad-copy{
+  min-width:0!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card .tl-squad-copy strong{
+  display:block!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:11px!important;
+  line-height:1.15!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card .tl-squad-copy small{
+  display:block!important;
+  max-width:100%!important;
+  margin-top:3px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:8.5px!important;
+  line-height:1.2!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card .tl-card-overall{
+  width:40px!important;
+  height:40px!important;
+  border-radius:10px!important;
+  font-size:12px!important;
+}
+
+/* Visible horizontal scrollbar. */
+.tl-tactics-studio .tl-roster-grid.reserves::-webkit-scrollbar{
+  width:0!important;
+  height:8px!important;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves::-webkit-scrollbar-track{
+  border-radius:999px;
+  background:rgba(255,255,255,.035);
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves::-webkit-scrollbar-thumb{
+  min-width:72px;
+  border:2px solid transparent;
+  border-radius:999px;
+  background:#697580;
+  background-clip:padding-box;
+}
+
+.tl-tactics-studio .tl-roster-grid.reserves::-webkit-scrollbar-thumb:hover{
+  background:#7f8b96;
+  background-clip:padding-box;
+}
+
+/* Bench stays vertical and readable. */
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list{
+  min-height:0!important;
+  max-height:none!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  padding:8px 9px 12px!important;
+  scrollbar-gutter:stable!important;
+  scrollbar-width:thin;
+  scrollbar-color:#6b7783 transparent;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list .tl-squad-card{
+  width:100%!important;
+  min-width:0!important;
+  min-height:62px!important;
+  display:grid!important;
+  grid-template-columns:48px minmax(0,1fr) 42px!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:7px 9px!important;
+  border-radius:13px!important;
+  cursor:grab!important;
+  user-select:none!important;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list .tl-squad-card:active{
+  cursor:grabbing!important;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list .tl-squad-photo{
+  width:48px!important;
+  height:48px!important;
+  border-radius:11px!important;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list .tl-squad-copy{
+  min-width:0!important;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list .tl-squad-copy strong{
+  display:block!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:11px!important;
+  line-height:1.15!important;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list .tl-squad-copy small{
+  display:block!important;
+  max-width:100%!important;
+  margin-top:4px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:9px!important;
+  line-height:1.2!important;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list .tl-card-overall{
+  width:40px!important;
+  height:40px!important;
+  border-radius:10px!important;
+  font-size:12px!important;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list::-webkit-scrollbar{
+  width:8px!important;
+  height:0!important;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list::-webkit-scrollbar-track{
+  border-radius:999px;
+  background:rgba(255,255,255,.035);
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list::-webkit-scrollbar-thumb{
+  border:2px solid transparent;
+  border-radius:999px;
+  background:#697580;
+  background-clip:padding-box;
+}
+
+.tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list::-webkit-scrollbar-thumb:hover{
+  background:#7f8b96;
+  background-clip:padding-box;
+}
+
+@media(max-height:820px){
+  .tl-tactics-studio[data-tactics-view="lineup"] .tl-squad-manager{
+    height:128px!important;
+    min-height:128px!important;
+    max-height:128px!important;
+    padding-top:7px!important;
+    padding-bottom:6px!important;
+  }
+}
+
+@media(max-width:1080px){
+  .tl-tactics-studio[data-tactics-view="lineup"] .tl-squad-manager{
+    width:100%!important;
+    max-width:100%!important;
+    height:136px!important;
+    min-height:136px!important;
+    max-height:136px!important;
+  }
+  .tl-tactics-studio .tl-roster-grid.reserves{
+    grid-auto-columns:clamp(220px,38vw,260px)!important;
+  }
+}
+
+@media(max-width:700px){
+  .tl-tactics-studio .tl-roster-grid.reserves{
+    grid-auto-columns:min(82vw,255px)!important;
+  }
+  .tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card,
+  .tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list .tl-squad-card{
+    grid-template-columns:44px minmax(0,1fr) 38px!important;
+    min-height:58px!important;
+    gap:10px!important;
+  }
+  .tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card .tl-squad-photo,
+  .tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list .tl-squad-photo{
+    width:44px!important;
+    height:44px!important;
+  }
+  .tl-tactics-studio .tl-roster-grid.reserves > .tl-squad-card .tl-card-overall,
+  .tl-tactics-studio[data-tactics-view="lineup"] .tl-bench-list .tl-card-overall{
+    width:38px!important;
+    height:38px!important;
+  }
+}

@@ -2,23 +2,37 @@ name: Touchline Quality
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/playable-career-v1]
   pull_request:
     branches: [main]
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout branch head without marketplace actions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "${CHECKOUT_SHA}"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "${CHECKOUT_SHA}"
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
+      - name: Use Node 22 from runner image
+        run: |
+          export NVM_DIR="$HOME/.nvm"
+          . "$NVM_DIR/nvm.sh"
+          nvm install 22
+          nvm use 22
+          echo "$NVM_BIN" >> "$GITHUB_PATH"
+          node --version
+          npm --version
 
       - name: Install dependencies
         run: npm ci
@@ -29,9 +43,58 @@ jobs:
           node --check src/career-mode-data.js
           node --check src/premier-league-live.js
           node --check src/career-face-recovery.js
+          node --check src/career-core/result-integrity.js
+          node --check src/career-core/mailbox-core.js
+          node --check src/career-core/league-hub-data.js
+          node --check src/career-mailbox.js
+          node --check src/career-league-hub.js
+          node --check src/career-home-processing.js
+          node --check src/career-world/deterministic-rng.js
+          node --check src/career-world/world-state.js
+          node --check src/career-world/world-employment-index.js
+          node --check src/career-world/world-player-database.js
+          node --check src/career-world/daily-tick.js
+          node --check src/career-world/world-engine.js
+          node --check src/career-world/world-match-adapter.js
+          node --check src/career-world/clubs/club-brain.js
+          node --check src/career-world/clubs/european-brain-registry.js
+          node --check src/career-world/clubs/squad-analysis.js
+          node --check src/career-world/clubs/ai-team-management.js
+          node --check src/career-world/transfers/player-brain.js
+          node --check src/career-world/transfers/competition-engine.js
+          node --check src/career-world/transfers/rumor-engine.js
+          node --check src/career-world/transfers/recruitment-ai.js
+          node --check src/career-world/transfers/transfer-engine.js
+          node --check src/career-world/transfers/valuation-engine.js
+          node --check scripts/official-ea-ratings.mjs
+          node --check scripts/sync-world-player-database.mjs
+          node --check scripts/ensure-world-player-database.mjs
+          node --check tests/world-player-database-smoke.mjs
+          node --check tests/living-market-v2-smoke.mjs
 
-      - name: Build production bundle
+      - name: Build production bundle and run all integrity tests
         run: npm run build
+
+      - name: Test World Player Database builder
+        run: node tests/world-player-database-smoke.mjs
+
+      - name: Test living rumor and competition market
+        run: node tests/living-market-v2-smoke.mjs
+
+      - name: Test FM-style calendar processing
+        run: node tests/career-home-processing-smoke.mjs
+
+      - name: Test Living World engine
+        run: node tests/career-world-smoke.mjs
+
+      - name: Test individual club intelligence
+        run: node tests/club-brain-smoke.mjs
+
+      - name: Test AI manager rotation and tactics
+        run: node tests/ai-team-management-smoke.mjs
+
+      - name: Audit FC 26 ratings for all 20 clubs
+        run: npm run sync:ratings:fc26
 
       - name: Run MVP smoke tests
         run: npm run test:mvp
